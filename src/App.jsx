@@ -19,9 +19,31 @@ import { fetchResults } from './lib/results';
 import { fetchLicense } from './lib/license';
 
 function LoadingScreen() {
+  const [showRetry, setShowRetry] = useState(false);
+
+  useEffect(() => {
+    // If loading takes longer than 8 seconds, something's probably gone
+    // wrong (a hung request, a real error, or an edge case we haven't
+    // seen) — rather than leave the screen stuck forever with no way
+    // out, offer a manual reload.
+    const t = setTimeout(() => setShowRetry(true), 8000);
+    return () => clearTimeout(t);
+  }, []);
+
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#5D7291', fontFamily: 'Calibri, sans-serif' }}>
-      Loading ClassRoll…
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', gap: 14, alignItems: 'center', justifyContent: 'center', color: '#5D7291', fontFamily: 'Calibri, sans-serif' }}>
+      <div>Loading ClassRoll…</div>
+      {showRetry && (
+        <div style={{ textAlign: 'center', fontSize: 13 }}>
+          <div style={{ marginBottom: 8 }}>This is taking longer than expected.</div>
+          <button
+            onClick={() => window.location.reload()}
+            style={{ background: '#385DE9', color: '#fff', border: 'none', borderRadius: 6, padding: '8px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+          >
+            Reload the page
+          </button>
+        </div>
+      )}
     </div>
   );
 }

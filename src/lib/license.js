@@ -33,42 +33,24 @@ export async function fetchLicense(schoolId) {
   };
 }
 
-// Records a purchase (new history row) and increases the balance. Two
-// separate calls rather than one atomic transaction — fine at this app's
-// scale, but worth knowing: a Postgres function (RPC) would be the more
-// bulletproof version if purchase volume ever gets high enough for two
-// admins to purchase at the exact same moment.
-export async function purchaseLicense(schoolId, examCount, pricePerExam) {
-  const amount = examCount * pricePerExam;
-  const reference = `GVC-PSK-${Math.floor(10000 + Math.random() * 89999)}`;
-
-  const { data: historyRow, error: histError } = await supabase
-    .from('license_history')
-    .insert({ school_id: schoolId, exams: examCount, amount, reference, status: 'successful' })
-    .select()
-    .single();
-  if (histError) throw histError;
-
-  const { data: current, error: fetchErr } = await supabase
-    .from('license')
-    .select('balance')
-    .eq('school_id', schoolId)
-    .single();
-  if (fetchErr) throw fetchErr;
-
-  const { data: updated, error: updateErr } = await supabase
-    .from('license')
-    .update({ balance: current.balance + examCount })
-    .eq('school_id', schoolId)
-    .select()
-    .single();
-  if (updateErr) throw updateErr;
-
-  return { balance: updated.balance, historyEntry: mapHistoryRow(historyRow) };
+// Calls the verify-payment Edge Function, which checks the payment with
+// Paystack directly (server-side, using the secret key) before crediting
+// anything. The client never decides on its own whether a payment
+// succeeded — see supabase/functions/verify-payment/index.ts for why
+// that matters.
+export async function verifyAndCreditPurchase(reference, schoolId, examCount) {
+  const { data, error } = await supabase.functions.invoke('verify-payment', {
+    body: { reference, schoolId, examCount },
+  });
+  if (error) throw error;
+  if (data?.error) throw new Error(data.error);
+  return data; // { balance, historyEntry }
 }
 
-// Deducts credits when an admin assigns tests/exams. Same not-fully-atomic
-// caveat as purchaseLicense above.
+// Deducts credits when an admin assigns tests/exams. Not a fully atomic
+// operation (a fetch-then-update, not a single transaction) — fine at
+// this app's scale, but worth knowing if purchase/assignment volume ever
+// gets high enough for two admins to act on the same school at once.
 export async function deductLicense(schoolId, count) {
   const { data: current, error: fetchErr } = await supabase
     .from('license')

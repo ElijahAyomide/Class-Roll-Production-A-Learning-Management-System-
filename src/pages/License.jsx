@@ -4,7 +4,8 @@ import DashboardLayout from '../components/DashboardLayout';
 import Badge from '../components/Badge';
 import Modal from '../components/Modal';
 import { useSchool } from '../context/SchoolContext';
-import { purchaseLicense } from '../lib/license';
+import { verifyAndCreditPurchase } from '../lib/license';
+import { signInAdmin } from '../lib/auth';
 
 export default function License({ license, setLicense }) {
   const { school } = useSchool();
@@ -13,6 +14,7 @@ export default function License({ license, setLicense }) {
   const [confirmingPassword, setConfirmingPassword] = useState(false);
   const [password, setPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [verifyingPassword, setVerifyingPassword] = useState(false);
   const [purchaseError, setPurchaseError] = useState('');
 
   const total = examCount * license.pricePerExam;
@@ -22,7 +24,44 @@ export default function License({ license, setLicense }) {
     if (!examCount || examCount <= 0) return;
     setPassword('');
     setPasswordError('');
+    setPurchaseError('');
     setConfirmingPassword(true);
+  };
+
+  const openPaystackCheckout = () => {
+    if (!window.PaystackPop) {
+      setPurchaseError('Payment system failed to load. Please refresh the page and try again.');
+      return;
+    }
+    setProcessing(true);
+    const reference = `CR-${school.code}-${Date.now()}`;
+
+    const handler = window.PaystackPop.setup({
+      key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
+      email: school.email,
+      amount: Math.round(total * 100), // Paystack expects kobo, not naira
+      currency: 'NGN',
+      ref: reference,
+      metadata: { schoolId: school.id, examCount },
+      callback: function (response) {
+        // IMPORTANT: this callback firing does NOT mean the payment is
+        // trustworthy on its own — it just means Paystack's popup closed
+        // with a reference. The real check happens server-side next.
+        verifyAndCreditPurchase(response.reference, school.id, examCount)
+          .then(({ balance, historyEntry }) => {
+            setLicense(prev => ({ ...prev, balance, history: [historyEntry, ...prev.history] }));
+            setProcessing(false);
+          })
+          .catch((err) => {
+            setPurchaseError(err.message || 'Payment could not be verified. If you were charged, contact support with reference ' + response.reference + '.');
+            setProcessing(false);
+          });
+      },
+      onClose: function () {
+        setProcessing(false);
+      },
+    });
+    handler.openIframe();
   };
 
   const confirmAndPay = async (e) => {
@@ -31,18 +70,20 @@ export default function License({ license, setLicense }) {
       setPasswordError('Enter your password to continue.');
       return;
     }
-    // Demo mode — any password is accepted here. Real validation happens
-    // against the school's actual account once Authentication is built.
-    setConfirmingPassword(false);
-    setProcessing(true);
-    setPurchaseError('');
+    setVerifyingPassword(true);
+    setPasswordError('');
     try {
-      const { balance, historyEntry } = await purchaseLicense(school.id, examCount, license.pricePerExam);
-      setLicense(prev => ({ ...prev, balance, history: [historyEntry, ...prev.history] }));
+      // Re-checks the real password against your actual account —
+      // signing in again with the same credentials doesn't disrupt your
+      // current session, it just confirms you are who you say you are
+      // right before real money moves.
+      await signInAdmin(school.email, password);
+      setConfirmingPassword(false);
+      openPaystackCheckout();
     } catch (err) {
-      setPurchaseError(err.message || 'Payment could not be completed. Please try again.');
+      setPasswordError('Incorrect password.');
     } finally {
-      setProcessing(false);
+      setVerifyingPassword(false);
     }
   };
 
@@ -74,7 +115,7 @@ export default function License({ license, setLicense }) {
               <CreditCard size={15} /> {processing ? 'Processing…' : 'Proceed to Payment'}
             </button>
             {purchaseError && <div className="error-text">{purchaseError}</div>}
-            <div className="field-hint">You'll be asked to confirm your password before payment goes through.</div>
+            <div className="field-hint">You'll be asked to confirm your password, then pay securely via Paystack.</div>
           </form>
         </div>
       </div>
@@ -126,9 +167,10 @@ export default function License({ license, setLicense }) {
             </div>
             <div className="confirm-actions">
               <button type="button" className="btn-ghost" onClick={() => setConfirmingPassword(false)}>Cancel</button>
-              <button type="submit" className="btn-primary">Confirm & Pay</button>
+              <button type="submit" className="btn-primary" disabled={verifyingPassword}>
+                {verifyingPassword ? 'Checking…' : 'Confirm & Pay'}
+              </button>
             </div>
-            <div className="field-hint">Demo mode — any password is accepted for now. Real account validation is wired in during the Authentication build step.</div>
           </form>
         </Modal>
       )}
