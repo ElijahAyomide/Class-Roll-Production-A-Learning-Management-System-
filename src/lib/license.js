@@ -16,7 +16,7 @@ export async function fetchLicense(schoolId) {
     .from('license')
     .select('*')
     .eq('school_id', schoolId)
-    .single();
+    .maybeSingle();
   if (licError) throw licError;
 
   const { data: historyRows, error: histError } = await supabase
@@ -26,9 +26,11 @@ export async function fetchLicense(schoolId) {
     .order('created_at', { ascending: false });
   if (histError) throw histError;
 
+  // A school with no license row yet is treated as 0 credits instead of
+  // crashing the whole dashboard load.
   return {
-    balance: licenseRow.balance,
-    pricePerExam: licenseRow.price_per_exam,
+    balance: licenseRow?.balance ?? 0,
+    pricePerExam: licenseRow?.price_per_exam ?? 200,
     history: historyRows.map(mapHistoryRow),
   };
 }
@@ -42,9 +44,18 @@ export async function verifyAndCreditPurchase(reference, schoolId, examCount) {
   const { data, error } = await supabase.functions.invoke('verify-payment', {
     body: { reference, schoolId, examCount },
   });
-  if (error) throw error;
+  if (error) {
+    // For non-2xx replies, supabase-js hides the server's message inside
+    // error.context, so dig it out to show a useful message.
+    let message = 'Payment could not be verified.';
+    try {
+      const body = await error.context.json();
+      if (body?.error) message = body.error;
+    } catch { /* keep generic message */ }
+    throw new Error(message);
+  }
   if (data?.error) throw new Error(data.error);
-  return data; // { balance, historyEntry }
+  return data; // { balance, alreadyProcessed }
 }
 
 // Deducts credits when an admin assigns tests/exams. Not a fully atomic

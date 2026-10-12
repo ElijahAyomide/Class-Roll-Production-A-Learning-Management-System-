@@ -3,12 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Clock, CheckCircle2, ArrowLeft, ArrowRight } from 'lucide-react';
 import { useStudentSession } from '../../context/StudentSessionContext';
 import Modal from '../../components/Modal';
-import { fetchStudentById } from '../../lib/students';
-import { fetchAssignmentsForStudent, markAssignmentCompleted } from '../../lib/assignments';
-import { fetchQuestionById } from '../../lib/questions';
-import { fetchQuestionItems } from '../../lib/questionItems';
-import { createResult } from '../../lib/results';
-import { gradeFor } from '../../data/mockData';
+import { studentApi } from '../../lib/studentApi';
 
 function formatTime(totalSeconds) {
   const m = Math.floor(totalSeconds / 60);
@@ -16,108 +11,113 @@ function formatTime(totalSeconds) {
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
+// Answers are kept in the browser (per exam) so a refresh doesn't wipe them.
+// The TIMER, however, lives on the server, so it can't be reset by refreshing.
+const answersKey = (id) => `classroll-answers-${id}`;
+function loadSavedAnswers(id) {
+  try { return JSON.parse(localStorage.getItem(answersKey(id)) || '{}'); } catch { return {}; }
+}
+function saveAnswers(id, answers) {
+  try { localStorage.setItem(answersKey(id), JSON.stringify(answers)); } catch { /* not critical */ }
+}
+function clearAnswers(id) {
+  try { localStorage.removeItem(answersKey(id)); } catch { /* not critical */ }
+}
+
 export default function StudentExam() {
   const { assignmentId } = useParams();
   const navigate = useNavigate();
-  const { currentStudentId } = useStudentSession();
+  const { studentToken, setStudentToken } = useStudentSession();
 
-  const [student, setStudent] = useState(null);
   const [assignment, setAssignment] = useState(null);
-  const [questionSet, setQuestionSet] = useState(null);
+  const [title, setTitle] = useState('');
   const [examQuestions, setExamQuestions] = useState([]);
   const [setupLoading, setSetupLoading] = useState(true);
   const [setupError, setSetupError] = useState('');
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState({});
+  const [deadline, setDeadline] = useState(null); // timestamp (ms) when time runs out
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [confirmingSubmit, setConfirmingSubmit] = useState(false);
 
-  // Everything this page needs is fetched fresh, independently — this
-  // page doesn't rely on any admin session or pre-loaded data.
+  const sessionExpired = () => { setStudentToken(null); navigate('/login'); };
+
+  // Ask the server to start (or resume) the exam. The server returns the
+  // questions WITHOUT answers, plus how many seconds are really left.
   useEffect(() => {
-    if (!currentStudentId) { navigate('/login'); return; }
+    if (!studentToken) { navigate('/login'); return; }
 
     let cancelled = false;
     setSetupLoading(true);
     setSetupError('');
 
-    (async () => {
-      try {
-        const s = await fetchStudentById(currentStudentId);
-        if (!s) { navigate('/login'); return; }
-
-        const studentAssignments = await fetchAssignmentsForStudent(s.id);
-        const a = studentAssignments.find(x => x.id === assignmentId);
-        if (!a || a.completed) { navigate('/student'); return; }
-
-        const qs = await fetchQuestionById(a.questionId);
-        if (!qs) { navigate('/student'); return; }
-
-        const items = await fetchQuestionItems(qs.id);
-        if (items.length === 0) {
-          if (!cancelled) setSetupError('No questions were found for this exam yet. Please contact your school admin.');
-          return;
-        }
-
-        if (!cancelled) {
-          setStudent(s);
-          setAssignment(a);
-          setQuestionSet(qs);
-          setExamQuestions(items);
-          setSecondsLeft(a.durationMinutes * 60);
-        }
-      } catch (err) {
-        if (!cancelled) setSetupError(err.message || 'Could not load this exam.');
-      } finally {
-        if (!cancelled) setSetupLoading(false);
-      }
-    })();
+    studentApi.startExam(studentToken, assignmentId)
+      .then((d) => {
+        if (cancelled) return;
+        setAssignment(d.assignment);
+        setTitle(d.title);
+        setExamQuestions(d.questions);
+        setAnswers(loadSavedAnswers(assignmentId));
+        setDeadline(Date.now() + d.secondsLeft * 1000);
+        setSecondsLeft(d.secondsLeft);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        if (err.status === 401) { sessionExpired(); return; }
+        if (err.status === 409 || err.status === 404) { navigate('/student'); return; }
+        setSetupError(err.message || 'Could not load this exam.');
+      })
+      .finally(() => { if (!cancelled) setSetupLoading(false); });
 
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentStudentId, assignmentId]);
+  }, [studentToken, assignmentId]);
 
+  const chooseAnswer = (questionId, optionIndex) => {
+    setAnswers(prev => {
+      const next = { ...prev, [questionId]: optionIndex };
+      saveAnswers(assignmentId, next);
+      return next;
+    });
+  };
+
+  // The server does the grading. We just send the answers.
   const doSubmit = async () => {
-    if (submitted || submitting || !assignment || !student || !questionSet) return;
+    if (submitted || submitting || !assignment) return;
     setSubmitting(true);
     setSubmitError('');
-
-    let correct = 0;
-    examQuestions.forEach(q => { if (answers[q.id] === q.correctIndex) correct += 1; });
-    const scorePct = examQuestions.length ? Math.round((correct / examQuestions.length) * 100) : 0;
-    const grade = gradeFor(scorePct);
-
     try {
-      await createResult(student.schoolId, student.id, {
-        studentName: student.name, username: student.username, class: student.class,
-        subject: assignment.subject, exam: questionSet.title,
-        score: scorePct, total: 100, grade, date: new Date().toISOString().slice(0, 10), type: assignment.type,
-      });
-      await markAssignmentCompleted(assignment.id);
-
-      // Note: score/grade are saved to the admin's results above, but
-      // intentionally never shown to the student — results are admin-only.
+      await studentApi.submitExam(studentToken, assignment.id, answers);
+      clearAnswers(assignmentId);
       setSubmitted(true);
     } catch (err) {
+      if (err.status === 401) { sessionExpired(); return; }
+      if (err.status === 409) { clearAnswers(assignmentId); setSubmitted(true); return; } // already submitted
       setSubmitError(err.message || "Something went wrong submitting your exam. Don't worry — your answers are still here. Try submitting again.");
     } finally {
       setSubmitting(false);
     }
   };
 
-  // Countdown timer — auto-submits the moment time runs out. Waits for
-  // setup to finish first, so it can't fire before the exam is visible.
+  // Countdown — based on the real deadline, so it stays accurate even if the
+  // browser slows down a background tab. Auto-submits at zero.
   useEffect(() => {
-    if (submitted || setupLoading || !assignment) return;
-    if (secondsLeft <= 0) { doSubmit(); return; }
-    const t = setTimeout(() => setSecondsLeft(s => s - 1), 1000);
-    return () => clearTimeout(t);
+    if (submitted || setupLoading || !assignment || deadline === null) return;
+    const tick = () => setSecondsLeft(Math.max(0, Math.ceil((deadline - Date.now()) / 1000)));
+    tick();
+    const t = setInterval(tick, 1000);
+    return () => clearInterval(t);
+  }, [deadline, submitted, setupLoading, assignment]);
+
+  useEffect(() => {
+    if (submitted || setupLoading || !assignment || deadline === null) return;
+    if (secondsLeft <= 0 && !submitting && !submitError) doSubmit();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [secondsLeft, submitted, setupLoading]);
+  }, [secondsLeft]);
 
   if (setupLoading) {
     return (
@@ -142,7 +142,7 @@ export default function StudentExam() {
     );
   }
 
-  if (!assignment || !questionSet) return null;
+  if (!assignment) return null;
 
   const answeredCount = Object.keys(answers).length;
   const q = examQuestions[currentIndex];
@@ -154,7 +154,7 @@ export default function StudentExam() {
         <div className="exam-result-card">
           <div className="exam-result-icon"><CheckCircle2 size={28} /></div>
           <div className="exam-result-title">Submitted Successfully</div>
-          <div className="exam-result-subject">{assignment.subject} · {questionSet.title}</div>
+          <div className="exam-result-subject">{assignment.subject} · {title}</div>
           <div className="exam-result-detail">Your answers have been recorded. Your school will share your result with you.</div>
           <button className="btn-primary" onClick={() => navigate('/student')}>Continue</button>
         </div>
@@ -167,7 +167,7 @@ export default function StudentExam() {
       <div className="exam-header">
         <div>
           <div className="exam-header-subject">{assignment.subject}</div>
-          <div className="exam-header-title">{questionSet.title}</div>
+          <div className="exam-header-title">{title}</div>
         </div>
         <div className="exam-header-actions">
           <div className={`exam-timer ${lowTime ? 'exam-timer-low' : ''}`}>
@@ -202,7 +202,7 @@ export default function StudentExam() {
               <label key={i} className={`exam-option ${answers[q.id] === i ? 'exam-option-selected' : ''}`}>
                 <input
                   type="radio" name={`q-${q.id}`} checked={answers[q.id] === i}
-                  onChange={() => setAnswers(prev => ({ ...prev, [q.id]: i }))}
+                  onChange={() => chooseAnswer(q.id, i)}
                 />
                 {opt}
               </label>

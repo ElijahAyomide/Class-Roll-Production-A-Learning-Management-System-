@@ -4,7 +4,7 @@ import DashboardLayout from '../components/DashboardLayout';
 import Badge from '../components/Badge';
 import Modal from '../components/Modal';
 import { useSchool } from '../context/SchoolContext';
-import { verifyAndCreditPurchase } from '../lib/license';
+import { verifyAndCreditPurchase, fetchLicense } from '../lib/license';
 import { signInAdmin } from '../lib/auth';
 
 export default function License({ license, setLicense }) {
@@ -48,8 +48,12 @@ export default function License({ license, setLicense }) {
         // trustworthy on its own — it just means Paystack's popup closed
         // with a reference. The real check happens server-side next.
         verifyAndCreditPurchase(response.reference, school.id, examCount)
-          .then(({ balance, historyEntry }) => {
-            setLicense(prev => ({ ...prev, balance, history: [historyEntry, ...prev.history] }));
+          // The server may report the payment was already credited (by the
+          // Paystack webhook), so we simply reload the real balance and
+          // history rather than trying to patch them by hand.
+          .then(() => fetchLicense(school.id))
+          .then((fresh) => {
+            setLicense(fresh);
             setProcessing(false);
           })
           .catch((err) => {

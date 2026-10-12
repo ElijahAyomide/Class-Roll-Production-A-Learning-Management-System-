@@ -12,18 +12,6 @@ function mapAssignment(row) {
     completed: row.completed,
   };
 }
-
-// Used by the student portal — fetches just one student's assignments,
-// no school-wide join needed since we already know the student directly.
-export async function fetchAssignmentsForStudent(studentId) {
-  const { data, error } = await supabase
-    .from('assignments')
-    .select('*')
-    .eq('student_id', studentId);
-  if (error) throw error;
-  return data.map(mapAssignment);
-}
-
 // Fetches every assignment belonging to any student at this school, in one
 // query (via a join on students.school_id), rather than one query per
 // student. The caller (App.jsx) groups these back onto each student.
@@ -64,10 +52,5 @@ export async function replaceAssignments(studentId, type, subjects) {
     .eq('type', type)
     .eq('completed', false)
     .in('subject', subjects);
-  if (error) throw error;
-}
-
-export async function markAssignmentCompleted(assignmentId) {
-  const { error } = await supabase.from('assignments').update({ completed: true }).eq('id', assignmentId);
   if (error) throw error;
 }

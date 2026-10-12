@@ -28,28 +28,6 @@ export async function fetchStudents(schoolId) {
   if (error) throw error;
   return data.map(mapStudent);
 }
-
-// Used by the student login tab — searches across all schools by
-// username, since a student's device has no admin session to scope the
-// search to one school. Usernames are only guaranteed unique per school
-// in the database, but the auto-generated format (SCHOOLCODE/year/seq)
-// makes real collisions between different schools extremely unlikely.
-export async function findStudentByCredentials(username, surname) {
-  const { data, error } = await supabase
-    .from('students')
-    .select('*')
-    .ilike('username', username)
-    .ilike('surname', surname);
-  if (error) throw error;
-  return data.length > 0 ? mapStudent(data[0]) : null;
-}
-
-export async function fetchStudentById(studentId) {
-  const { data, error } = await supabase.from('students').select('*').eq('id', studentId).maybeSingle();
-  if (error) throw error;
-  return mapStudent(data);
-}
-
 export async function createStudent(schoolId, student) {
   const { data, error } = await supabase
     .from('students')

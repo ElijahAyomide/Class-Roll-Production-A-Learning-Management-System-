@@ -25,26 +25,3 @@ export async function fetchResults(schoolId) {
   if (error) throw error;
   return data.map(mapResult);
 }
-
-export async function createResult(schoolId, studentId, result) {
-  const { data, error } = await supabase
-    .from('results')
-    .insert({
-      school_id: schoolId,
-      student_id: studentId,
-      student_name: result.studentName,
-      username: result.username,
-      class: result.class,
-      subject: result.subject,
-      exam_title: result.exam,
-      score: result.score,
-      total: result.total,
-      grade: result.grade,
-      type: result.type,
-      date: result.date,
-    })
-    .select()
-    .single();
-  if (error) throw error;
-  return mapResult(data);
-}

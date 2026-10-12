@@ -1,33 +1,34 @@
 import React, { createContext, useContext, useState } from 'react';
 
 const StudentSessionContext = createContext(null);
-const STORAGE_KEY = 'classroll-student-session';
+const STORAGE_KEY = 'classroll-student-token';
+const OLD_STORAGE_KEY = 'classroll-student-session';
 
 export function StudentSessionProvider({ children }) {
-  // Reads from localStorage once, on first load — this is what fixes
-  // students getting logged out every time they refresh the page.
-  // Nothing sensitive is stored here, just the student's own database id.
-  const [currentStudentId, setCurrentStudentIdState] = useState(() => {
+  // The token is a long random code issued by the server when a student
+  // signs in. It proves who they are on every request. It is kept in
+  // localStorage so a page refresh doesn't sign the student out.
+  const [studentToken, setStudentTokenState] = useState(() => {
     try {
+      localStorage.removeItem(OLD_STORAGE_KEY); // tidy up the old, insecure id-based session
       return localStorage.getItem(STORAGE_KEY) || null;
     } catch {
       return null; // localStorage can throw in some private-browsing modes
     }
   });
 
-  const setCurrentStudentId = (id) => {
-    setCurrentStudentIdState(id);
+  const setStudentToken = (token) => {
+    setStudentTokenState(token);
     try {
-      if (id) localStorage.setItem(STORAGE_KEY, id);
+      if (token) localStorage.setItem(STORAGE_KEY, token);
       else localStorage.removeItem(STORAGE_KEY);
     } catch {
-      // If localStorage is unavailable, the session just won't survive a
-      // refresh — not worth failing the whole sign-in over.
+      // If localStorage is unavailable the session just won't survive a refresh.
     }
   };
 
   return (
-    <StudentSessionContext.Provider value={{ currentStudentId, setCurrentStudentId }}>
+    <StudentSessionContext.Provider value={{ studentToken, setStudentToken }}>
       {children}
     </StudentSessionContext.Provider>
   );

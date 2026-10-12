@@ -5,8 +5,7 @@ import { useSchool } from '../context/SchoolContext';
 import { useStudentSession } from '../context/StudentSessionContext';
 import { signUpAdmin, signInAdmin } from '../lib/auth';
 import { claimOrCreateSchool } from '../lib/schools';
-import { findStudentByCredentials } from '../lib/students';
-import { fetchAssignmentsForStudent } from '../lib/assignments';
+import { studentApi } from '../lib/studentApi';
 import { NIGERIAN_STATES } from '../data/mockData';
 import ExamIllustration from '../components/ExamIllustration';
 
@@ -18,7 +17,7 @@ const EMPTY_REGISTER = {
 export default function Login() {
   const navigate = useNavigate();
   const { setSchoolDirectly } = useSchool();
-  const { setCurrentStudentId } = useStudentSession();
+  const { setStudentToken } = useStudentSession();
   const [tab, setTab] = useState('admin'); // 'admin' | 'student'
   const [adminMode, setAdminMode] = useState('signin'); // 'signin' | 'register'
   const [imageFailed, setImageFailed] = useState(false);
@@ -66,23 +65,10 @@ export default function Login() {
     }
     setStudentChecking(true);
     try {
-      const match = await findStudentByCredentials(username, surname);
-      if (!match) {
-        setStudentError("Username or surname is incorrect. Check with your school admin if you're not sure.");
-        return;
-      }
-      if (match.status === 'suspended') {
-        setStudentError('Your account has been suspended. Please contact your school admin.');
-        return;
-      }
-      const assignments = await fetchAssignmentsForStudent(match.id);
-      const today = new Date().toISOString().slice(0, 10);
-      const hasAvailable = assignments.some(a => !a.completed && a.date <= today);
-      if (!hasAvailable) {
-        setStudentError("You don't have any test or exam available to take right now. Check with your school admin.");
-        return;
-      }
-      setCurrentStudentId(match.id);
+      // The server checks the username + surname, applies the lockout rules,
+      // and checks the student has something to take. We only get a token back.
+      const { token } = await studentApi.login(username, surname);
+      setStudentToken(token);
       navigate('/student');
     } catch (err) {
       setStudentError(err.message || 'Something went wrong. Please try again.');
