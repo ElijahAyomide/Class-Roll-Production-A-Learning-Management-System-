@@ -5,12 +5,13 @@ import DashboardLayout from '../components/DashboardLayout';
 import { useSchool } from '../context/SchoolContext';
 import { NIGERIAN_STATES } from '../data/mockData';
 import ClassesSubjectsPanel from '../components/ClassesSubjectsPanel';
+import { signInAdmin, changePassword } from '../lib/auth';
 
 const SECTIONS = ['School Profile', 'Classes & Subjects', 'Admin Account'];
 
 export default function Settings() {
   const [section, setSection] = useState(SECTIONS[0]);
-  const { school, setSchool } = useSchool();
+  const { school, setSchool, session } = useSchool();
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -37,10 +38,39 @@ export default function Settings() {
     }
   };
 
-  const flashSaved = (e) => {
+  const [pw, setPw] = useState({ current: '', next: '', confirm: '' });
+  const [pwError, setPwError] = useState('');
+  const [pwSaving, setPwSaving] = useState(false);
+  const [pwSaved, setPwSaved] = useState(false);
+
+  const submitPassword = async (e) => {
     e.preventDefault();
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    setPwError('');
+    setPwSaved(false);
+    if (!pw.current) { setPwError('Enter your current password.'); return; }
+    if (pw.next.length < 6) { setPwError('New password must be at least 6 characters.'); return; }
+    if (pw.next !== pw.confirm) { setPwError('The new passwords do not match.'); return; }
+    if (pw.next === pw.current) { setPwError('Your new password must be different from the current one.'); return; }
+
+    setPwSaving(true);
+    try {
+      // Confirm the current password first (uses the email this account
+      // signs in with, which may differ from the school's contact email).
+      try {
+        await signInAdmin(session.user.email, pw.current);
+      } catch {
+        setPwError('Your current password is incorrect.');
+        return;
+      }
+      await changePassword(pw.next);
+      setPw({ current: '', next: '', confirm: '' });
+      setPwSaved(true);
+      setTimeout(() => setPwSaved(false), 4000);
+    } catch (err) {
+      setPwError(err.message || 'Could not update your password. Please try again.');
+    } finally {
+      setPwSaving(false);
+    }
   };
 
   const handleLogoUpload = (e) => {
@@ -137,21 +167,24 @@ export default function Settings() {
           {section === 'Classes & Subjects' && <ClassesSubjectsPanel />}
 
           {section === 'Admin Account' && (
-            <form onSubmit={flashSaved} className="quick-add-form">
+            <form onSubmit={submitPassword} className="quick-add-form">
               <div className="field">
                 <label>CURRENT PASSWORD</label>
-                <PasswordInput placeholder="••••••••" />
+                <PasswordInput placeholder="••••••••" value={pw.current} onChange={e => setPw({ ...pw, current: e.target.value })} />
               </div>
               <div className="field">
                 <label>NEW PASSWORD</label>
-                <PasswordInput placeholder="••••••••" />
+                <PasswordInput placeholder="At least 6 characters" value={pw.next} onChange={e => setPw({ ...pw, next: e.target.value })} />
               </div>
               <div className="field">
                 <label>CONFIRM NEW PASSWORD</label>
-                <PasswordInput placeholder="••••••••" />
+                <PasswordInput placeholder="••••••••" value={pw.confirm} onChange={e => setPw({ ...pw, confirm: e.target.value })} />
               </div>
-              <button type="submit" className="btn-primary"><Save size={15} /> Update Password</button>
-              {saved && <div className="success-note">Password updated.</div>}
+              {pwError && <div className="error-text">{pwError}</div>}
+              <button type="submit" className="btn-primary" disabled={pwSaving}>
+                <Save size={15} /> {pwSaving ? 'Updating…' : 'Update Password'}
+              </button>
+              {pwSaved && <div className="success-note">Password updated.</div>}
             </form>
           )}
         </div>

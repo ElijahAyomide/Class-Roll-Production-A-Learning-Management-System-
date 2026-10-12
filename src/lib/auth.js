@@ -44,3 +44,19 @@ export function onAuthStateChange(callback) {
   });
   return () => data.subscription.unsubscribe();
 }
+
+// Sends a "reset your password" email. The link inside it brings the admin
+// back to /reset-password on this same site, already signed in for just long
+// enough to choose a new password.
+export async function requestPasswordReset(email) {
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${window.location.origin}/reset-password`,
+  });
+  if (error) throw error;
+}
+
+// Sets a new password for whoever is currently signed in.
+export async function changePassword(newPassword) {
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+  if (error) throw error;
+}

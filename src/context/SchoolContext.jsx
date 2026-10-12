@@ -23,6 +23,13 @@ export function SchoolProvider({ children }) {
   // if so, it discards its own (now-stale) result instead of applying it.
   const requestIdRef = useRef(0);
 
+  // Remembers which admin's school is already loaded. Supabase fires an
+  // auth event not only on real sign-ins but also on token refreshes and
+  // when someone re-confirms their password (Settings, License). For the
+  // SAME admin we skip the reload, otherwise the whole dashboard would flash
+  // a loading screen and wipe whatever the person was in the middle of.
+  const loadedUserIdRef = useRef(null);
+
   const loadSchool = async (userId) => {
     const myRequestId = ++requestIdRef.current;
     try {
@@ -32,6 +39,7 @@ export function SchoolProvider({ children }) {
       }
       setSchoolState(s);
       setDbError(null);
+      if (s) loadedUserIdRef.current = userId;
     } catch (err) {
       if (requestIdRef.current !== myRequestId) return;
       console.error('Failed to load school:', err.message);
@@ -54,9 +62,11 @@ export function SchoolProvider({ children }) {
     const unsubscribe = onAuthStateChange((s) => {
       setSession(s);
       if (s) {
+        if (loadedUserIdRef.current === s.user.id) return; // same admin, school already loaded
         setLoading(true);
         loadSchool(s.user.id);
       } else {
+        loadedUserIdRef.current = null;
         requestIdRef.current++; // invalidate any fetch still in flight
         setSchoolState(null);
         setLoading(false);

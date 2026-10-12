@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { GraduationCap, ArrowRight, UserPlus } from 'lucide-react';
 import { useSchool } from '../context/SchoolContext';
 import { useStudentSession } from '../context/StudentSessionContext';
-import { signUpAdmin, signInAdmin } from '../lib/auth';
+import { signUpAdmin, signInAdmin, requestPasswordReset } from '../lib/auth';
 import { claimOrCreateSchool } from '../lib/schools';
 import { studentApi } from '../lib/studentApi';
 import { NIGERIAN_STATES } from '../data/mockData';
@@ -20,7 +20,7 @@ export default function Login() {
   const { setSchoolDirectly } = useSchool();
   const { setStudentToken } = useStudentSession();
   const [tab, setTab] = useState('admin'); // 'admin' | 'student'
-  const [adminMode, setAdminMode] = useState('signin'); // 'signin' | 'register'
+  const [adminMode, setAdminMode] = useState('signin'); // 'signin' | 'register' | 'forgot'
   const [imageFailed, setImageFailed] = useState(false);
 
   const [email, setEmail] = useState('');
@@ -52,6 +52,27 @@ export default function Login() {
       setSignInError(err.message || 'Could not sign in. Check your email and password.');
     } finally {
       setSigningIn(false);
+    }
+  };
+
+  const [resetSending, setResetSending] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
+  const [resetError, setResetError] = useState('');
+
+  const submitForgot = async (e) => {
+    e.preventDefault();
+    setResetError('');
+    if (!email.trim()) { setResetError('Enter the email you registered with.'); return; }
+    setResetSending(true);
+    try {
+      await requestPasswordReset(email.trim());
+      // Same message whether or not an account exists, so this form can't
+      // be used to find out which emails are registered.
+      setResetSent(true);
+    } catch (err) {
+      setResetError(err.message || 'Could not send the reset email. Please try again in a few minutes.');
+    } finally {
+      setResetSending(false);
     }
   };
 
@@ -166,8 +187,29 @@ export default function Login() {
             <button type="submit" className="btn-primary login-submit" disabled={signingIn}>
               {signingIn ? 'Signing In…' : 'Sign In'} {!signingIn && <ArrowRight size={15} />}
             </button>
+            <button type="button" className="login-switch-link" onClick={() => { setResetSent(false); setResetError(''); setAdminMode('forgot'); }}>
+              Forgot password?
+            </button>
             <button type="button" className="login-switch-link" onClick={() => setAdminMode('register')}>
               New school? Register here
+            </button>
+          </form>
+        )}
+
+        {tab === 'admin' && adminMode === 'forgot' && (
+          <form onSubmit={submitForgot} className="login-form">
+            <div className="field-hint">Enter the email you registered with and we'll send you a link to choose a new password.</div>
+            <div className="field">
+              <label>SCHOOL EMAIL</label>
+              <input type="email" placeholder="admin@yourschool.edu.ng" value={email} onChange={e => setEmail(e.target.value)} />
+            </div>
+            {resetError && <div className="error-text">{resetError}</div>}
+            {resetSent && <div className="success-note">If that email is registered, a reset link is on its way. Check your inbox (and spam folder).</div>}
+            <button type="submit" className="btn-primary login-submit" disabled={resetSending}>
+              {resetSending ? 'Sending…' : resetSent ? 'Send Again' : 'Send Reset Link'}
+            </button>
+            <button type="button" className="login-switch-link" onClick={() => setAdminMode('signin')}>
+              Back to sign in
             </button>
           </form>
         )}

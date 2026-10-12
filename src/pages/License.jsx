@@ -9,7 +9,7 @@ import { verifyAndCreditPurchase, fetchLicense } from '../lib/license';
 import { signInAdmin } from '../lib/auth';
 
 export default function License({ license, setLicense }) {
-  const { school } = useSchool();
+  const { school, session } = useSchool();
   const [examCount, setExamCount] = useState(50);
   const [processing, setProcessing] = useState(false);
   const [confirmingPassword, setConfirmingPassword] = useState(false);
@@ -82,7 +82,7 @@ export default function License({ license, setLicense }) {
       // signing in again with the same credentials doesn't disrupt your
       // current session, it just confirms you are who you say you are
       // right before real money moves.
-      await signInAdmin(school.email, password);
+      await signInAdmin(session?.user?.email || school.email, password);
       setConfirmingPassword(false);
       openPaystackCheckout();
     } catch (err) {
