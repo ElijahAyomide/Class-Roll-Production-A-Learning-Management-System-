@@ -587,3 +587,25 @@ button, input, select { font-family: inherit; }
   .exam-footer { flex-wrap: wrap; gap: 10px; }
   .exam-progress-text { order: 3; width: 100%; text-align: center; }
 }
+
+/* Settings → Classes & Subjects */
+.cs-add-row { display: flex; gap: 8px; }
+.cs-add-row input { flex: 1; min-width: 0; }
+.cs-empty { margin-top: 14px; padding: 18px; background: var(--surface-2); border-radius: 8px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.cs-list { display: flex; flex-direction: column; gap: 12px; margin-top: 14px; }
+.cs-card { background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+.cs-card-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.cs-class-name { font-weight: 700; font-size: 14px; color: var(--ink); }
+.cs-spacer { flex: 1; }
+.cs-rename { display: flex; align-items: center; gap: 6px; flex: 1; }
+.cs-rename input { flex: 1; min-width: 0; max-width: 240px; }
+.cs-icon-btn { background: transparent; border: none; padding: 5px; border-radius: 5px; color: var(--ink-dim); cursor: pointer; display: inline-flex; }
+.cs-icon-btn:hover { background: var(--surface); color: var(--primary); }
+.cs-confirm { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--red); font-weight: 600; }
+.cs-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.cs-tag { display: inline-flex; align-items: center; gap: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 4px 6px 4px 11px; font-size: 12.5px; color: var(--ink); }
+.cs-tag button { background: transparent; border: none; padding: 2px; border-radius: 50%; color: var(--ink-faint); cursor: pointer; display: inline-flex; }
+.cs-tag button:hover { color: var(--red); }
+.cs-add-subject { display: flex; gap: 8px; flex-wrap: wrap; }
+.cs-add-subject input { flex: 1; min-width: 180px; }
+.cs-copy-select { max-width: 190px; }

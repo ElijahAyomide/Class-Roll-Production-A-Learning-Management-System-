@@ -3,17 +3,19 @@ import { Search, Pencil, Trash2, UserPlus } from 'lucide-react';
 import DashboardLayout from '../components/DashboardLayout';
 import Badge from '../components/Badge';
 import Modal from '../components/Modal';
+import { useClassSetup } from '../context/ClassSetupContext';
 import { useSchool } from '../context/SchoolContext';
 import { createStudent, updateStudent, deleteStudent } from '../lib/students';
-import { CLASSES, subjectPoolForClass, nextUsername, STUDENT_STATUSES, statusLabel, statusBadgeTone } from '../data/mockData';
+import { nextUsername, studentSequence, STUDENT_STATUSES, statusLabel, statusBadgeTone } from '../data/mockData';
 
 export default function Students({ students, setStudents }) {
+  const { classes: CLASSES, subjectsFor: subjectPoolForClass } = useClassSetup();
   const { school } = useSchool();
   const [search, setSearch] = useState('');
   const [classFilter, setClassFilter] = useState('all');
   const [editing, setEditing] = useState(null); // student object or 'new'
   const [confirmDelete, setConfirmDelete] = useState(null);
-  const [form, setForm] = useState({ name: '', class: CLASSES[0], subjects: [], status: 'pending' });
+  const [form, setForm] = useState({ name: '', class: CLASSES[0] || '', subjects: [], status: 'pending' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -28,7 +30,7 @@ export default function Students({ students, setStudents }) {
   }, [students, search, classFilter]);
 
   const openNew = () => {
-    setForm({ name: '', class: CLASSES[0], subjects: [], status: 'pending' });
+    setForm({ name: '', class: CLASSES[0] || '', subjects: [], status: 'pending' });
     setError('');
     setEditing('new');
   };
@@ -53,7 +55,7 @@ export default function Students({ students, setStudents }) {
     setError('');
     try {
       if (editing === 'new') {
-        const username = nextUsername(students.length, form.class, school.code);
+        const username = nextUsername(studentSequence(students), form.class, school.code);
         const surname = form.name.trim().split(' ').slice(-1)[0];
         const saved = await createStudent(school.id, {
           name: form.name.trim(), username, surname,
@@ -86,9 +88,10 @@ export default function Students({ students, setStudents }) {
   };
 
   const subjectPool = subjectPoolForClass(form.class);
+  const classOptions = [...new Set([...CLASSES, ...students.map(s => s.class)])];
 
   return (
-    <DashboardLayout title="Students" subtitle={`${students.length} students across ${CLASSES.length} classes`}>
+    <DashboardLayout title="Students" subtitle={`${students.length} students across ${classOptions.length} classes`}>
       <div className="card">
         <div className="toolbar">
           <div className="search-input-wrap toolbar-search">
@@ -100,7 +103,7 @@ export default function Students({ students, setStudents }) {
           </div>
           <select value={classFilter} onChange={e => setClassFilter(e.target.value)} className="filter-select">
             <option value="all">All classes</option>
-            {CLASSES.map(c => <option key={c} value={c}>{c}</option>)}
+            {classOptions.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
           <button className="btn-primary" onClick={openNew}><UserPlus size={15} /> Add Student</button>
         </div>
@@ -161,6 +164,7 @@ export default function Students({ students, setStudents }) {
             <div className="field">
               <label>SUBJECT COMBINATION</label>
               <div className="subject-chips">
+                {subjectPool.length === 0 && <span className="field-hint">{CLASSES.length === 0 ? 'No classes yet.' : 'No subjects set for this class yet.'} <a href="/settings">Set them up in Settings</a>.</span>}
                 {subjectPool.map(subj => (
                   <button
                     type="button" key={subj}

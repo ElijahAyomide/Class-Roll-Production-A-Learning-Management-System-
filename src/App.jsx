@@ -17,6 +17,8 @@ import { fetchAssignmentsForSchool } from './lib/assignments';
 import { fetchQuestions } from './lib/questions';
 import { fetchResults } from './lib/results';
 import { fetchLicense } from './lib/license';
+import { fetchClasses } from './lib/classes';
+import { ClassSetupProvider } from './context/ClassSetupContext';
 
 function LoadingScreen() {
   const [showRetry, setShowRetry] = useState(false);
@@ -82,6 +84,7 @@ function AdminArea() {
   const [questions, setQuestions] = useState([]);
   const [results, setResults] = useState([]);
   const [license, setLicense] = useState({ balance: 0, pricePerExam: 200, history: [] });
+  const [classRows, setClassRows] = useState([]);
   const [dataLoading, setDataLoading] = useState(true);
 
   useEffect(() => {
@@ -97,8 +100,9 @@ function AdminArea() {
       fetchQuestions(school.id),
       fetchResults(school.id),
       fetchLicense(school.id),
+      fetchClasses(school.id),
     ])
-      .then(([studentRows, assignmentRows, questionRows, resultRows, licenseData]) => {
+      .then(([studentRows, assignmentRows, questionRows, resultRows, licenseData, classData]) => {
         const studentsWithAssignments = studentRows.map(s => ({
           ...s,
           assignments: assignmentRows.filter(a => a.studentId === s.id),
@@ -107,6 +111,7 @@ function AdminArea() {
         setQuestions(questionRows);
         setResults(resultRows);
         setLicense(licenseData);
+        setClassRows(classData);
       })
       .catch((err) => console.error('Failed to load admin data from Supabase:', err.message))
       .finally(() => setDataLoading(false));
@@ -125,6 +130,7 @@ function AdminArea() {
   }
 
   return (
+    <ClassSetupProvider classRows={classRows} setClassRows={setClassRows}>
     <Routes>
       <Route path="dashboard" element={
         <Dashboard students={students} setStudents={setStudents} questions={questions} results={results} license={license} setLicense={setLicense} />
@@ -137,5 +143,6 @@ function AdminArea() {
       <Route path="sign-out" element={<SignOut />} />
       <Route path="*" element={<Navigate to="dashboard" replace />} />
     </Routes>
+    </ClassSetupProvider>
   );
 }

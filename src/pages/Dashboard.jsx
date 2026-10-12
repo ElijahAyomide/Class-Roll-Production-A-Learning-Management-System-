@@ -6,19 +6,21 @@ import DashboardLayout from '../components/DashboardLayout';
 import StatCard from '../components/StatCard';
 import Badge from '../components/Badge';
 import Modal from '../components/Modal';
+import { useClassSetup } from '../context/ClassSetupContext';
 import { useSchool } from '../context/SchoolContext';
 import { createStudent, updateStudent, deleteStudent } from '../lib/students';
 import { createAssignments, replaceAssignments } from '../lib/assignments';
 import { deductLicense } from '../lib/license';
-import { CLASSES, subjectPoolForClass, nextUsername, RECENT_ACTIVITY, statusLabel, statusBadgeTone, DURATION_OPTIONS } from '../data/mockData';
+import { nextUsername, studentSequence, RECENT_ACTIVITY, statusLabel, statusBadgeTone, DURATION_OPTIONS } from '../data/mockData';
 
 const CHART_COLORS = { line: '#E4E6F0', dim: '#6B7280', bar: '#385DE9' };
 
 export default function Dashboard({ students, setStudents, questions, results, license, setLicense }) {
+  const { classes: CLASSES, subjectsFor: subjectPoolForClass } = useClassSetup();
   const { school } = useSchool();
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
-  const [form, setForm] = useState({ name: '', class: CLASSES[0], subjects: [] });
+  const [form, setForm] = useState({ name: '', class: CLASSES[0] || '', subjects: [] });
   const [added, setAdded] = useState(false);
   const [addSaving, setAddSaving] = useState(false);
   const [addError, setAddError] = useState('');
@@ -26,7 +28,7 @@ export default function Dashboard({ students, setStudents, questions, results, l
   // Viewing/editing a student found via the dashboard search box
   const [viewingStudent, setViewingStudent] = useState(null);
   const [detailMode, setDetailMode] = useState('view'); // 'view' | 'edit'
-  const [editForm, setEditForm] = useState({ name: '', class: CLASSES[0], subjects: [], status: 'pending' });
+  const [editForm, setEditForm] = useState({ name: '', class: CLASSES[0] || '', subjects: [], status: 'pending' });
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [savingEdit, setSavingEdit] = useState(false);
   const [editError, setEditError] = useState('');
@@ -169,11 +171,12 @@ export default function Dashboard({ students, setStudents, questions, results, l
       map[r.class].total += r.score;
       map[r.class].count += 1;
     });
-    return CLASSES.map(c => ({
+    const classList = [...new Set([...CLASSES, ...results.map(r => r.class)])];
+    return classList.map(c => ({
       class: c,
       avg: map[c] ? Math.round(map[c].total / map[c].count) : 0,
     })).filter(c => c.avg > 0);
-  }, [results]);
+  }, [results, CLASSES]);
 
   const searchResults = useMemo(() => {
     if (!search.trim()) return [];
@@ -196,14 +199,14 @@ export default function Dashboard({ students, setStudents, questions, results, l
     setAddSaving(true);
     setAddError('');
     try {
-      const username = nextUsername(students.length, form.class, school.code);
+      const username = nextUsername(studentSequence(students), form.class, school.code);
       const surname = form.name.trim().split(' ').slice(-1)[0];
       const saved = await createStudent(school.id, {
         name: form.name.trim(), username, surname,
         class: form.class, subjects: form.subjects, status: 'pending',
       });
       setStudents(prev => [...prev, saved]);
-      setForm({ name: '', class: CLASSES[0], subjects: [] });
+      setForm({ name: '', class: CLASSES[0] || '', subjects: [] });
       setAdded(true);
       setTimeout(() => setAdded(false), 2500);
     } catch (err) {
@@ -239,6 +242,7 @@ export default function Dashboard({ students, setStudents, questions, results, l
             <div className="field">
               <label>SUBJECT COMBINATION</label>
               <div className="subject-chips">
+                {subjectPool.length === 0 && <span className="field-hint">{CLASSES.length === 0 ? 'No classes yet.' : 'No subjects set for this class yet.'} <a href="/settings">Set them up in Settings</a>.</span>}
                 {subjectPool.map(subj => (
                   <button
                     type="button" key={subj}
@@ -252,7 +256,7 @@ export default function Dashboard({ students, setStudents, questions, results, l
             </div>
             {form.name.trim() && (
               <div className="username-preview">
-                Username will be <b>{nextUsername(students.length, form.class, school.code)}</b>
+                Username will be <b>{nextUsername(studentSequence(students), form.class, school.code)}</b>
               </div>
             )}
             {addError && <div className="error-text">{addError}</div>}
@@ -388,6 +392,7 @@ export default function Dashboard({ students, setStudents, questions, results, l
             <div className="field">
               <label>SUBJECT COMBINATION</label>
               <div className="subject-chips">
+                {editSubjectPool.length === 0 && <span className="field-hint">No subjects set for this class yet. <a href="/settings">Set them up in Settings</a>.</span>}
                 {editSubjectPool.map(subj => (
                   <button
                     type="button" key={subj}

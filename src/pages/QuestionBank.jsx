@@ -3,22 +3,23 @@ import { Upload, Trash2, FileText, File as FileIcon, Download } from 'lucide-rea
 import DashboardLayout from '../components/DashboardLayout';
 import Badge from '../components/Badge';
 import Modal from '../components/Modal';
+import { useClassSetup } from '../context/ClassSetupContext';
 import { useSchool } from '../context/SchoolContext';
 import { createQuestion, deleteQuestion } from '../lib/questions';
 import { createQuestionItems } from '../lib/questionItems';
 import { parseQuestionFile } from '../lib/parseQuestionFile';
-import { CLASSES, subjectPoolForClass } from '../data/mockData';
 
 const DEFAULT_TITLES = { test: 'Mid-Term Test', exam: 'First Term Examination' };
 
 export default function QuestionBank({ questions, setQuestions }) {
+  const { classes: CLASSES, subjectsFor: subjectPoolForClass } = useClassSetup();
   const { school } = useSchool();
   const [classFilter, setClassFilter] = useState('all');
   const [subjectFilter, setSubjectFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
   const [uploading, setUploading] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
-  const [form, setForm] = useState({ type: 'test', title: DEFAULT_TITLES.test, class: CLASSES[0], subject: '', file: null });
+  const [form, setForm] = useState({ type: 'test', title: DEFAULT_TITLES.test, class: CLASSES[0] || '', subject: '', file: null });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [rowErrors, setRowErrors] = useState([]);
@@ -35,6 +36,7 @@ export default function QuestionBank({ questions, setQuestions }) {
   }, [questions, classFilter, subjectFilter, typeFilter]);
 
   const allSubjects = [...new Set(questions.map(q => q.subject))];
+  const classOptions = [...new Set([...CLASSES, ...questions.map(q => q.class)])];
 
   const submit = async (e) => {
     e.preventDefault();
@@ -67,7 +69,7 @@ export default function QuestionBank({ questions, setQuestions }) {
       await createQuestionItems(saved.id, items);
 
       setQuestions(prev => [saved, ...prev]);
-      setForm({ type: 'test', title: DEFAULT_TITLES.test, class: CLASSES[0], subject: '', file: null });
+      setForm({ type: 'test', title: DEFAULT_TITLES.test, class: CLASSES[0] || '', subject: '', file: null });
       setUploading(false);
     } catch (err) {
       setError(err.message || 'Could not upload this question set. Please try again.');
@@ -98,7 +100,7 @@ export default function QuestionBank({ questions, setQuestions }) {
           </select>
           <select value={classFilter} onChange={e => setClassFilter(e.target.value)} className="filter-select">
             <option value="all">All classes</option>
-            {CLASSES.map(c => <option key={c} value={c}>{c}</option>)}
+            {classOptions.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
           <select value={subjectFilter} onChange={e => setSubjectFilter(e.target.value)} className="filter-select">
             <option value="all">All subjects</option>
@@ -188,7 +190,7 @@ export default function QuestionBank({ questions, setQuestions }) {
             <div className="field">
               <label>SUBJECT</label>
               <select value={form.subject} onChange={e => setForm({ ...form, subject: e.target.value })}>
-                <option value="">Select a subject</option>
+                <option value="">{subjectPool.length === 0 ? 'No subjects set for this class (add them in Settings)' : 'Select a subject'}</option>
                 {subjectPool.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>

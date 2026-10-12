@@ -174,3 +174,16 @@ export const RECENT_ACTIVITY = [
   { id: 'a3', text: 'Added Amaka Obi to SS1', time: 'Yesterday' },
   { id: 'a4', text: 'Purchased 50 exam credits', time: '2 days ago' },
 ];
+
+// Next free student number for a school. Uses the highest number already
+// used in usernames (not just how many students exist), so deleting a
+// student can never cause the next new student to get a username that is
+// already taken.
+export function studentSequence(students) {
+  let max = students.length;
+  for (const s of students) {
+    const m = /\/(\d+)$/.exec(s.username || '');
+    if (m) max = Math.max(max, parseInt(m[1], 10));
+  }
+  return max;
+}

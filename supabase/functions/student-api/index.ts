@@ -22,7 +22,7 @@
 //
 // SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are provided automatically.
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -49,10 +49,27 @@ class ApiError extends Error {
   }
 }
 
-const supabase = createClient(
-  Deno.env.get('SUPABASE_URL')!,
-  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-);
+// The database client is created lazily (the first time it's needed), not
+// while the function is starting up, so a startup problem can never stop
+// the function from answering the browser's pre-flight check.
+let _client: any = null;
+function getClient() {
+  if (!_client) {
+    _client = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+      { auth: { persistSession: false, autoRefreshToken: false } },
+    );
+  }
+  return _client;
+}
+const supabase: any = new Proxy({}, {
+  get: (_t, prop) => {
+    const c = getClient();
+    const v = c[prop as string];
+    return typeof v === 'function' ? v.bind(c) : v;
+  },
+});
 
 // ---------- small helpers ----------
 
@@ -331,7 +348,7 @@ async function submitExam(body: any) {
 // ---------- entry point ----------
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
+  if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: corsHeaders });
   if (req.method !== 'POST') return json({ error: 'Method not allowed.' }, 405);
 
   try {

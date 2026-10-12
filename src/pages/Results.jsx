@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { Search, Printer } from 'lucide-react';
+import { useClassSetup } from '../context/ClassSetupContext';
 import DashboardLayout from '../components/DashboardLayout';
 import Badge from '../components/Badge';
-import { CLASSES } from '../data/mockData';
 
 const gradeTone = (grade) => {
   if (grade === 'A') return 'green';
@@ -12,6 +12,8 @@ const gradeTone = (grade) => {
 };
 
 export default function Results({ results }) {
+  const { classes: CLASSES } = useClassSetup();
+  const classOptions = [...new Set([...CLASSES, ...results.map(r => r.class)])];
   const [search, setSearch] = useState('');
   const [classFilter, setClassFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
@@ -45,7 +47,7 @@ export default function Results({ results }) {
           </select>
           <select value={classFilter} onChange={e => setClassFilter(e.target.value)} className="filter-select">
             <option value="all">All classes</option>
-            {CLASSES.map(c => <option key={c} value={c}>{c}</option>)}
+            {classOptions.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
           <button className="btn-ghost" onClick={() => window.print()}><Printer size={15} /> Print All</button>
         </div>

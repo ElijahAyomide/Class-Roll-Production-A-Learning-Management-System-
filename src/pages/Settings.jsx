@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Save, Upload, X } from 'lucide-react';
 import DashboardLayout from '../components/DashboardLayout';
 import { useSchool } from '../context/SchoolContext';
-import { CLASSES, NIGERIAN_STATES } from '../data/mockData';
+import { NIGERIAN_STATES } from '../data/mockData';
+import ClassesSubjectsPanel from '../components/ClassesSubjectsPanel';
 
 const SECTIONS = ['School Profile', 'Classes & Subjects', 'Admin Account'];
 
@@ -132,22 +133,7 @@ export default function Settings() {
             </form>
           )}
 
-          {section === 'Classes & Subjects' && (
-            <div>
-              <div className="field-hint" style={{ marginBottom: 14 }}>
-                Junior classes (JSS1–JSS3) share one general subject list. Senior classes (SS1–SS3) are grouped by Science, Arts, or Commercial combinations.
-              </div>
-              <div className="class-list">
-                {CLASSES.map(c => (
-                  <div key={c} className="class-row">
-                    <span className="cell-strong">{c}</span>
-                    <span className="cell-dim">{['JSS1', 'JSS2', 'JSS3'].includes(c) ? 'General subjects' : 'Science · Arts · Commercial'}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="field-hint" style={{ marginTop: 12 }}>Editing subject combinations directly will be available once the backend is connected.</div>
-            </div>
-          )}
+          {section === 'Classes & Subjects' && <ClassesSubjectsPanel />}
 
           {section === 'Admin Account' && (
             <form onSubmit={flashSaved} className="quick-add-form">
