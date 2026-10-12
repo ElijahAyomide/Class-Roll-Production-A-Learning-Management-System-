@@ -25,29 +25,19 @@ export function SchoolProvider({ children }) {
 
   const loadSchool = async (userId) => {
     const myRequestId = ++requestIdRef.current;
-    console.log(`[ClassRoll debug] loadSchool starting — userId=${userId}, requestId=${myRequestId}`);
     try {
       const s = await fetchMySchool(userId);
-      console.log(`[ClassRoll debug] loadSchool got result for requestId=${myRequestId}:`, s);
       if (requestIdRef.current !== myRequestId) {
-        console.log(`[ClassRoll debug] requestId=${myRequestId} was superseded by requestId=${requestIdRef.current} — discarding this result`);
         return;
       }
       setSchoolState(s);
       setDbError(null);
-      console.log(`[ClassRoll debug] school state set from requestId=${myRequestId}`);
     } catch (err) {
-      console.log(`[ClassRoll debug] loadSchool THREW for requestId=${myRequestId}:`, err);
       if (requestIdRef.current !== myRequestId) return;
       console.error('Failed to load school:', err.message);
       setDbError(err.message);
     } finally {
-      if (requestIdRef.current === myRequestId) {
-        setLoading(false);
-        console.log(`[ClassRoll debug] setLoading(false) called for requestId=${myRequestId}`);
-      } else {
-        console.log(`[ClassRoll debug] requestId=${myRequestId} finished but was superseded — NOT calling setLoading(false)`);
-      }
+      if (requestIdRef.current === myRequestId) setLoading(false);
     }
   };
 
@@ -55,7 +45,6 @@ export function SchoolProvider({ children }) {
     let active = true;
 
     getCurrentSession().then((s) => {
-      console.log('[ClassRoll debug] getCurrentSession() resolved with:', s);
       if (!active) return;
       setSession(s);
       if (s) loadSchool(s.user.id);
@@ -63,7 +52,6 @@ export function SchoolProvider({ children }) {
     });
 
     const unsubscribe = onAuthStateChange((s) => {
-      console.log('[ClassRoll debug] onAuthStateChange fired with session:', s);
       setSession(s);
       if (s) {
         setLoading(true);
