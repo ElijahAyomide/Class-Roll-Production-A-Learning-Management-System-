@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PasswordInput from '../components/PasswordInput';
 import { CreditCard, ShieldCheck, Lock } from 'lucide-react';
 import DashboardLayout from '../components/DashboardLayout';
 import Badge from '../components/Badge';
@@ -163,8 +164,8 @@ export default function License({ license, setLicense }) {
             </div>
             <div className="field">
               <label>PASSWORD</label>
-              <input
-                type="password" placeholder="••••••••" autoFocus
+              <PasswordInput
+                placeholder="••••••••" autoFocus
                 value={password} onChange={e => { setPassword(e.target.value); setPasswordError(''); }}
               />
               {passwordError && <div className="error-text">{passwordError}</div>}

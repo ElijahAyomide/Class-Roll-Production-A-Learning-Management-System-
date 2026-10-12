@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PasswordInput from '../components/PasswordInput';
 import { Save, Upload, X } from 'lucide-react';
 import DashboardLayout from '../components/DashboardLayout';
 import { useSchool } from '../context/SchoolContext';
@@ -139,15 +140,15 @@ export default function Settings() {
             <form onSubmit={flashSaved} className="quick-add-form">
               <div className="field">
                 <label>CURRENT PASSWORD</label>
-                <input type="password" placeholder="••••••••" />
+                <PasswordInput placeholder="••••••••" />
               </div>
               <div className="field">
                 <label>NEW PASSWORD</label>
-                <input type="password" placeholder="••••••••" />
+                <PasswordInput placeholder="••••••••" />
               </div>
               <div className="field">
                 <label>CONFIRM NEW PASSWORD</label>
-                <input type="password" placeholder="••••••••" />
+                <PasswordInput placeholder="••••••••" />
               </div>
               <button type="submit" className="btn-primary"><Save size={15} /> Update Password</button>
               {saved && <div className="success-note">Password updated.</div>}

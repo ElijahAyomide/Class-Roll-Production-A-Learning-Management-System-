@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PasswordInput from '../components/PasswordInput';
 import { useNavigate } from 'react-router-dom';
 import { GraduationCap, ArrowRight, UserPlus } from 'lucide-react';
 import { useSchool } from '../context/SchoolContext';
@@ -159,7 +160,7 @@ export default function Login() {
             </div>
             <div className="field">
               <label>PASSWORD</label>
-              <input type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} />
+              <PasswordInput placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} />
             </div>
             {signInError && <div className="error-text">{signInError}</div>}
             <button type="submit" className="btn-primary login-submit" disabled={signingIn}>
@@ -210,11 +211,11 @@ export default function Login() {
             <div className="form-row-2">
               <div className="field">
                 <label>PASSWORD</label>
-                <input type="password" placeholder="At least 6 characters" value={registerForm.password} onChange={e => setRegisterForm({ ...registerForm, password: e.target.value })} />
+                <PasswordInput placeholder="At least 6 characters" value={registerForm.password} onChange={e => setRegisterForm({ ...registerForm, password: e.target.value })} />
               </div>
               <div className="field">
                 <label>CONFIRM PASSWORD</label>
-                <input type="password" placeholder="••••••••" value={registerForm.confirmPassword} onChange={e => setRegisterForm({ ...registerForm, confirmPassword: e.target.value })} />
+                <PasswordInput placeholder="••••••••" value={registerForm.confirmPassword} onChange={e => setRegisterForm({ ...registerForm, confirmPassword: e.target.value })} />
               </div>
             </div>
             {registerError && <div className="error-text">{registerError}</div>}
@@ -238,8 +239,8 @@ export default function Login() {
             </div>
             <div className="field">
               <label>PASSWORD (SURNAME)</label>
-              <input
-                type="password" placeholder="e.g. Okafor"
+              <PasswordInput
+                placeholder="e.g. Okafor"
                 value={studentPassword} onChange={e => setStudentPassword(e.target.value)}
               />
             </div>

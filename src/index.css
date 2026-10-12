@@ -609,3 +609,14 @@ button, input, select { font-family: inherit; }
 .cs-add-subject { display: flex; gap: 8px; flex-wrap: wrap; }
 .cs-add-subject input { flex: 1; min-width: 180px; }
 .cs-copy-select { max-width: 190px; }
+
+/* Password box with show/hide eye */
+.password-wrap { position: relative; }
+.password-wrap input { padding-right: 38px; }
+.password-toggle {
+  position: absolute; right: 4px; top: 50%; transform: translateY(-50%);
+  background: transparent; border: none; padding: 6px; border-radius: 5px;
+  color: var(--ink-faint); cursor: pointer; display: inline-flex;
+}
+.password-toggle:hover { color: var(--primary); }
+.password-toggle:focus-visible { outline: 2px solid var(--primary); }
