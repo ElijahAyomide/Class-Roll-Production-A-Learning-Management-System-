@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from 'react';
-import { Search, Pencil, Trash2, UserPlus } from 'lucide-react';
+import { Search, Pencil, Trash2, UserPlus, FileSpreadsheet } from 'lucide-react';
 import DashboardLayout from '../components/DashboardLayout';
 import Badge from '../components/Badge';
 import Modal from '../components/Modal';
+import StudentImportModal from '../components/StudentImportModal';
 import { useClassSetup } from '../context/ClassSetupContext';
 import { useSchool } from '../context/SchoolContext';
 import { createStudent, updateStudent, deleteStudent } from '../lib/students';
@@ -15,6 +16,7 @@ export default function Students({ students, setStudents }) {
   const [classFilter, setClassFilter] = useState('all');
   const [editing, setEditing] = useState(null); // student object or 'new'
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [importing, setImporting] = useState(false);
   const [form, setForm] = useState({ name: '', class: CLASSES[0] || '', subjects: [], status: 'pending' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -105,6 +107,7 @@ export default function Students({ students, setStudents }) {
             <option value="all">All classes</option>
             {classOptions.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
+          <button className="btn-ghost" onClick={() => setImporting(true)}><FileSpreadsheet size={15} /> Import from Excel</button>
           <button className="btn-primary" onClick={openNew}><UserPlus size={15} /> Add Student</button>
         </div>
 
@@ -201,6 +204,13 @@ export default function Students({ students, setStudents }) {
             <button className="btn-danger" onClick={doDelete}>Remove Student</button>
           </div>
         </Modal>
+      )}
+      {importing && (
+        <StudentImportModal
+          students={students}
+          onImported={(saved) => setStudents(prev => [...prev, ...saved.map(st => ({ ...st, assignments: [] }))])}
+          onClose={() => setImporting(false)}
+        />
       )}
     </DashboardLayout>
   );

@@ -46,6 +46,28 @@ export async function createStudent(schoolId, student) {
   return mapStudent(data);
 }
 
+// Saves many students in ONE request — either all of them are saved or none
+// are, so a failed import never leaves a half-finished class behind.
+export async function createStudents(schoolId, students) {
+  const payload = students.map(st => ({
+    school_id: schoolId,
+    name: st.name,
+    username: st.username,
+    surname: st.surname,
+    class: st.class,
+    subjects: st.subjects,
+    status: 'pending',
+  }));
+  const { data, error } = await supabase.from('students').insert(payload).select();
+  if (error) {
+    if (error.code === '23505') {
+      throw new Error('Some usernames were already taken (another import or another tab may have added students at the same time). Reload the page and try again.');
+    }
+    throw error;
+  }
+  return data.map(mapStudent);
+}
+
 export async function updateStudent(studentId, updates) {
   const payload = {};
   if ('name' in updates) payload.name = updates.name;
