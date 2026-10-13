@@ -1,0 +1,123 @@
+import React from 'react';
+import { resultStats, groupByStudent } from '../lib/resultStats';
+
+// What actually comes out of the printer. It sits on the page but is hidden
+// on screen; the print stylesheet (index.css) hides the whole app and shows
+// only this. `job` says what to print:
+//   { kind: 'report' }            the filtered results as one table
+//   { kind: 'slip', username }    one student's result slip
+//   { kind: 'slips' }             a slip for every student in the list
+export default function ResultsPrintSheet({ school, job, rows, filterSummary }) {
+  if (!job) return null;
+  const printedOn = new Date().toLocaleDateString('en-NG', { day: 'numeric', month: 'long', year: 'numeric' });
+
+  const Letterhead = ({ title, subtitle }) => (
+    <div className="print-letterhead">
+      {school.logo
+        ? <img src={school.logo} alt="" className="print-logo" />
+        : <div className="print-logo print-logo-initials">{(school.name || 'S').trim().charAt(0)}</div>}
+      <div>
+        <div className="print-school">{school.name}</div>
+        <div className="print-school-sub">{[school.address, school.state].filter(Boolean).join(', ')}</div>
+      </div>
+      <div className="print-title-block">
+        <div className="print-title">{title}</div>
+        {subtitle && <div className="print-subtitle">{subtitle}</div>}
+      </div>
+    </div>
+  );
+
+  const Slip = ({ student }) => {
+    const stats = resultStats(student.results);
+    return (
+      <section className="print-page print-slip">
+        <Letterhead title="Result Slip" subtitle={`Printed ${printedOn}`} />
+        <div className="print-student-box">
+          <div><span>Student</span><b>{student.studentName}</b></div>
+          <div><span>Username</span><b>{student.username}</b></div>
+          <div><span>Class</span><b>{student.class}</b></div>
+        </div>
+        <table className="print-table">
+          <thead>
+            <tr><th>Subject</th><th>Type</th><th>Title</th><th>Date</th><th>Score</th><th>Grade</th></tr>
+          </thead>
+          <tbody>
+            {student.results.map(r => (
+              <tr key={r.id}>
+                <td>{r.subject}</td>
+                <td style={{ textTransform: 'capitalize' }}>{r.type}</td>
+                <td>{r.exam}</td>
+                <td>{r.date}</td>
+                <td>{r.score}/{r.total}</td>
+                <td><b>{r.grade}</b></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <div className="print-summary">
+          <span>Subjects: <b>{stats.count}</b></span>
+          <span>Average: <b>{stats.average}%</b></span>
+        </div>
+        <div className="print-signatures">
+          <div><div className="print-sign-line" />Class Teacher</div>
+          <div><div className="print-sign-line" />Principal</div>
+        </div>
+        <div className="print-footer">Grading: A 75–100 · B 65–74 · C 55–64 · D 45–54 · F below 45</div>
+      </section>
+    );
+  };
+
+  if (job.kind === 'slip' || job.kind === 'slips') {
+    const groups = groupByStudent(rows);
+    const chosen = job.kind === 'slip' ? groups.filter(g => g.username === job.username) : groups;
+    return (
+      <div className="print-sheet">
+        {chosen.map(g => <Slip key={g.username} student={g} />)}
+      </div>
+    );
+  }
+
+  const stats = resultStats(rows);
+  return (
+    <div className="print-sheet">
+      <section className="print-page">
+        <Letterhead title="Results Report" subtitle={`Printed ${printedOn}`} />
+        <div className="print-filter-line">{filterSummary}</div>
+        <table className="print-table">
+          <thead>
+            <tr>
+              <th>#</th><th>Student</th><th>Username</th><th>Class</th><th>Subject</th>
+              <th>Type</th><th>Title</th><th>Date</th><th>Score</th><th>Grade</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r, i) => (
+              <tr key={r.id}>
+                <td>{i + 1}</td>
+                <td>{r.studentName}</td>
+                <td>{r.username}</td>
+                <td>{r.class}</td>
+                <td>{r.subject}</td>
+                <td style={{ textTransform: 'capitalize' }}>{r.type}</td>
+                <td>{r.exam}</td>
+                <td>{r.date}</td>
+                <td>{r.score}/{r.total}</td>
+                <td><b>{r.grade}</b></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <div className="print-summary">
+          <span>Results: <b>{stats.count}</b></span>
+          <span>Average: <b>{stats.average}%</b></span>
+          <span>Highest: <b>{stats.highest}%</b></span>
+          <span>Lowest: <b>{stats.lowest}%</b></span>
+          <span>
+            Grades: {Object.entries(stats.distribution).map(([g, n]) => `${g} ${n}`).join(' · ')}
+          </span>
+        </div>
+        <div className="print-footer">Grading: A 75–100 · B 65–74 · C 55–64 · D 45–54 · F below 45</div>
+      </section>
+    </div>
+  );
+}
