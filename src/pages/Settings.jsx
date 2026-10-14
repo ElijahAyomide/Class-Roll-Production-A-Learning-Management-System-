@@ -6,6 +6,7 @@ import { useSchool } from '../context/SchoolContext';
 import { NIGERIAN_STATES } from '../data/mockData';
 import ClassesSubjectsPanel from '../components/ClassesSubjectsPanel';
 import { signInAdmin, changePassword } from '../lib/auth';
+import { prepareLogo, uploadLogo, removeOldLogos } from '../lib/logo';
 
 const SECTIONS = ['School Profile', 'Classes & Subjects', 'Admin Account'];
 
@@ -23,12 +24,26 @@ export default function Settings() {
   const [draft, setDraft] = useState(school);
   useEffect(() => { setDraft(school); }, [school]);
 
+  // A newly chosen logo waits here (already shrunk) until "Save Changes".
+  // Only then is it uploaded, so abandoned choices never leave files behind.
+  const [pendingLogo, setPendingLogo] = useState(null); // { blob, preview }
+  useEffect(() => () => { if (pendingLogo) URL.revokeObjectURL(pendingLogo.preview); }, [pendingLogo]);
+
   const submitProfile = async (e) => {
     e.preventDefault();
     setSaving(true);
     setError('');
     try {
-      await setSchool(draft);
+      let toSave = draft;
+      if (pendingLogo) {
+        const url = await uploadLogo(school.id, pendingLogo.blob);
+        toSave = { ...draft, logo: url };
+      }
+      await setSchool(toSave);
+      if (pendingLogo || (school.logo && !toSave.logo)) {
+        await removeOldLogos(school.id, toSave.logo);
+      }
+      setPendingLogo(null);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch (err) {
@@ -73,14 +88,20 @@ export default function Settings() {
     }
   };
 
-  const handleLogoUpload = (e) => {
+  const handleLogoUpload = async (e) => {
     const file = e.target.files[0];
+    e.target.value = ''; // lets the same file be chosen again later
     if (!file) return;
-    if (!file.type.startsWith('image/')) return;
-    const reader = new FileReader();
-    reader.onload = () => setDraft({ ...draft, logo: reader.result });
-    reader.readAsDataURL(file);
+    setError('');
+    try {
+      const blob = await prepareLogo(file);
+      setPendingLogo({ blob, preview: URL.createObjectURL(blob) });
+    } catch (err) {
+      setError(err.message);
+    }
   };
+
+  const shownLogo = pendingLogo ? pendingLogo.preview : draft.logo;
 
   return (
     <DashboardLayout title="Settings" subtitle="Manage your school profile, classes, and account">
@@ -100,25 +121,25 @@ export default function Settings() {
                 <label>SCHOOL LOGO</label>
                 <div className="logo-upload-row">
                   <div className="logo-preview">
-                    {draft.logo ? (
-                      <img src={draft.logo} alt="School logo" />
+                    {shownLogo ? (
+                      <img src={shownLogo} alt="School logo" />
                     ) : (
                       <span>{draft.name.charAt(0)}</span>
                     )}
                   </div>
                   <div className="logo-upload-actions">
                     <label className="btn-ghost logo-upload-btn">
-                      <Upload size={14} /> {draft.logo ? 'Change Logo' : 'Upload Logo'}
-                      <input type="file" accept="image/*" onChange={handleLogoUpload} hidden />
+                      <Upload size={14} /> {shownLogo ? 'Change Logo' : 'Upload Logo'}
+                      <input type="file" accept="image/png,image/jpeg,image/webp" onChange={handleLogoUpload} hidden />
                     </label>
-                    {draft.logo && (
-                      <button type="button" className="link-btn link-btn-danger" onClick={() => setDraft({ ...draft, logo: null })}>
+                    {shownLogo && (
+                      <button type="button" className="link-btn link-btn-danger" onClick={() => { setPendingLogo(null); setDraft({ ...draft, logo: null }); }}>
                         <X size={12} /> Remove
                       </button>
                     )}
                   </div>
                 </div>
-                <div className="field-hint">This appears as your admin avatar in the top bar across the dashboard. PNG or JPG, square images work best. Changes here save when you click "Save Changes" below.</div>
+                <div className="field-hint">This appears as your admin avatar in the top bar across the dashboard. PNG, JPG or WebP; square images work best. It is shrunk automatically and also appears on printed result slips. Saves when you click "Save Changes" below.</div>
               </div>
 
               <div className="field">
