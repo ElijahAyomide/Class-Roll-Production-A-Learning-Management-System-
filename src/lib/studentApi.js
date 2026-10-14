@@ -35,8 +35,9 @@ export const studentApi = {
   login: (username, surname) => call('login', { username, surname }),
   logout: (token) => call('logout', { token }),
   home: (token) => call('home', { token }),
-  startExam: (token, assignmentId) => call('start', { token, assignmentId }),
-  saveAnswers: (token, assignmentId, answers) => call('save', { token, assignmentId, answers }),
-  review: (token, assignmentId) => call('review', { token, assignmentId }),
-  submitExam: (token, assignmentId, answers) => call('submit', { token, assignmentId, answers }),
+  // A "sitting" is all the subjects the school set together (one group, one timer).
+  startSitting: (token, groupId) => call('start', { token, groupId }),
+  saveAnswers: (token, groupId, answers) => call('save', { token, groupId, answers }),
+  submitSitting: (token, groupId, answers) => call('submit', { token, groupId, answers }),
+  review: (token) => call('review', { token }),
 };

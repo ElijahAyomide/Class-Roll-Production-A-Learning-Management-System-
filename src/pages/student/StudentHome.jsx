@@ -107,16 +107,17 @@ export default function StudentHome() {
                   <span>Total time for {subjects.length === 1 ? 'this subject' : `all ${subjects.length} subjects`}: <b>{g.totalMinutes} minutes</b>. The clock starts when you open your first subject.</span>
                 )}
               </div>
-              <div className="student-assignment-grid">
-                {subjects.map(a => (
-                  <div key={a.id} className="student-assignment-card">
-                    <div className={`student-assignment-type student-assignment-type-${a.type}`}>{a.type === 'exam' ? 'Exam' : 'Test'}</div>
-                    <div className="student-assignment-subject">{a.subject}</div>
-                    <button className="btn-primary student-assignment-start" disabled={g.started && left <= 0} onClick={() => navigate(`/student/exam/${a.id}`)}>
-                      <PlayCircle size={15} /> {a.opened ? 'Continue' : 'Start'}
-                    </button>
-                  </div>
-                ))}
+              <div className="sitting-card">
+                <div className="field-hint" style={{ marginBottom: 8 }}>
+                  {subjects[0].type === 'exam' ? 'EXAM' : 'TEST'} · {subjects.length} SUBJECT{subjects.length === 1 ? '' : 'S'}
+                </div>
+                <div className="sitting-subjects">
+                  {subjects.map(a => <span key={a.id} className="sitting-subject-chip">{a.subject}</span>)}
+                </div>
+                <button className="btn-primary sitting-start" disabled={g.started && left <= 0} onClick={() => navigate(`/student/exam/${gid}`)}>
+                  <PlayCircle size={16} /> {g.started ? 'Continue' : `Start ${subjects.length === 1 ? '' : 'All Subjects'}`.trim()}
+                </button>
+                {subjects.length > 1 && <div className="field-hint" style={{ marginTop: 8 }}>You can switch between subjects with tabs and check your work before you submit everything at once.</div>}
               </div>
             </div>
           );
@@ -124,17 +125,15 @@ export default function StudentHome() {
 
         {done.length > 0 && (
           <div className="student-sitting">
-            <div className="student-section-title">Submitted — check your answers</div>
-            <div className="student-assignment-grid">
-              {done.map(a => (
-                <div key={a.id} className="student-assignment-card student-assignment-card-done">
-                  <div className="student-done-tag"><CheckCircle size={13} /> Submitted</div>
-                  <div className="student-assignment-subject">{a.subject}</div>
-                  <button className="btn-ghost student-assignment-start" onClick={() => navigate(`/student/review/${a.id}`)}>
-                    <Eye size={14} /> View my answers
-                  </button>
-                </div>
-              ))}
+            <div className="student-section-title">Submitted</div>
+            <div className="sitting-card">
+              <div className="sitting-subjects">
+                {done.map(a => <span key={a.id} className="sitting-subject-chip"><CheckCircle size={12} style={{ verticalAlign: '-2px', marginRight: 5, color: 'var(--green)' }} />{a.subject}</span>)}
+              </div>
+              <button className="btn-ghost sitting-start" onClick={() => navigate('/student/review')}>
+                <Eye size={15} /> Review my answers
+              </button>
+              <div className="field-hint" style={{ marginTop: 8 }}>You can look back at your answers until you sign out. After that you can't sign in again until your school sets a new test or exam.</div>
             </div>
           </div>
         )}
@@ -144,6 +143,9 @@ export default function StudentHome() {
         <Modal title="Sign out?" onClose={() => setConfirmingSignOut(false)} width={400}>
           <p className="confirm-text">
             Are you sure you want to sign out?
+            {done.length > 0 && todo.length === 0 && (
+              <> You won't be able to sign in again, or look at your answers, until your school sets a new test or exam.</>
+            )}
             {todo.length > 0 && (
               <>
                 {' '}You still have {todo.length} subject{todo.length === 1 ? '' : 's'} left to submit.

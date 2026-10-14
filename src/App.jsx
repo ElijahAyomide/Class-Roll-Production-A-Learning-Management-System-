@@ -65,8 +65,8 @@ export default function App() {
               session, since students log in from their own devices,
               which may never have had an admin signed in on them. */}
           <Route path="/student" element={<StudentHome />} />
-          <Route path="/student/exam/:assignmentId" element={<StudentExam />} />
-          <Route path="/student/review/:assignmentId" element={<StudentReview />} />
+          <Route path="/student/exam/:groupId" element={<StudentExam />} />
+          <Route path="/student/review" element={<StudentReview />} />
 
           {/* Admin portal — everything past this point requires a real,
               signed-in admin account (see AdminArea below). */}
