@@ -87,7 +87,7 @@ function AdminArea() {
   const [students, setStudents] = useState([]);
   const [questions, setQuestions] = useState([]);
   const [results, setResults] = useState([]);
-  const [license, setLicense] = useState({ balance: 0, pricePerExam: 200, history: [] });
+  const [license, setLicense] = useState({ balance: 0, pricePerExam: 50, history: [] });
   const [classRows, setClassRows] = useState([]);
   const [dataLoading, setDataLoading] = useState(true);
 

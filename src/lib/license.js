@@ -30,7 +30,7 @@ export async function fetchLicense(schoolId) {
   // crashing the whole dashboard load.
   return {
     balance: licenseRow?.balance ?? 0,
-    pricePerExam: licenseRow?.price_per_exam ?? 200,
+    pricePerExam: licenseRow?.price_per_exam ?? 50,
     history: historyRows.map(mapHistoryRow),
   };
 }

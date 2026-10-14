@@ -134,7 +134,7 @@ export const INITIAL_RESULTS = [
 
 export const LICENSE = {
   balance: 84,
-  pricePerExam: 200,
+  pricePerExam: 50,
   history: [
     { id: 'p1', date: '2026-07-20', exams: 100, amount: 20000, reference: 'GVC-PSK-88213', status: 'successful' },
     { id: 'p2', date: '2026-08-01', exams: 50, amount: 10000, reference: 'GVC-PSK-88579', status: 'successful' },

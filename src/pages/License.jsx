@@ -113,7 +113,7 @@ export default function License({ license, setLicense }) {
               />
             </div>
             <div className="purchase-summary">
-              <div className="purchase-row"><span>Price per exam</span><span>₦{license.pricePerExam}</span></div>
+              <div className="purchase-row"><span>Price per subject</span><span>₦{license.pricePerExam}</span></div>
               <div className="purchase-row purchase-total"><span>Total</span><span>₦{total.toLocaleString('en-NG')}</span></div>
             </div>
             <button type="submit" className="btn-primary" disabled={processing}>
