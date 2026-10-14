@@ -1,30 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Clock, PlayCircle, CheckCircle } from 'lucide-react';
+import { LogOut, Clock, PlayCircle, CheckCircle, Eye } from 'lucide-react';
 import { useStudentSession } from '../../context/StudentSessionContext';
+import Modal from '../../components/Modal';
 import { studentApi } from '../../lib/studentApi';
+import { formatTime } from './StudentExam';
 
-// By design, this page shows ONLY what a student can act on right now —
-// nothing scheduled for later, and no past or current results. Results are
-// admin-only, visible on the Results page of the admin dashboard.
+// This page shows what a student can act on, plus the subjects they have
+// already submitted (so they can look back at their answers before signing
+// out). Scores are never shown: results are admin-only.
 //
-// This page doesn't read the database itself. It asks the secure
-// "student-api" function, which works out who the student is from their
-// token and returns only that student's own, currently available tests.
+// Subjects the school set together are one "sitting" with ONE total time,
+// shown here as a single countdown for the group.
 export default function StudentHome() {
   const navigate = useNavigate();
   const { studentToken, setStudentToken } = useStudentSession();
 
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [confirmingSignOut, setConfirmingSignOut] = useState(false);
+  const [now, setNow] = useState(Date.now());
+  const [loadedAt, setLoadedAt] = useState(Date.now());
+
+  const load = () => studentApi.home(studentToken).then((d) => { setData(d); setLoadedAt(Date.now()); return d; });
 
   useEffect(() => {
     if (!studentToken) { navigate('/login'); return; }
-
     let cancelled = false;
     setLoading(true);
-    studentApi.home(studentToken)
-      .then((d) => { if (!cancelled) setData(d); })
+    load()
       .catch((err) => {
         console.error('Failed to load student data:', err.message);
         if (cancelled) return;
@@ -32,21 +36,42 @@ export default function StudentHome() {
         navigate('/login');
       })
       .finally(() => { if (!cancelled) setLoading(false); });
-
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [studentToken]);
 
+  // Tick once a second so running countdowns move.
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
+
+  // When a sitting's time reaches zero, ask the server to close it (it
+  // submits whatever is left) and refresh the list.
+  const anyExpired = data && Object.values(data.groups).some(g => g.started && secondsLeftFor(g, loadedAt, now) <= 0);
+  useEffect(() => {
+    if (!anyExpired) return;
+    const t = setTimeout(() => { load().catch(() => {}); }, 2000);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [anyExpired, loadedAt]);
+
   if (loading || !data) return null;
 
-  const { student, schoolName, assignments: available } = data;
+  const { student, schoolName, assignments, groups, pauseMinutes } = data;
+  const todo = assignments.filter(a => a.status === 'todo');
+  const done = assignments.filter(a => a.status === 'done');
+  const inProgress = Object.values(groups).some(g => g.started);
 
   const signOut = () => {
-    // Tell the server to end this session too, then clear it locally.
+    // Tell the server to end this session (and pause any running timer),
+    // then clear it locally.
     studentApi.logout(studentToken).catch(() => {});
     setStudentToken(null);
     navigate('/login');
   };
+
+  const groupIds = [...new Set(todo.map(a => a.groupId))];
 
   return (
     <div className="student-portal">
@@ -55,33 +80,91 @@ export default function StudentHome() {
           <div className="student-topbar-brand">{schoolName}</div>
           <div className="student-topbar-name">{student.name} · {student.class}</div>
         </div>
-        <button className="btn-ghost" onClick={signOut}><LogOut size={14} /> Sign Out</button>
+        <button className="btn-signout" onClick={() => setConfirmingSignOut(true)}><LogOut size={14} /> Sign Out</button>
       </header>
 
       <div className="student-page-content">
-        <div className="student-section-title">Ready to take</div>
-        {available.length === 0 ? (
-          <div className="student-empty-card">
-            <CheckCircle size={20} />
-            <span>You're all caught up — nothing left to take right now. You can sign out.</span>
-          </div>
-        ) : (
-          <div className="student-assignment-grid">
-            {available.map(a => (
-              <div key={a.id} className="student-assignment-card">
-                <div className={`student-assignment-type student-assignment-type-${a.type}`}>{a.type === 'exam' ? 'Exam' : 'Test'}</div>
-                <div className="student-assignment-subject">{a.subject}</div>
-                <div className="student-assignment-meta">
-                  <Clock size={12} /> {a.durationMinutes} minutes
-                </div>
-                <button className="btn-primary student-assignment-start" onClick={() => navigate(`/student/exam/${a.id}`)}>
-                  <PlayCircle size={15} /> Start
-                </button>
+        {groupIds.length === 0 ? (
+          <>
+            <div className="student-section-title">Ready to take</div>
+            <div className="student-empty-card">
+              <CheckCircle size={20} />
+              <span>You're all caught up — nothing left to take right now. You can check your answers below, then sign out.</span>
+            </div>
+          </>
+        ) : groupIds.map(gid => {
+          const g = groups[gid];
+          const subjects = todo.filter(a => a.groupId === gid);
+          const left = secondsLeftFor(g, loadedAt, now);
+          return (
+            <div key={gid} className="student-sitting">
+              <div className="student-section-title">Ready to take</div>
+              <div className={`student-timer-banner ${g.started && left <= 300 ? 'student-timer-banner-low' : ''}`}>
+                <Clock size={15} />
+                {g.started ? (
+                  <span>Time left for all subjects: <b>{formatTime(left)}</b></span>
+                ) : (
+                  <span>Total time for {subjects.length === 1 ? 'this subject' : `all ${subjects.length} subjects`}: <b>{g.totalMinutes} minutes</b>. The clock starts when you open your first subject.</span>
+                )}
               </div>
-            ))}
+              <div className="student-assignment-grid">
+                {subjects.map(a => (
+                  <div key={a.id} className="student-assignment-card">
+                    <div className={`student-assignment-type student-assignment-type-${a.type}`}>{a.type === 'exam' ? 'Exam' : 'Test'}</div>
+                    <div className="student-assignment-subject">{a.subject}</div>
+                    <button className="btn-primary student-assignment-start" disabled={g.started && left <= 0} onClick={() => navigate(`/student/exam/${a.id}`)}>
+                      <PlayCircle size={15} /> {a.opened ? 'Continue' : 'Start'}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+
+        {done.length > 0 && (
+          <div className="student-sitting">
+            <div className="student-section-title">Submitted — check your answers</div>
+            <div className="student-assignment-grid">
+              {done.map(a => (
+                <div key={a.id} className="student-assignment-card student-assignment-card-done">
+                  <div className="student-done-tag"><CheckCircle size={13} /> Submitted</div>
+                  <div className="student-assignment-subject">{a.subject}</div>
+                  <button className="btn-ghost student-assignment-start" onClick={() => navigate(`/student/review/${a.id}`)}>
+                    <Eye size={14} /> View my answers
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>
+
+      {confirmingSignOut && (
+        <Modal title="Sign out?" onClose={() => setConfirmingSignOut(false)} width={400}>
+          <p className="confirm-text">
+            Are you sure you want to sign out?
+            {todo.length > 0 && (
+              <>
+                {' '}You still have {todo.length} subject{todo.length === 1 ? '' : 's'} left to submit.
+                {inProgress
+                  ? ` Your answers so far are saved, and your timer is paused for up to ${pauseMinutes} minutes while you are away. Sign back in to continue.`
+                  : ' You can sign back in to take it later.'}
+              </>
+            )}
+          </p>
+          <div className="confirm-actions">
+            <button className="btn-ghost" onClick={() => setConfirmingSignOut(false)}>No, stay signed in</button>
+            <button className="btn-danger" onClick={signOut}>Yes, sign out</button>
+          </div>
+        </Modal>
+      )}
     </div>
   );
+}
+
+// Time left, counted down locally from what the server last told us.
+function secondsLeftFor(group, loadedAt, now) {
+  if (!group.started) return group.totalMinutes * 60;
+  return Math.max(0, group.secondsLeft - Math.floor((now - loadedAt) / 1000));
 }

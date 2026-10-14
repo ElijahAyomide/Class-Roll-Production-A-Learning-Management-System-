@@ -36,5 +36,7 @@ export const studentApi = {
   logout: (token) => call('logout', { token }),
   home: (token) => call('home', { token }),
   startExam: (token, assignmentId) => call('start', { token, assignmentId }),
+  saveAnswers: (token, assignmentId, answers) => call('save', { token, assignmentId, answers }),
+  review: (token, assignmentId) => call('review', { token, assignmentId }),
   submitExam: (token, assignmentId, answers) => call('submit', { token, assignmentId, answers }),
 };

@@ -1,18 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Clock, CheckCircle2, ArrowLeft, ArrowRight } from 'lucide-react';
 import { useStudentSession } from '../../context/StudentSessionContext';
 import Modal from '../../components/Modal';
 import { studentApi } from '../../lib/studentApi';
 
-function formatTime(totalSeconds) {
-  const m = Math.floor(totalSeconds / 60);
+export function formatTime(totalSeconds) {
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
   const s = totalSeconds % 60;
-  return `${m}:${String(s).padStart(2, '0')}`;
+  const ss = String(s).padStart(2, '0');
+  return h > 0 ? `${h}:${String(m).padStart(2, '0')}:${ss}` : `${m}:${ss}`;
 }
 
-// Answers are kept in the browser (per exam) so a refresh doesn't wipe them.
-// The TIMER, however, lives on the server, so it can't be reset by refreshing.
+// Answers are saved on the server as the student goes (so they survive a
+// sign-out), with a copy in the browser as a backup for a bad connection.
+// The TIMER lives on the server too, and is shared by all subjects of the sitting.
 const answersKey = (id) => `classroll-answers-${id}`;
 function loadSavedAnswers(id) {
   try { return JSON.parse(localStorage.getItem(answersKey(id)) || '{}'); } catch { return {}; }
@@ -44,6 +47,12 @@ export default function StudentExam() {
   const [submitError, setSubmitError] = useState('');
   const [confirmingSubmit, setConfirmingSubmit] = useState(false);
 
+  const loadedRef = useRef(false);   // don't save before the exam has loaded
+  const answersRef = useRef({});
+  answersRef.current = answers;
+  const submittedRef = useRef(false);
+  submittedRef.current = submitted || submitting;
+
   const sessionExpired = () => { setStudentToken(null); navigate('/login'); };
 
   // Ask the server to start (or resume) the exam. The server returns the
@@ -61,7 +70,9 @@ export default function StudentExam() {
         setAssignment(d.assignment);
         setTitle(d.title);
         setExamQuestions(d.questions);
-        setAnswers(loadSavedAnswers(assignmentId));
+        // What the server saved, plus anything newer kept in this browser.
+        setAnswers({ ...(d.answers || {}), ...loadSavedAnswers(assignmentId) });
+        loadedRef.current = true;
         setDeadline(Date.now() + d.secondsLeft * 1000);
         setSecondsLeft(d.secondsLeft);
       })
@@ -84,6 +95,33 @@ export default function StudentExam() {
       return next;
     });
   };
+
+  // Save to the server shortly after the student stops clicking, and again
+  // every 20 seconds, so a sign-out or a lost connection never loses much.
+  const lastSavedRef = useRef('');
+  const pushSave = async () => {
+    if (!loadedRef.current || submittedRef.current) return;
+    const snapshot = JSON.stringify(answersRef.current);
+    if (snapshot === lastSavedRef.current) return;
+    try {
+      await studentApi.saveAnswers(studentToken, assignmentId, answersRef.current);
+      lastSavedRef.current = snapshot;
+    } catch (err) {
+      if (err.status === 409 && !submittedRef.current) navigate('/student'); // time is up / already submitted
+      // other errors: keep going, the next save will retry
+    }
+  };
+  useEffect(() => {
+    if (!loadedRef.current) return;
+    const t = setTimeout(pushSave, 700);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [answers]);
+  useEffect(() => {
+    const t = setInterval(pushSave, 20000);
+    return () => clearInterval(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [studentToken, assignmentId, submitted]);
 
   // The server does the grading. We just send the answers.
   const doSubmit = async () => {
@@ -170,7 +208,7 @@ export default function StudentExam() {
           <div className="exam-header-title">{title}</div>
         </div>
         <div className="exam-header-actions">
-          <div className={`exam-timer ${lowTime ? 'exam-timer-low' : ''}`}>
+          <div className={`exam-timer ${lowTime ? 'exam-timer-low' : ''}`} title="Total time left for all your subjects">
             <Clock size={15} /> {secondsLeft <= 0 ? 'Submitting…' : formatTime(secondsLeft)}
           </div>
           <button className="exam-submit-btn" disabled={submitting} onClick={() => setConfirmingSubmit(true)}>

@@ -123,6 +123,10 @@ export default function Dashboard({ students, setStudents, questions, results, l
 
   const confirmAssign = async () => {
     if (selectedCount === 0 || notEnoughLicense || !assignDate) return;
+    if (!Number.isInteger(assignDuration) || assignDuration < 5 || assignDuration > 600) {
+      setAssignError('Enter a total time between 5 and 600 minutes.');
+      return;
+    }
     const { student, type } = assigning;
     setAssignSaving(true);
     setAssignError('');
@@ -358,7 +362,7 @@ export default function Dashboard({ students, setStudents, questions, results, l
                     <div key={a.id} className="assignment-row">
                       <Badge tone={a.type === 'exam' ? 'class' : 'purple'}>{a.type}</Badge>
                       <span className="cell-strong">{a.subject}</span>
-                      <span className="cell-dim-sm">{a.date} · {a.durationMinutes} min</span>
+                      <span className="cell-dim-sm">{a.date} · {a.durationMinutes} min total</span>
                     </div>
                   ))}
                 </div>
@@ -460,10 +464,17 @@ export default function Dashboard({ students, setStudents, questions, results, l
                   <input type="date" value={assignDate} onChange={e => setAssignDate(e.target.value)} />
                 </div>
                 <div className="field">
-                  <label>DURATION</label>
-                  <select value={assignDuration} onChange={e => setAssignDuration(parseInt(e.target.value))}>
-                    {DURATION_OPTIONS.map(m => <option key={m} value={m}>{m} minutes</option>)}
-                  </select>
+                  <label>TOTAL TIME (MINUTES)</label>
+                  <input
+                    type="number" min="5" max="600" step="1" inputMode="numeric"
+                    value={assignDuration}
+                    onChange={e => setAssignDuration(e.target.value === '' ? '' : Math.min(600, parseInt(e.target.value) || 0))}
+                  />
+                  <div className="duration-chips">
+                    {DURATION_OPTIONS.map(m => (
+                      <button type="button" key={m} className={`duration-chip ${assignDuration === m ? 'duration-chip-active' : ''}`} onClick={() => setAssignDuration(m)}>{m}</button>
+                    ))}
+                  </div>
                 </div>
               </div>
 

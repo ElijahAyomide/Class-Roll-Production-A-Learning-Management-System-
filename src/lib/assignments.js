@@ -9,6 +9,7 @@ function mapAssignment(row) {
     subject: row.subject,
     date: row.date,
     durationMinutes: row.duration_minutes,
+    groupId: row.group_id,
     completed: row.completed,
   };
 }
@@ -26,8 +27,12 @@ export async function fetchAssignmentsForSchool(schoolId) {
 
 // Creates one row per selected subject in a single batch insert — this is
 // what powers "assign multiple subjects at once" from the Dashboard.
+// All rows created in one call share a group_id: that is what makes them
+// ONE sitting with ONE total time (durationMinutes is the total for the group).
 export async function createAssignments(rows) {
+  const groupId = crypto.randomUUID();
   const payload = rows.map(r => ({
+    group_id: groupId,
     student_id: r.studentId,
     question_id: r.questionId,
     type: r.type,
