@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-import { fetchMySchool, updateSchool as updateSchoolInDb } from '../lib/schools';
+import { fetchMySchool, claimOrCreateSchool, updateSchool as updateSchoolInDb } from '../lib/schools';
 import { getCurrentSession, onAuthStateChange } from '../lib/auth';
 
 const SchoolContext = createContext(null);
@@ -30,10 +30,34 @@ export function SchoolProvider({ children }) {
   // a loading screen and wipe whatever the person was in the middle of.
   const loadedUserIdRef = useRef(null);
 
-  const loadSchool = async (userId) => {
+  // After someone confirms their email, they arrive signed in but their school
+  // doesn't exist yet. Its details were saved inside their account when they
+  // registered, so we create it now. Several auth events can fire at once, so
+  // only one creation runs per person at a time.
+  const creatingRef = useRef(null); // { userId, promise }
+  const ensureSchool = async (user) => {
+    const existing = await fetchMySchool(user.id);
+    if (existing) return existing;
+    const profile = user.user_metadata?.school_profile;
+    if (!profile || !profile.name || !profile.code) return null;
+    if (!creatingRef.current || creatingRef.current.userId !== user.id) {
+      const promise = claimOrCreateSchool(user.id, profile)
+        .catch(async (err) => {
+          const again = await fetchMySchool(user.id); // someone else may have just created it
+          if (again) return again;
+          throw err;
+        })
+        .finally(() => { creatingRef.current = null; });
+      creatingRef.current = { userId: user.id, promise };
+    }
+    return creatingRef.current.promise;
+  };
+
+  const loadSchool = async (user) => {
+    const userId = user.id;
     const myRequestId = ++requestIdRef.current;
     try {
-      const s = await fetchMySchool(userId);
+      const s = await ensureSchool(user);
       if (requestIdRef.current !== myRequestId) {
         return;
       }
@@ -55,7 +79,7 @@ export function SchoolProvider({ children }) {
     getCurrentSession().then((s) => {
       if (!active) return;
       setSession(s);
-      if (s) loadSchool(s.user.id);
+      if (s) loadSchool(s.user);
       else setLoading(false);
     });
 
@@ -64,7 +88,7 @@ export function SchoolProvider({ children }) {
       if (s) {
         if (loadedUserIdRef.current === s.user.id) return; // same admin, school already loaded
         setLoading(true);
-        loadSchool(s.user.id);
+        loadSchool(s.user);
       } else {
         loadedUserIdRef.current = null;
         requestIdRef.current++; // invalidate any fetch still in flight

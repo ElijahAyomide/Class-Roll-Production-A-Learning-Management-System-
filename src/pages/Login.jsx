@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import PasswordInput from '../components/PasswordInput';
 import { useNavigate } from 'react-router-dom';
-import { GraduationCap, ArrowRight, UserPlus } from 'lucide-react';
+import { GraduationCap, ArrowRight, UserPlus, MailCheck } from 'lucide-react';
+import Modal from '../components/Modal';
 import { useSchool } from '../context/SchoolContext';
 import { useStudentSession } from '../context/StudentSessionContext';
-import { signUpAdmin, signInAdmin, requestPasswordReset } from '../lib/auth';
-import { claimOrCreateSchool } from '../lib/schools';
+import { signUpAdmin, signInAdmin, requestPasswordReset, resendConfirmation } from '../lib/auth';
+import { claimOrCreateSchool, schoolCodeTaken } from '../lib/schools';
 import { studentApi } from '../lib/studentApi';
 import { NIGERIAN_STATES } from '../data/mockData';
 import ExamIllustration from '../components/ExamIllustration';
@@ -49,11 +50,26 @@ export default function Login() {
       await signInAdmin(email.trim(), password);
       navigate('/dashboard');
     } catch (err) {
-      setSignInError(err.message || 'Could not sign in. Check your email and password.');
+      if (/not confirmed/i.test(err.message || '')) {
+        setNeedsConfirm(true);
+        setSignInError('Please confirm your email first. Open the verification link we sent you, then sign in.');
+      } else {
+        setNeedsConfirm(false);
+        setSignInError(err.message || 'Could not sign in. Check your email and password.');
+      }
     } finally {
       setSigningIn(false);
     }
   };
+
+  const [needsConfirm, setNeedsConfirm] = useState(false);
+  const [resendState, setResendState] = useState(''); // '' | 'sending' | 'sent' | 'error'
+  const resendLink = async (address) => {
+    setResendState('sending');
+    try { await resendConfirmation(address); setResendState('sent'); }
+    catch { setResendState('error'); }
+  };
+  const [verifyEmail, setVerifyEmail] = useState(null); // set after registering: shows the "check your email" pop-up
 
   const [resetSending, setResetSending] = useState(false);
   const [resetSent, setResetSent] = useState(false);
@@ -116,8 +132,7 @@ export default function Login() {
     }
     setRegistering(true);
     try {
-      const user = await signUpAdmin(registerForm.email.trim(), registerForm.password);
-      const newSchool = await claimOrCreateSchool(user.id, {
+      const profile = {
         name: registerForm.name.trim(),
         code: registerForm.code.trim().toUpperCase(),
         email: registerForm.email.trim(),
@@ -125,9 +140,26 @@ export default function Login() {
         address: registerForm.address.trim(),
         state: registerForm.state,
         lga: registerForm.lga.trim(),
-      });
-      setSchoolDirectly(newSchool);
-      navigate('/dashboard');
+      };
+      // Check the code now, so nobody confirms their email and then finds the
+      // school couldn't be created.
+      if (await schoolCodeTaken(profile.code)) {
+        setRegisterError('That school code is already used by another school. Please choose a different one.');
+        return;
+      }
+      const { user, session } = await signUpAdmin(profile.email, registerForm.password, profile);
+
+      if (session) {
+        // Email confirmation is off in Supabase: they're signed in already.
+        const newSchool = await claimOrCreateSchool(user.id, profile);
+        setSchoolDirectly(newSchool);
+        navigate('/dashboard');
+      } else {
+        // Confirmation is on: tell them to check their email.
+        setResendState('');
+        setVerifyEmail(profile.email);
+        setRegisterForm(EMPTY_REGISTER);
+      }
     } catch (err) {
       setRegisterError(err.message || 'Could not create your account. Please try again.');
     } finally {
@@ -184,6 +216,11 @@ export default function Login() {
               <PasswordInput placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} />
             </div>
             {signInError && <div className="error-text">{signInError}</div>}
+            {needsConfirm && (
+              <button type="button" className="login-switch-link" disabled={resendState === 'sending'} onClick={() => resendLink(email.trim())}>
+                {resendState === 'sent' ? 'Verification email sent. Check your inbox.' : resendState === 'sending' ? 'Sending…' : 'Resend verification email'}
+              </button>
+            )}
             <button type="submit" className="btn-primary login-submit" disabled={signingIn}>
               {signingIn ? 'Signing In…' : 'Sign In'} {!signingIn && <ArrowRight size={15} />}
             </button>
@@ -298,6 +335,26 @@ export default function Login() {
         )}
       </div>
       </div>
+
+      {verifyEmail && (
+        <Modal title="Account created!" onClose={() => { setVerifyEmail(null); setAdminMode('signin'); }} width={420}>
+          <div style={{ textAlign: 'center' }}>
+            <div className="signout-icon" style={{ background: 'var(--surface-2)', color: 'var(--primary)' }}><MailCheck size={22} /></div>
+            <p className="confirm-text" style={{ marginBottom: 8 }}>
+              We've sent a verification link to <b>{verifyEmail}</b>.
+            </p>
+            <p className="confirm-text">
+              Please check your email (and your spam folder), then click the link to verify your account. It will take you straight to your dashboard. After that, you can sign in any time from the regular sign-in page.
+            </p>
+            <button type="button" className="login-switch-link" disabled={resendState === 'sending'} onClick={() => resendLink(verifyEmail)}>
+              {resendState === 'sent' ? 'Sent again. Check your inbox.' : resendState === 'error' ? "Couldn't resend. Try again in a minute." : resendState === 'sending' ? 'Sending…' : "Didn't get it? Send it again"}
+            </button>
+            <div className="confirm-actions" style={{ justifyContent: 'center', marginTop: 12 }}>
+              <button className="btn-primary" onClick={() => { setVerifyEmail(null); setAdminMode('signin'); }}>OK, I'll check my email</button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

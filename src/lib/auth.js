@@ -1,21 +1,37 @@
 import { supabase } from './supabaseClient';
 
-export async function signUpAdmin(email, password) {
-  const { data, error } = await supabase.auth.signUp({ email, password });
+// Creates the admin account. The school's details travel inside the account
+// (user metadata) so that, when "Confirm email" is on, the school can still be
+// set up after the person clicks the link in their email, even on another device.
+// Returns { user, session }: session is null until the email is confirmed.
+export async function signUpAdmin(email, password, schoolProfile) {
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      emailRedirectTo: `${window.location.origin}/dashboard`,
+      data: { school_profile: schoolProfile },
+    },
+  });
   if (error) throw error;
 
-  // If your Supabase project has "Confirm email" turned ON, signUp()
-  // returns a user but no active session until they click the emailed
-  // link — data.session will be null here. For a smooth pilot/demo
-  // experience, turn "Confirm email" OFF in Supabase → Authentication →
-  // Providers → Email, so sign-up logs people in immediately.
-  if (!data.session) {
-    throw new Error(
-      'Account created, but no session was started — this usually means "Confirm email" is turned on in your Supabase project. ' +
-      'Check your email for a confirmation link, or turn that setting off in Supabase for instant sign-up.'
-    );
+  // With email confirmation on, signing up with an email that is already
+  // registered doesn't error (to avoid revealing who has an account); it
+  // returns a user with no identities. Tell them kindly.
+  if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+    throw new Error('An account with this email already exists. Please sign in instead, or use "Forgot password?".');
   }
-  return data.user;
+  return { user: data.user, session: data.session };
+}
+
+// Sends the confirmation email again (for a lost or expired link).
+export async function resendConfirmation(email) {
+  const { error } = await supabase.auth.resend({
+    type: 'signup',
+    email,
+    options: { emailRedirectTo: `${window.location.origin}/dashboard` },
+  });
+  if (error) throw error;
 }
 
 export async function signInAdmin(email, password) {

@@ -103,3 +103,12 @@ export async function claimOrCreateSchool(userId, details) {
   if (error) throw error;
   return mapSchool(data);
 }
+
+
+// True if another school already uses this code (school profiles are public).
+export async function schoolCodeTaken(code) {
+  const { data, error } = await supabase
+    .from('schools').select('id').eq('code', code).limit(1).maybeSingle();
+  if (error) throw error;
+  return !!data;
+}
