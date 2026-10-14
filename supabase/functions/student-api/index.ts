@@ -173,6 +173,31 @@ async function ensureSession(groupId: string, studentId: string) {
   return s;
 }
 
+// ---------- question order ----------
+
+// Every student gets the same questions in their own random-looking order.
+// The order is worked out from the student's own assignment id, so it is
+// different for each student but always the SAME for that student: it doesn't
+// change if they refresh, sign out and back in, or look back at their answers.
+function mulberry32(seed: number) {
+  return () => {
+    seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+async function shuffleFor<T>(items: T[], seedText: string): Promise<T[]> {
+  const hex = await sha256Hex(seedText);
+  const rand = mulberry32(parseInt(hex.slice(0, 8), 16));
+  const out = items.slice();
+  for (let i = out.length - 1; i > 0; i--) {   // Fisher-Yates shuffle
+    const j = Math.floor(rand() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
 // ---------- grading ----------
 
 // Keeps only answers that belong to this exam's questions and are 0-3.
@@ -474,11 +499,12 @@ async function startSitting(body: any) {
     if (!qs || !items || items.length === 0) {
       throw new ApiError(`No questions were found for ${a.subject} yet. Please contact your school admin.`, 404);
     }
+    const ordered = await shuffleFor(items, a.id); // this student's own question order
     out.push({
       id: a.id, subject: a.subject, type: a.type, title: qs.title,
       answers: cleanAnswers(await getStoredAnswers(a.id), items.map((i: any) => i.id)), // continue where they stopped
       // NOTE: no correct answers here. That's the whole point.
-      questions: items.map((i: any) => ({
+      questions: ordered.map((i: any) => ({
         id: i.id, text: i.question_text, options: [i.option_a, i.option_b, i.option_c, i.option_d],
       })),
     });
@@ -557,10 +583,11 @@ async function review(body: any) {
       .from('question_items')
       .select('id, question_text, option_a, option_b, option_c, option_d, order_index')
       .eq('question_id', a.question_id).order('order_index');
+    const ordered = await shuffleFor(items ?? [], a.id); // same order the student saw during the exam
     out.push({
       id: a.id, subject: a.subject, type: a.type, title: qs?.title ?? a.subject,
       answers: cleanAnswers(await getStoredAnswers(a.id), (items ?? []).map((i: any) => i.id)),
-      questions: (items ?? []).map((i: any) => ({
+      questions: ordered.map((i: any) => ({
         id: i.id, text: i.question_text, options: [i.option_a, i.option_b, i.option_c, i.option_d],
       })),
     });
