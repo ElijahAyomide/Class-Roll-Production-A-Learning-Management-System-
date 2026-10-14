@@ -704,3 +704,10 @@ button, input, select { font-family: inherit; }
 .sitting-subjects { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 14px; }
 .sitting-subject-chip { padding: 6px 12px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line); font-size: 13.5px; font-weight: 600; color: var(--ink); }
 .sitting-start { width: 100%; justify-content: center; padding: 12px; font-size: 15px; }
+
+/* Red warning beside the timer for the last 3 minutes */
+.exam-time-alert {
+  display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 6px;
+  background: var(--red-bg); color: var(--red); border: 1px solid var(--red);
+  font-size: 13px; font-weight: 700; animation: exam-timer-pulse 1s ease-in-out infinite;
+}

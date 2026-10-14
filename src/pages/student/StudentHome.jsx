@@ -51,7 +51,10 @@ export default function StudentHome() {
   const anyExpired = data && Object.values(data.groups).some(g => g.started && secondsLeftFor(g, loadedAt, now) <= 0);
   useEffect(() => {
     if (!anyExpired) return;
-    const t = setTimeout(() => { load().catch(() => {}); }, 2000);
+    const t = setTimeout(() => {
+      // The server submits whatever was left; this page then shows the Submitted card.
+      load().catch(() => {});
+    }, 2000);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [anyExpired, loadedAt]);
@@ -99,7 +102,7 @@ export default function StudentHome() {
           return (
             <div key={gid} className="student-sitting">
               <div className="student-section-title">Ready to take</div>
-              <div className={`student-timer-banner ${g.started && left <= 300 ? 'student-timer-banner-low' : ''}`}>
+              <div className={`student-timer-banner ${g.started && left <= 180 ? 'student-timer-banner-low' : ''}`}>
                 <Clock size={15} />
                 {g.started ? (
                   <span>Time left for all subjects: <b>{formatTime(left)}</b></span>

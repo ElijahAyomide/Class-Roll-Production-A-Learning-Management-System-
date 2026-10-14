@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Clock, CheckCircle2, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Clock, CheckCircle2, ArrowLeft, ArrowRight, AlertTriangle } from 'lucide-react';
 import { useStudentSession } from '../../context/StudentSessionContext';
 import Modal from '../../components/Modal';
 import { studentApi } from '../../lib/studentApi';
@@ -125,17 +125,27 @@ export default function StudentExam() {
   }, [studentToken, groupId]);
 
   // One Submit for every subject. The server does the grading.
-  const doSubmit = async () => {
-    if (submitted || submitting || !subjects.length) return;
+  // auto = true when the time ran out: the student isn't told, they are simply
+  // taken straight to their home page, where they can choose to review or sign out.
+  const doSubmit = async (auto = false) => {
+    if (submittedRef.current || !subjects.length) return;
+    submittedRef.current = true; // block a second call before the screen re-renders
     setSubmitting(true);
     setSubmitError('');
     try {
       await studentApi.submitSitting(studentToken, groupId, answers);
       clearBackup(groupId);
+      if (auto) { navigate('/student', { replace: true }); return; }
       setSubmitted(true);
     } catch (err) {
       if (err.status === 401) { sessionExpired(); return; }
-      if (err.status === 409) { clearBackup(groupId); setSubmitted(true); return; } // already submitted
+      if (err.status === 409) { // already submitted (e.g. the server closed it when time ran out)
+        clearBackup(groupId);
+        if (auto) { navigate('/student', { replace: true }); return; }
+        setSubmitted(true);
+        return;
+      }
+      if (auto) return; // quiet: the retry below will try again in a few seconds
       setSubmitError(err.message || "Something went wrong submitting. Don't worry — your answers are still here. Try submitting again.");
     } finally {
       setSubmitting(false);
@@ -151,11 +161,15 @@ export default function StudentExam() {
     return () => clearInterval(t);
   }, [deadline, submitted, setupLoading, subjects.length]);
 
+  // Time is up: submit automatically, and keep trying every few seconds if the
+  // connection is bad, until it goes through.
   useEffect(() => {
-    if (submitted || setupLoading || !subjects.length || deadline === null) return;
-    if (secondsLeft <= 0 && !submitting && !submitError) doSubmit();
+    if (submitted || setupLoading || !subjects.length || deadline === null || secondsLeft > 0) return;
+    doSubmit(true);
+    const t = setInterval(() => doSubmit(true), 4000);
+    return () => clearInterval(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [secondsLeft]);
+  }, [secondsLeft <= 0, submitted, setupLoading, subjects.length]);
 
   if (setupLoading) {
     return (
@@ -202,7 +216,7 @@ export default function StudentExam() {
   const idx = positions[active.id] || 0;
   const q = active.questions[idx];
   const activeAnswers = answers[active.id] || {};
-  const lowTime = secondsLeft <= 60;
+  const lowTime = secondsLeft <= 180;   // last 3 minutes
   const countFor = (s) => Object.keys(answers[s.id] || {}).length;
   const unanswered = subjects.reduce((n, s) => n + (s.questions.length - countFor(s)), 0);
   const setPos = (i) => setPositions(p => ({ ...p, [active.id]: i }));
@@ -218,10 +232,15 @@ export default function StudentExam() {
         </div>
         <div className="exam-header-actions">
           <div className={`exam-timer ${lowTime ? 'exam-timer-low' : ''}`} title="Total time left for all your subjects">
-            <Clock size={15} /> {secondsLeft <= 0 ? 'Submitting…' : formatTime(secondsLeft)}
+            <Clock size={15} /> {formatTime(secondsLeft)}
           </div>
+          {lowTime && secondsLeft > 0 && (
+            <div className="exam-time-alert" role="alert">
+              <AlertTriangle size={14} /> Less than 3 minutes left!
+            </div>
+          )}
           <button className="exam-submit-btn" disabled={submitting} onClick={() => setConfirmingSubmit(true)}>
-            {submitting ? 'Submitting…' : 'Submit All'}
+            Submit All
           </button>
         </div>
       </div>
