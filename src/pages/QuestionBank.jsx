@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { Upload, Trash2, FileText, File as FileIcon, Download } from 'lucide-react';
+import { Upload, Trash2, Pencil, FileText, File as FileIcon, Download } from 'lucide-react';
+import QuestionEditorModal from '../components/QuestionEditorModal';
 import DashboardLayout from '../components/DashboardLayout';
 import Badge from '../components/Badge';
 import Modal from '../components/Modal';
@@ -11,7 +12,7 @@ import { parseQuestionFile } from '../lib/parseQuestionFile';
 
 const DEFAULT_TITLES = { test: 'Mid-Term Test', exam: 'First Term Examination' };
 
-export default function QuestionBank({ questions, setQuestions }) {
+export default function QuestionBank({ questions, setQuestions, students = [] }) {
   const { classes: CLASSES, subjectsFor: subjectPoolForClass } = useClassSetup();
   const { school } = useSchool();
   const [classFilter, setClassFilter] = useState('all');
@@ -19,6 +20,11 @@ export default function QuestionBank({ questions, setQuestions }) {
   const [typeFilter, setTypeFilter] = useState('all');
   const [uploading, setUploading] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [editing, setEditing] = useState(null);
+
+  // Students who have this set assigned but haven't submitted it yet.
+  const pendingFor = (q) => students.reduce(
+    (n, s) => n + ((s.assignments || []).some(a => a.questionId === q.id && !a.completed) ? 1 : 0), 0);
   const [form, setForm] = useState({ type: 'test', title: DEFAULT_TITLES.test, class: CLASSES[0] || '', subject: '', file: null });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -144,6 +150,7 @@ export default function QuestionBank({ questions, setQuestions }) {
                   <td><Badge tone={q.status === 'ready' ? 'green' : 'amber'}>{q.status}</Badge></td>
                   <td>
                     <div className="row-actions">
+                      <button className="icon-btn" onClick={() => setEditing(q)} aria-label="Edit questions" title="Edit questions"><Pencil size={14} /></button>
                       <button className="icon-btn icon-btn-danger" onClick={() => setConfirmDelete(q)} aria-label="Delete"><Trash2 size={14} /></button>
                     </div>
                   </td>
@@ -223,6 +230,18 @@ export default function QuestionBank({ questions, setQuestions }) {
             </button>
           </form>
         </Modal>
+      )}
+
+      {editing && (
+        <QuestionEditorModal
+          set={editing}
+          pendingCount={pendingFor(editing)}
+          onClose={() => setEditing(null)}
+          onSaved={(saved) => {
+            setQuestions(prev => prev.map(q => q.id === editing.id ? { ...q, title: saved.title, questionCount: saved.questionCount } : q));
+            setEditing(null);
+          }}
+        />
       )}
 
       {confirmDelete && (

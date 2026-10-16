@@ -140,7 +140,7 @@ function AdminArea() {
         <Dashboard students={students} setStudents={setStudents} questions={questions} results={results} license={license} setLicense={setLicense} />
       } />
       <Route path="students" element={<Students students={students} setStudents={setStudents} />} />
-      <Route path="question-bank" element={<QuestionBank questions={questions} setQuestions={setQuestions} />} />
+      <Route path="question-bank" element={<QuestionBank questions={questions} setQuestions={setQuestions} students={students} />} />
       <Route path="results" element={<Results results={results} />} />
       <Route path="license" element={<License license={license} setLicense={setLicense} />} />
       <Route path="settings" element={<Settings />} />
