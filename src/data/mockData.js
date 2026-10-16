@@ -123,13 +123,13 @@ export const INITIAL_QUESTIONS = [
 ];
 
 export const INITIAL_RESULTS = [
-  { id: 'r1', studentName: 'Chinedu Okafor', username: 'GVC/2026/001', class: 'JSS1', subject: 'Mathematics', exam: 'First Term Examination', score: 78, total: 100, grade: 'B', date: '2026-08-12', type: 'exam' },
-  { id: 'r2', studentName: 'Fatima Ibrahim', username: 'GVC/2026/004', class: 'SS1', subject: 'Physics', exam: 'First Term Examination', score: 91, total: 100, grade: 'A', date: '2026-08-12', type: 'exam' },
-  { id: 'r3', studentName: 'Emeka Nwosu', username: 'GVC/2026/005', class: 'SS2', subject: 'Physics', exam: 'First Term Examination', score: 64, total: 100, grade: 'C', date: '2026-08-13', type: 'exam' },
-  { id: 'r4', studentName: 'Blessing Eze', username: 'GVC/2026/006', class: 'SS2', subject: 'Accounting', exam: 'First Term Examination', score: 55, total: 100, grade: 'D', date: '2026-08-13', type: 'exam' },
-  { id: 'r5', studentName: 'Yusuf Abdullahi', username: 'GVC/2026/007', class: 'SS3', subject: 'English Language', exam: 'First Term Examination', score: 83, total: 100, grade: 'A', date: '2026-08-14', type: 'exam' },
-  { id: 'r6', studentName: 'Aisha Bello', username: 'GVC/2026/002', class: 'JSS2', subject: 'Basic Science', exam: 'First Term Examination', score: 70, total: 100, grade: 'B', date: '2026-08-14', type: 'exam' },
-  { id: 'r7', studentName: 'Chinedu Okafor', username: 'GVC/2026/001', class: 'JSS1', subject: 'Mathematics', exam: 'Mid-Term Test', score: 82, total: 100, grade: 'A', date: '2026-08-15', type: 'test' },
+  { id: 'r1', studentName: 'Chinedu Okafor', username: 'GVC/2026/001', class: 'JSS1', subject: 'Mathematics', exam: 'First Term Examination', score: 31, total: 40, date: '2026-08-12', type: 'exam' },
+  { id: 'r2', studentName: 'Fatima Ibrahim', username: 'GVC/2026/004', class: 'SS1', subject: 'Physics', exam: 'First Term Examination', score: 36, total: 40, date: '2026-08-12', type: 'exam' },
+  { id: 'r3', studentName: 'Emeka Nwosu', username: 'GVC/2026/005', class: 'SS2', subject: 'Physics', exam: 'First Term Examination', score: 26, total: 40, date: '2026-08-13', type: 'exam' },
+  { id: 'r4', studentName: 'Blessing Eze', username: 'GVC/2026/006', class: 'SS2', subject: 'Accounting', exam: 'First Term Examination', score: 22, total: 40, date: '2026-08-13', type: 'exam' },
+  { id: 'r5', studentName: 'Yusuf Abdullahi', username: 'GVC/2026/007', class: 'SS3', subject: 'English Language', exam: 'First Term Examination', score: 33, total: 40, date: '2026-08-14', type: 'exam' },
+  { id: 'r6', studentName: 'Aisha Bello', username: 'GVC/2026/002', class: 'JSS2', subject: 'Basic Science', exam: 'First Term Examination', score: 28, total: 40, date: '2026-08-14', type: 'exam' },
+  { id: 'r7', studentName: 'Chinedu Okafor', username: 'GVC/2026/001', class: 'JSS1', subject: 'Mathematics', exam: 'Mid-Term Test', score: 33, total: 40, date: '2026-08-15', type: 'test' },
 ];
 
 export const LICENSE = {
@@ -158,14 +158,6 @@ export function generateMockQuestions(subject, requestedCount) {
     options: ['Option A', 'Option B', 'Option C', 'Option D'],
     correctIndex: i % 4,
   }));
-}
-
-export function gradeFor(score) {
-  if (score >= 75) return 'A';
-  if (score >= 65) return 'B';
-  if (score >= 55) return 'C';
-  if (score >= 45) return 'D';
-  return 'F';
 }
 
 export const RECENT_ACTIVITY = [

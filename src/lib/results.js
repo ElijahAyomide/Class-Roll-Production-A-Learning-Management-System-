@@ -10,7 +10,6 @@ function mapResult(row) {
     exam: row.exam_title,
     score: row.score,
     total: row.total,
-    grade: row.grade,
     type: row.type,
     date: row.date,
   };

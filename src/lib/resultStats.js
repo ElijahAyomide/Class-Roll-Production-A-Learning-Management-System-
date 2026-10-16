@@ -1,23 +1,26 @@
+// A result's score as a percentage of its own total (e.g. 7 of 10 -> 70).
+// Used only where results with different totals have to be combined.
+export function percentOf(r) {
+  return r.total ? (r.score / r.total) * 100 : 0;
+}
+
 // Summary numbers shown under a printed results report or on a result slip.
 export function resultStats(results) {
   const count = results.length;
-  const distribution = { A: 0, B: 0, C: 0, D: 0, F: 0 };
-  if (count === 0) return { count, average: 0, highest: 0, lowest: 0, distribution };
+  if (count === 0) return { count, average: 0, highest: 0, lowest: 0 };
 
   let total = 0, highest = -Infinity, lowest = Infinity;
   for (const r of results) {
-    const pct = r.total ? (r.score / r.total) * 100 : 0;
+    const pct = percentOf(r);
     total += pct;
     highest = Math.max(highest, pct);
     lowest = Math.min(lowest, pct);
-    if (distribution[r.grade] !== undefined) distribution[r.grade] += 1;
   }
   return {
     count,
     average: Math.round((total / count) * 10) / 10,
     highest: Math.round(highest),
     lowest: Math.round(lowest),
-    distribution,
   };
 }
 

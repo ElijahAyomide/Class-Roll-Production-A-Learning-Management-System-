@@ -5,14 +5,8 @@ import { useClassSetup } from '../context/ClassSetupContext';
 import { useSchool } from '../context/SchoolContext';
 import DashboardLayout from '../components/DashboardLayout';
 import Badge from '../components/Badge';
+import { percentOf } from '../lib/resultStats';
 import ResultsPrintSheet from '../components/ResultsPrintSheet';
-
-const gradeTone = (grade) => {
-  if (grade === 'A') return 'green';
-  if (grade === 'B') return 'class';
-  if (grade === 'C') return 'amber';
-  return 'red';
-};
 
 export default function Results({ results }) {
   const { school } = useSchool();
@@ -37,7 +31,7 @@ export default function Results({ results }) {
       return matchesSearch && matchesClass && matchesSubject && matchesType;
     });
     if (sortBy === 'name') return [...list].sort((a, b) => a.studentName.localeCompare(b.studentName));
-    if (sortBy === 'score') return [...list].sort((a, b) => b.score - a.score);
+    if (sortBy === 'score') return [...list].sort((a, b) => percentOf(b) - percentOf(a));
     return list; // newest first, as loaded
   }, [results, search, classFilter, subjectFilter, typeFilter, sortBy]);
 
@@ -64,10 +58,10 @@ export default function Results({ results }) {
   const exportExcel = () => {
     const rows = filtered.map((r, i) => ({
       '#': i + 1, Student: r.studentName, Username: r.username, Class: r.class, Subject: r.subject,
-      Type: r.type, Title: r.exam, Date: r.date, Score: r.score, Total: r.total, Grade: r.grade,
+      Type: r.type, Title: r.exam, Date: r.date, Score: r.score, Total: r.total,
     }));
     const sheet = XLSX.utils.json_to_sheet(rows);
-    sheet['!cols'] = [{ wch: 4 }, { wch: 26 }, { wch: 16 }, { wch: 10 }, { wch: 20 }, { wch: 8 }, { wch: 26 }, { wch: 12 }, { wch: 7 }, { wch: 7 }, { wch: 7 }];
+    sheet['!cols'] = [{ wch: 4 }, { wch: 26 }, { wch: 16 }, { wch: 10 }, { wch: 20 }, { wch: 8 }, { wch: 26 }, { wch: 12 }, { wch: 7 }, { wch: 7 }];
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, sheet, 'Results');
     XLSX.writeFile(wb, `classroll-results-${new Date().toISOString().slice(0, 10)}.xlsx`);
@@ -131,14 +125,13 @@ export default function Results({ results }) {
                   <th>Type</th>
                   <th>Title</th>
                   <th>Score</th>
-                  <th>Grade</th>
                   <th>Date</th>
                   <th></th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.length === 0 ? (
-                  <tr><td colSpan={9} className="empty-note-cell">No results match your search yet.</td></tr>
+                  <tr><td colSpan={8} className="empty-note-cell">No results match your search yet.</td></tr>
                 ) : filtered.map(r => (
                   <tr key={r.id}>
                     <td>
@@ -150,7 +143,6 @@ export default function Results({ results }) {
                     <td><Badge tone={r.type === 'exam' ? 'class' : 'purple'}>{r.type}</Badge></td>
                     <td className="cell-dim">{r.exam}</td>
                     <td className="cell-strong">{r.score}/{r.total}</td>
-                    <td><Badge tone={gradeTone(r.grade)}>{r.grade}</Badge></td>
                     <td className="cell-dim">{r.date}</td>
                     <td>
                       <button

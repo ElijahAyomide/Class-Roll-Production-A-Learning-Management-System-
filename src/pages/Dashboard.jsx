@@ -172,7 +172,7 @@ export default function Dashboard({ students, setStudents, questions, results, l
     const map = {};
     results.forEach(r => {
       if (!map[r.class]) map[r.class] = { class: r.class, total: 0, count: 0 };
-      map[r.class].total += r.score;
+      map[r.class].total += (r.total ? (r.score / r.total) * 100 : 0);
       map[r.class].count += 1;
     });
     const classList = [...new Set([...CLASSES, ...results.map(r => r.class)])];

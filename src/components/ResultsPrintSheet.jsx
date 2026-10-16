@@ -39,7 +39,7 @@ export default function ResultsPrintSheet({ school, job, rows, filterSummary }) 
         </div>
         <table className="print-table">
           <thead>
-            <tr><th>Subject</th><th>Type</th><th>Title</th><th>Date</th><th>Score</th><th>Grade</th></tr>
+            <tr><th>Subject</th><th>Type</th><th>Title</th><th>Date</th><th>Score</th></tr>
           </thead>
           <tbody>
             {student.results.map(r => (
@@ -49,7 +49,6 @@ export default function ResultsPrintSheet({ school, job, rows, filterSummary }) 
                 <td>{r.exam}</td>
                 <td>{r.date}</td>
                 <td>{r.score}/{r.total}</td>
-                <td><b>{r.grade}</b></td>
               </tr>
             ))}
           </tbody>
@@ -62,7 +61,6 @@ export default function ResultsPrintSheet({ school, job, rows, filterSummary }) 
           <div><div className="print-sign-line" />Class Teacher</div>
           <div><div className="print-sign-line" />Principal</div>
         </div>
-        <div className="print-footer">Grading: A 75–100 · B 65–74 · C 55–64 · D 45–54 · F below 45</div>
       </section>
     );
   };
@@ -87,7 +85,7 @@ export default function ResultsPrintSheet({ school, job, rows, filterSummary }) 
           <thead>
             <tr>
               <th>#</th><th>Student</th><th>Username</th><th>Class</th><th>Subject</th>
-              <th>Type</th><th>Title</th><th>Date</th><th>Score</th><th>Grade</th>
+              <th>Type</th><th>Title</th><th>Date</th><th>Score</th>
             </tr>
           </thead>
           <tbody>
@@ -102,7 +100,6 @@ export default function ResultsPrintSheet({ school, job, rows, filterSummary }) 
                 <td>{r.exam}</td>
                 <td>{r.date}</td>
                 <td>{r.score}/{r.total}</td>
-                <td><b>{r.grade}</b></td>
               </tr>
             ))}
           </tbody>
@@ -112,11 +109,7 @@ export default function ResultsPrintSheet({ school, job, rows, filterSummary }) 
           <span>Average: <b>{stats.average}%</b></span>
           <span>Highest: <b>{stats.highest}%</b></span>
           <span>Lowest: <b>{stats.lowest}%</b></span>
-          <span>
-            Grades: {Object.entries(stats.distribution).map(([g, n]) => `${g} ${n}`).join(' · ')}
-          </span>
         </div>
-        <div className="print-footer">Grading: A 75–100 · B 65–74 · C 55–64 · D 45–54 · F below 45</div>
       </section>
     </div>
   );
