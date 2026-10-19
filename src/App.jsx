@@ -12,6 +12,7 @@ import SignOut from './pages/SignOut';
 import StudentHome from './pages/student/StudentHome';
 import StudentExam from './pages/student/StudentExam';
 import StudentReview from './pages/student/StudentReview';
+import { useIdleLogout } from './lib/idleLogout';
 import { SchoolProvider, useSchool } from './context/SchoolContext';
 import { StudentSessionProvider } from './context/StudentSessionContext';
 import { fetchStudents } from './lib/students';
@@ -95,6 +96,10 @@ function AdminArea() {
     if (!schoolLoading && !session) navigate('/login', { replace: true });
   }, [schoolLoading, session, navigate]);
 
+  // Signs the admin out after 30 minutes of inactivity, or when the computer
+  // has been asleep or hibernating, so an unattended screen can't be used.
+  const warnSeconds = useIdleLogout(session, () => navigate('/login', { replace: true }));
+
   useEffect(() => {
     if (!school?.id) return;
     setDataLoading(true);
@@ -147,6 +152,12 @@ function AdminArea() {
       <Route path="sign-out" element={<SignOut />} />
       <Route path="*" element={<Navigate to="dashboard" replace />} />
     </Routes>
+    {warnSeconds !== null && (
+      <div className="idle-warning" role="alert">
+        For your security you'll be signed out in {Math.floor(warnSeconds / 60)}:{String(warnSeconds % 60).padStart(2, '0')} because you've been inactive.
+        Move your mouse or press any key to stay signed in.
+      </div>
+    )}
     </ClassSetupProvider>
   );
 }

@@ -736,3 +736,11 @@ button, input, select { font-family: inherit; }
 .import-preview .data-table { margin: 0; }
 .import-preview .data-table thead th { position: sticky; top: 0; background: var(--surface-2); z-index: 1; }
 .import-actions { position: sticky; bottom: -20px; background: var(--surface); padding: 12px 0 0; margin-top: 4px; border-top: 1px solid var(--line); }
+
+/* Warning shown shortly before an inactive admin is signed out */
+.idle-warning {
+  position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 60;
+  max-width: min(560px, calc(100vw - 32px)); padding: 12px 16px; border-radius: 8px;
+  background: var(--red); color: #fff; font-size: 13.5px; font-weight: 600; line-height: 1.45;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.25); text-align: center;
+}

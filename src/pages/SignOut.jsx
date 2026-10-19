@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { LogOut } from 'lucide-react';
 import DashboardLayout from '../components/DashboardLayout';
 import { signOutAdmin } from '../lib/auth';
+import { forgetActivity } from '../lib/idleLogout';
 
 export default function SignOut() {
   const navigate = useNavigate();
@@ -11,6 +12,7 @@ export default function SignOut() {
   const confirmSignOut = async () => {
     setSigningOut(true);
     try {
+      forgetActivity();
       await signOutAdmin();
     } catch (err) {
       console.error('Sign out failed:', err.message);

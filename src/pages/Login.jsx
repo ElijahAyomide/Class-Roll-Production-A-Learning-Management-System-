@@ -3,6 +3,7 @@ import PasswordInput from '../components/PasswordInput';
 import { useNavigate } from 'react-router-dom';
 import { GraduationCap, ArrowRight, UserPlus, MailCheck } from 'lucide-react';
 import Modal from '../components/Modal';
+import { SIGNOUT_REASON_KEY } from '../lib/idleLogout';
 import { useSchool } from '../context/SchoolContext';
 import { useStudentSession } from '../context/StudentSessionContext';
 import { signUpAdmin, signInAdmin, requestPasswordReset, resendConfirmation } from '../lib/auth';
@@ -27,6 +28,14 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [signInError, setSignInError] = useState('');
+  // Shown once if the admin was signed out automatically (inactive or computer asleep).
+  const [autoSignedOut] = useState(() => {
+    try {
+      const r = sessionStorage.getItem(SIGNOUT_REASON_KEY);
+      if (r) sessionStorage.removeItem(SIGNOUT_REASON_KEY);
+      return r;
+    } catch { return null; }
+  });
   const [signingIn, setSigningIn] = useState(false);
 
   const [studentUsername, setStudentUsername] = useState('');
@@ -215,6 +224,13 @@ export default function Login() {
               <label>PASSWORD</label>
               <PasswordInput placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} />
             </div>
+            {autoSignedOut && !signInError && (
+              <div className="success-note">
+                {autoSignedOut === 'sleep'
+                  ? 'You were signed out because your computer went to sleep. Please sign in again.'
+                  : 'You were signed out because you were inactive for a while. Please sign in again.'}
+              </div>
+            )}
             {signInError && <div className="error-text">{signInError}</div>}
             {needsConfirm && (
               <button type="button" className="login-switch-link" disabled={resendState === 'sending'} onClick={() => resendLink(email.trim())}>
