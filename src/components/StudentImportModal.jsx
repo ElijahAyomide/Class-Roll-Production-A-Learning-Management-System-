@@ -87,7 +87,12 @@ export default function StudentImportModal({ students, onImported, onClose }) {
   }
 
   const ok = parsed && parsed.errors.length === 0 && parsed.students.length > 0;
-  const previewRows = parsed ? parsed.students.slice(0, 8) : [];
+  // Show every student, with the username each one will get, so the whole
+  // list can be checked (scrolling) before anything is saved.
+  const startSeq = studentSequence(students);
+  const previewRows = parsed ? parsed.students.map((st, i) => ({
+    ...st, previewUsername: nextUsername(startSeq + i, st.class, school.code),
+  })) : [];
 
   return (
     <Modal title="Import students from Excel" onClose={onClose} width={620}>
@@ -120,17 +125,19 @@ export default function StudentImportModal({ students, onImported, onClose }) {
         {ok && (
           <>
             <div className="success-note">
-              <FileSpreadsheet size={13} style={{ verticalAlign: '-2px' }} /> {parsed.students.length} student{parsed.students.length === 1 ? '' : 's'} ready to import. Please check the first few:
+              <FileSpreadsheet size={13} style={{ verticalAlign: '-2px' }} /> {parsed.students.length} student{parsed.students.length === 1 ? '' : 's'} ready to import. Scroll the list to check everyone, then click Import:
             </div>
-            <div className="table-wrap">
+            <div className="import-preview">
               <table className="data-table">
                 <thead>
-                  <tr><th>Name</th><th>Class</th><th>Subjects</th><th>Password</th></tr>
+                  <tr><th>#</th><th>Name</th><th>Username</th><th>Class</th><th>Subjects</th><th>Password</th></tr>
                 </thead>
                 <tbody>
                   {previewRows.map(st => (
                     <tr key={st.rowNum}>
+                      <td className="cell-dim-sm">{st.rowNum - 1}</td>
                       <td className="cell-strong">{st.name}</td>
+                      <td className="cell-dim-sm">{st.previewUsername}</td>
                       <td>{st.class}</td>
                       <td className="cell-dim-sm">{st.subjects.length} subject{st.subjects.length === 1 ? '' : 's'}</td>
                       <td className="cell-dim-sm">{st.surname}</td>
@@ -139,13 +146,10 @@ export default function StudentImportModal({ students, onImported, onClose }) {
                 </tbody>
               </table>
             </div>
-            {parsed.students.length > previewRows.length && (
-              <div className="field-hint">…and {parsed.students.length - previewRows.length} more.</div>
-            )}
           </>
         )}
 
-        <div className="confirm-actions">
+        <div className="confirm-actions import-actions">
           <button className="btn-ghost" onClick={onClose}>Cancel</button>
           <button className="btn-primary" onClick={confirmImport} disabled={!ok || saving || !file}>
             <Upload size={15} /> {saving ? 'Importing…' : ok ? `Import ${parsed.students.length} Students` : 'Import'}

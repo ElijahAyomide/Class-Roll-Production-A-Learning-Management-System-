@@ -376,13 +376,18 @@ button, input, select { font-family: inherit; }
   position: fixed; inset: 0; background: rgba(36, 26, 22, 0.55);
   display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 50;
 }
-.modal-panel { background: var(--surface); border-radius: 8px; width: 100%; padding: 0; }
+.modal-panel {
+  background: var(--surface); border-radius: 8px; width: 100%; padding: 0;
+  /* Never taller than the screen: the header stays put and the body scrolls. */
+  max-height: calc(100vh - 32px); max-height: calc(100dvh - 32px);
+  display: flex; flex-direction: column;
+}
 .modal-panel-header {
-  display: flex; align-items: center; justify-content: space-between; padding: 16px 20px;
+  flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 16px 20px;
   border-bottom: 1px solid var(--line); font-family: var(--font-display); font-weight: 700; font-size: 14.5px;
 }
 .modal-close-btn { background: transparent; border: none; color: var(--ink-faint); cursor: pointer; }
-.modal-panel-body { padding: 20px; }
+.modal-panel-body { padding: 20px; overflow-y: auto; min-height: 0; }
 .confirm-text { font-size: 13px; color: var(--ink-dim); line-height: 1.5; margin: 0 0 18px; }
 .confirm-actions { display: flex; justify-content: flex-end; gap: 8px; }
 .confirm-actions-split { justify-content: space-between; }
@@ -725,3 +730,9 @@ button, input, select { font-family: inherit; }
 .qe-option-correct { border-color: var(--green); background: rgba(76,175,125,0.07); }
 .qe-letter { font-weight: 700; color: var(--ink-dim); width: 14px; }
 .qe-footer { display: flex; justify-content: space-between; align-items: center; gap: 12px; border-top: 1px solid var(--line); padding-top: 12px; }
+
+/* Student import preview: every row visible by scrolling; buttons stay in view */
+.import-preview { max-height: 38vh; overflow: auto; border: 1px solid var(--line); border-radius: 8px; }
+.import-preview .data-table { margin: 0; }
+.import-preview .data-table thead th { position: sticky; top: 0; background: var(--surface-2); z-index: 1; }
+.import-actions { position: sticky; bottom: -20px; background: var(--surface); padding: 12px 0 0; margin-top: 4px; border-top: 1px solid var(--line); }
