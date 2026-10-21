@@ -10,7 +10,7 @@ import { supabase } from './supabaseClient';
 // Activity is shared between browser tabs through localStorage, so working in
 // one tab keeps the others signed in too.
 
-export const IDLE_LIMIT_MS = 15 * 60 * 1000; // 15 minutes without activity
+export const IDLE_LIMIT_MS = 30 * 60 * 1000; // 30 minutes without activity
 const WARN_MS = 2 * 60 * 1000;               // warn during the last 2 minutes
 const SLEEP_GAP_MS = 3 * 60 * 1000;          // a gap this long between checks means the computer slept
 const CHECK_EVERY_MS = 5000;

@@ -106,12 +106,27 @@ export default function Dashboard({ students, setStudents, questions, results, l
 
   const assignableQuestions = useMemo(() => {
     if (!assigning) return [];
+    // Compare subject names ignoring capital letters and extra spaces, so
+    // "Livestock" and "livestock " are treated as the same subject.
+    const norm = (t) => String(t || '').trim().replace(/\s+/g, ' ').toLowerCase();
+    const mine = new Set(assigning.student.subjects.map(norm));
     return questions.filter(q =>
       q.type === assigning.type &&
-      q.class === assigning.student.class &&
-      assigning.student.subjects.includes(q.subject) &&
+      norm(q.class) === norm(assigning.student.class) &&
+      mine.has(norm(q.subject)) &&
       q.status === 'ready'
     );
+  }, [assigning, questions]);
+
+  // Question sets that match the student's class and type but whose subject
+  // the student doesn't take — the usual reason a subject "goes missing".
+  const skippedSubjects = useMemo(() => {
+    if (!assigning) return [];
+    const norm = (t) => String(t || '').trim().replace(/\s+/g, ' ').toLowerCase();
+    const mine = new Set(assigning.student.subjects.map(norm));
+    return [...new Set(questions
+      .filter(q => q.type === assigning.type && norm(q.class) === norm(assigning.student.class) && q.status === 'ready' && !mine.has(norm(q.subject)))
+      .map(q => q.subject))];
   }, [assigning, questions]);
 
   const toggleAssignQuestion = (id) => {
@@ -430,6 +445,11 @@ export default function Dashboard({ students, setStudents, questions, results, l
               <p className="confirm-text">
                 No ready {assigning.type === 'test' ? 'tests' : 'exams'} in the Question Bank match {assigning.student.name}'s class ({assigning.student.class}) and subjects yet.
               </p>
+              {skippedSubjects.length > 0 && (
+                <p className="cell-dim-sm" style={{ marginBottom: 12 }}>
+                  There are question sets for {skippedSubjects.join(', ')}, but {assigning.student.name} is not registered for {skippedSubjects.length === 1 ? 'that subject' : 'those subjects'}. Edit the student and tick {skippedSubjects.length === 1 ? 'it' : 'them'}, or add {skippedSubjects.length === 1 ? 'it' : 'them'} in Settings → Classes &amp; Subjects first.
+                </p>
+              )}
               <button className="btn-primary" onClick={() => navigate('/question-bank')}>
                 <FileText size={14} /> Go to Question Bank
               </button>
@@ -453,6 +473,11 @@ export default function Dashboard({ students, setStudents, questions, results, l
                     </label>
                   ))}
                 </div>
+                {skippedSubjects.length > 0 && (
+                  <p className="cell-dim-sm" style={{ marginTop: 8 }}>
+                    Not listed: {skippedSubjects.join(', ')} — {assigning.student.name} is not registered for {skippedSubjects.length === 1 ? 'this subject' : 'these subjects'}. Edit the student to add {skippedSubjects.length === 1 ? 'it' : 'them'}.
+                  </p>
+                )}
                 <div className="field-hint">
                   Only showing {assigning.type === 'test' ? 'tests' : 'exams'} marked "ready" for {assigning.student.class} in a subject {assigning.student.name.split(' ')[0]} takes. Select as many as you're setting today.
                 </div>
