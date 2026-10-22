@@ -6,6 +6,7 @@ import DashboardLayout from '../components/DashboardLayout';
 import StatCard from '../components/StatCard';
 import Badge from '../components/Badge';
 import Modal from '../components/Modal';
+import AssignClassModal from '../components/AssignClassModal';
 import { useClassSetup } from '../context/ClassSetupContext';
 import { useSchool } from '../context/SchoolContext';
 import { createStudent, updateStudent, deleteStudent } from '../lib/students';
@@ -19,6 +20,7 @@ export default function Dashboard({ students, setStudents, questions, results, l
   const { classes: CLASSES, subjectsFor: subjectPoolForClass } = useClassSetup();
   const { school } = useSchool();
   const navigate = useNavigate();
+  const [classAssignOpen, setClassAssignOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [form, setForm] = useState({ name: '', class: CLASSES[0] || '', subjects: [] });
   const [added, setAdded] = useState(false);
@@ -237,6 +239,11 @@ export default function Dashboard({ students, setStudents, questions, results, l
 
   return (
     <DashboardLayout title="Dashboard" subtitle="Here's what's happening across your school today.">
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 14 }}>
+        <button className="btn-primary" onClick={() => setClassAssignOpen(true)}>
+          <Users size={15} /> Set test / exam for a whole class
+        </button>
+      </div>
       <div className="stat-grid">
         <StatCard icon={Users} label="Total Students" value={students.length} sub={`${CLASSES.length} classes`} />
         <StatCard icon={CreditCard} label="License Balance" value={license.balance} sub="exam credits left" tone={license.balance < 20 ? 'amber' : 'default'} />
@@ -550,6 +557,12 @@ export default function Dashboard({ students, setStudents, questions, results, l
             <button className="btn-danger" onClick={doDelete}>Remove Student</button>
           </div>
         </Modal>
+      )}
+      {classAssignOpen && (
+        <AssignClassModal
+          students={students} setStudents={setStudents} questions={questions}
+          license={license} setLicense={setLicense} onClose={() => setClassAssignOpen(false)}
+        />
       )}
     </DashboardLayout>
   );

@@ -30,17 +30,22 @@ export async function fetchAssignmentsForSchool(schoolId) {
 // All rows created in one call share a group_id: that is what makes them
 // ONE sitting with ONE total time (durationMinutes is the total for the group).
 export async function createAssignments(rows) {
-  const groupId = crypto.randomUUID();
-  const payload = rows.map(r => ({
-    group_id: groupId,
-    student_id: r.studentId,
-    question_id: r.questionId,
-    type: r.type,
-    subject: r.subject,
-    date: r.date,
-    duration_minutes: r.durationMinutes,
-    completed: false,
-  }));
+  // One group per student: a group is one student's sitting, with its own
+  // timer, so students must never share a group_id.
+  const groupByStudent = new Map();
+  const payload = rows.map(r => {
+    if (!groupByStudent.has(r.studentId)) groupByStudent.set(r.studentId, crypto.randomUUID());
+    return {
+      group_id: groupByStudent.get(r.studentId),
+      student_id: r.studentId,
+      question_id: r.questionId,
+      type: r.type,
+      subject: r.subject,
+      date: r.date,
+      duration_minutes: r.durationMinutes,
+      completed: false,
+    };
+  });
   const { data, error } = await supabase.from('assignments').insert(payload).select();
   if (error) throw error;
   return data.map(mapAssignment);
@@ -58,4 +63,26 @@ export async function replaceAssignments(studentId, type, subjects) {
     .eq('completed', false)
     .in('subject', subjects);
   if (error) throw error;
+}
+
+// Sets the same test/exam for many students at once (a whole class).
+// `plan` is [{ studentId, items: [{ questionId, subject }] }] — each student
+// gets only the subjects they take. Returns the created assignment rows.
+export async function assignToClass(plan, type, date, durationMinutes) {
+  // Replace any pending assignment of the same type+subject, student by
+  // student (so a student's other pending work is never touched), 10 at a time.
+  for (let i = 0; i < plan.length; i += 10) {
+    await Promise.all(plan.slice(i, i + 10).map(p =>
+      replaceAssignments(p.studentId, type, [...new Set(p.items.map(it => it.subject))])));
+  }
+  const rows = plan.flatMap(p => p.items.map(it => ({
+    studentId: p.studentId, questionId: it.questionId, type, subject: it.subject, date, durationMinutes,
+  })));
+  const created = await createAssignments(rows);
+  const { error } = await supabase
+    .from('students')
+    .update({ status: type === 'test' ? 'test-active' : 'exam-active' })
+    .in('id', plan.map(p => p.studentId));
+  if (error) throw error;
+  return created;
 }
