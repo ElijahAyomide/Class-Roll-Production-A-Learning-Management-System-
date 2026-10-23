@@ -11,7 +11,6 @@ import Settings from './pages/Settings';
 import SignOut from './pages/SignOut';
 import StudentHome from './pages/student/StudentHome';
 import StudentExam from './pages/student/StudentExam';
-import StudentReview from './pages/student/StudentReview';
 import { useIdleLogout } from './lib/idleLogout';
 import { SchoolProvider, useSchool } from './context/SchoolContext';
 import { StudentSessionProvider } from './context/StudentSessionContext';
@@ -67,7 +66,6 @@ export default function App() {
               which may never have had an admin signed in on them. */}
           <Route path="/student" element={<StudentHome />} />
           <Route path="/student/exam/:groupId" element={<StudentExam />} />
-          <Route path="/student/review" element={<StudentReview />} />
 
           {/* Admin portal — everything past this point requires a real,
               signed-in admin account (see AdminArea below). */}

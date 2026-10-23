@@ -39,5 +39,4 @@ export const studentApi = {
   startSitting: (token, groupId) => call('start', { token, groupId }),
   saveAnswers: (token, groupId, answers) => call('save', { token, groupId, answers }),
   submitSitting: (token, groupId, answers) => call('submit', { token, groupId, answers }),
-  review: (token) => call('review', { token }),
 };

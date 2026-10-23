@@ -124,9 +124,27 @@ export default function StudentExam() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [studentToken, groupId]);
 
+  // After a submit there is no review page and no Continue button: if the
+  // student has other subjects still to take they go straight to their home
+  // page; if nothing is left they are signed out right away.
+  const leaveAfterSubmit = async () => {
+    try {
+      const d = await studentApi.home(studentToken);
+      if (!d.assignments.some(a => a.status === 'todo')) {
+        studentApi.logout(studentToken).catch(() => {});
+        setStudentToken(null);
+        navigate('/login', { replace: true });
+        return;
+      }
+    } catch (err) {
+      if (err.status === 401) { sessionExpired(); return; }
+    }
+    navigate('/student', { replace: true });
+  };
+
   // One Submit for every subject. The server does the grading.
   // auto = true when the time ran out: the student isn't told, they are simply
-  // taken straight to their home page, where they can choose to review or sign out.
+  // moved on (see leaveAfterSubmit).
   const doSubmit = async (auto = false) => {
     if (submittedRef.current || !subjects.length) return;
     submittedRef.current = true; // block a second call before the screen re-renders
@@ -135,14 +153,15 @@ export default function StudentExam() {
     try {
       await studentApi.submitSitting(studentToken, groupId, answers);
       clearBackup(groupId);
-      if (auto) { navigate('/student', { replace: true }); return; }
       setSubmitted(true);
+      leaveAfterSubmit();
+      return;
     } catch (err) {
       if (err.status === 401) { sessionExpired(); return; }
       if (err.status === 409) { // already submitted (e.g. the server closed it when time ran out)
         clearBackup(groupId);
-        if (auto) { navigate('/student', { replace: true }); return; }
         setSubmitted(true);
+        leaveAfterSubmit();
         return;
       }
       if (auto) return; // quiet: the retry below will try again in a few seconds
@@ -197,16 +216,13 @@ export default function StudentExam() {
   if (!subjects.length) return null;
 
   if (submitted) {
+    // Shown for a moment while the student is moved on automatically.
     return (
       <div className="exam-screen">
         <div className="exam-result-card">
           <div className="exam-result-icon"><CheckCircle2 size={28} /></div>
           <div className="exam-result-title">Submitted Successfully</div>
           <div className="exam-result-subject">{subjects.map(s => s.subject).join(' · ')}</div>
-          <div className="exam-result-detail">
-            Your answers have been recorded and can't be changed. You can look back at them until you sign out. Your school will share your result with you.
-          </div>
-          <button className="btn-primary" onClick={() => navigate('/student')}>Continue</button>
         </div>
       </div>
     );

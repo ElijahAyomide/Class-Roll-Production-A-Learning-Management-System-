@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Clock, PlayCircle, CheckCircle, Eye } from 'lucide-react';
+import { LogOut, Clock, PlayCircle } from 'lucide-react';
 import { useStudentSession } from '../../context/StudentSessionContext';
 import Modal from '../../components/Modal';
 import { studentApi } from '../../lib/studentApi';
 import { formatTime } from './StudentExam';
 
-// This page shows what a student can act on, plus the subjects they have
-// already submitted (so they can look back at their answers before signing
-// out). Scores are never shown: results are admin-only.
+// This page shows what a student can still take. Submitted subjects are not
+// shown and cannot be reviewed. Scores are never shown: results are admin-only.
 //
 // Subjects the school set together are one "sitting" with ONE total time,
 // shown here as a single countdown for the group.
@@ -59,11 +58,21 @@ export default function StudentHome() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [anyExpired, loadedAt]);
 
-  if (loading || !data) return null;
+  // Nothing left to take (for example a sitting just ran out of time and was
+  // submitted): sign the student out instead of showing an empty page.
+  const nothingLeft = !!data && !data.assignments.some(a => a.status === 'todo');
+  useEffect(() => {
+    if (!nothingLeft) return;
+    studentApi.logout(studentToken).catch(() => {});
+    setStudentToken(null);
+    navigate('/login', { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nothingLeft]);
+
+  if (loading || !data || nothingLeft) return null;
 
   const { student, schoolName, assignments, groups, pauseMinutes } = data;
   const todo = assignments.filter(a => a.status === 'todo');
-  const done = assignments.filter(a => a.status === 'done');
   const inProgress = Object.values(groups).some(g => g.started);
 
   const signOut = () => {
@@ -125,30 +134,12 @@ export default function StudentHome() {
             </div>
           );
         })}
-
-        {done.length > 0 && (
-          <div className="student-sitting">
-            <div className="student-section-title">Submitted</div>
-            <div className="sitting-card">
-              <div className="sitting-subjects">
-                {done.map(a => <span key={a.id} className="sitting-subject-chip"><CheckCircle size={12} style={{ verticalAlign: '-2px', marginRight: 5, color: 'var(--green)' }} />{a.subject}</span>)}
-              </div>
-              <button className="btn-ghost sitting-start" onClick={() => navigate('/student/review')}>
-                <Eye size={15} /> Review my answers
-              </button>
-              <div className="field-hint" style={{ marginTop: 8 }}>You can look back at your answers until you sign out. After that you can't sign in again until your school sets a new test or exam.</div>
-            </div>
-          </div>
-        )}
       </div>
 
       {confirmingSignOut && (
         <Modal title="Sign out?" onClose={() => setConfirmingSignOut(false)} width={400}>
           <p className="confirm-text">
             Are you sure you want to sign out?
-            {done.length > 0 && todo.length === 0 && (
-              <> You won't be able to sign in again, or look at your answers, until your school sets a new test or exam.</>
-            )}
             {todo.length > 0 && (
               <>
                 {' '}You still have {todo.length} subject{todo.length === 1 ? '' : 's'} left to submit.
