@@ -160,13 +160,6 @@ export function generateMockQuestions(subject, requestedCount) {
   }));
 }
 
-export const RECENT_ACTIVITY = [
-  { id: 'a1', text: 'Uploaded Accounting exam for SS2', time: '2 hours ago' },
-  { id: 'a2', text: '5 students completed the Physics exam', time: '5 hours ago' },
-  { id: 'a3', text: 'Added Amaka Obi to SS1', time: 'Yesterday' },
-  { id: 'a4', text: 'Purchased 50 exam credits', time: '2 days ago' },
-];
-
 // Next free student number for a school. Uses the highest number already
 // used in usernames (not just how many students exist), so deleting a
 // student can never cause the next new student to get a username that is

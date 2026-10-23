@@ -12,6 +12,7 @@ function mapQuestion(row) {
     questionCount: row.question_count || 0,
     status: row.status,
     uploadDate: row.upload_date,
+    createdAt: row.created_at,
   };
 }
 

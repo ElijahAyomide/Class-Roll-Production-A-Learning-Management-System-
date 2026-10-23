@@ -11,6 +11,7 @@ function mapAssignment(row) {
     durationMinutes: row.duration_minutes,
     groupId: row.group_id,
     completed: row.completed,
+    createdAt: row.created_at,
   };
 }
 // Fetches every assignment belonging to any student at this school, in one

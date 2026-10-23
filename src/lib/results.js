@@ -12,6 +12,7 @@ function mapResult(row) {
     total: row.total,
     type: row.type,
     date: row.date,
+    createdAt: row.created_at,
   };
 }
 

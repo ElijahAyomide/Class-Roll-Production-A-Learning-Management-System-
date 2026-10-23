@@ -12,7 +12,8 @@ import { useSchool } from '../context/SchoolContext';
 import { createStudent, updateStudent, deleteStudent } from '../lib/students';
 import { createAssignments, replaceAssignments } from '../lib/assignments';
 import { deductLicense } from '../lib/license';
-import { nextUsername, studentSequence, RECENT_ACTIVITY, statusLabel, statusBadgeTone, DURATION_OPTIONS } from '../data/mockData';
+import { buildActivity } from '../lib/activity';
+import { nextUsername, studentSequence, statusLabel, statusBadgeTone, DURATION_OPTIONS } from '../data/mockData';
 
 const CHART_COLORS = { line: '#E4E6F0', dim: '#6B7280', bar: '#385DE9' };
 
@@ -199,6 +200,11 @@ export default function Dashboard({ students, setStudents, questions, results, l
     })).filter(c => c.avg > 0);
   }, [results, CLASSES]);
 
+  const activity = useMemo(
+    () => buildActivity({ students, questions, results, license }),
+    [students, questions, results, license]
+  );
+
   const searchResults = useMemo(() => {
     if (!search.trim()) return [];
     const q = search.trim().toLowerCase();
@@ -329,7 +335,8 @@ export default function Dashboard({ students, setStudents, questions, results, l
           <div className="card">
             <div className="card-label">Recent activity</div>
             <div className="activity-list">
-              {RECENT_ACTIVITY.map(a => (
+              {activity.length === 0 && <div className="activity-time">Nothing yet. Activity will show here as you add students, upload questions and set tests.</div>}
+              {activity.map(a => (
                 <div key={a.id} className="activity-row">
                   <div className="activity-dot" />
                   <div>

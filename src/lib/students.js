@@ -10,6 +10,7 @@ function mapStudent(row) {
     class: row.class,
     subjects: row.subjects || [],
     status: row.status,
+    createdAt: row.created_at,
     // Assignments live in their own table and are fetched separately
     // (see fetchAssignmentsForSchool / fetchAssignmentsForStudent in
     // assignments.js) — every student gets an empty array by default

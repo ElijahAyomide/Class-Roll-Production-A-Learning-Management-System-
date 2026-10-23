@@ -8,6 +8,7 @@ function mapHistoryRow(row) {
     amount: row.amount,
     reference: row.reference,
     status: row.status,
+    createdAt: row.created_at,
   };
 }
 
