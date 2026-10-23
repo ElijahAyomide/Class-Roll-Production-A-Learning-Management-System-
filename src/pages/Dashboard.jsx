@@ -201,7 +201,7 @@ export default function Dashboard({ students, setStudents, questions, results, l
   }, [results, CLASSES]);
 
   const activity = useMemo(
-    () => buildActivity({ students, questions, results, license }),
+    () => buildActivity({ students, questions, results, license }, 40),
     [students, questions, results, license]
   );
 
@@ -340,7 +340,7 @@ export default function Dashboard({ students, setStudents, questions, results, l
                 <div key={a.id} className="activity-row">
                   <div className="activity-dot" />
                   <div>
-                    <div className="activity-text">{a.text}</div>
+                    <div className="activity-text" title={a.text}>{a.text}</div>
                     <div className="activity-time">{a.time}</div>
                   </div>
                 </div>
