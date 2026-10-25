@@ -9,7 +9,6 @@ import QuestionBank from './pages/QuestionBank';
 import Results from './pages/Results';
 import License from './pages/License';
 import Settings from './pages/Settings';
-import SignOut from './pages/SignOut';
 import StudentHome from './pages/student/StudentHome';
 import StudentExam from './pages/student/StudentExam';
 import { useIdleLogout } from './lib/idleLogout';
@@ -149,8 +148,7 @@ function AdminArea() {
       <Route path="question-bank" element={<QuestionBank questions={questions} setQuestions={setQuestions} students={students} license={license} />} />
       <Route path="results" element={<Results results={results} license={license} />} />
       <Route path="license" element={<License license={license} setLicense={setLicense} />} />
-      <Route path="settings" element={<Settings />} />
-      <Route path="sign-out" element={<SignOut />} />
+      <Route path="settings" element={<Settings license={license} />} />
       <Route path="*" element={<Navigate to="dashboard" replace />} />
     </Routes>
     {warnSeconds !== null && (

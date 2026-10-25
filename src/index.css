@@ -1181,3 +1181,35 @@ button, input, select { font-family: inherit; }
 .custom-form { display: flex; align-items: center; gap: 0.8em; flex-wrap: wrap; }
 .custom-form input { width: 8em; font: inherit; font-size: 0.95em; border: 1px solid #C9D1F0; border-radius: 0.7em; padding: 0.65em 0.9em; background: #fff; }
 .custom-form .custom-total { font-size: 1em; font-weight: 600; color: var(--ink); }
+
+/* Settings page */
+.settings-page .workspace-strip { display: flex; align-items: center; gap: 0.8em; background: #F6F7FD; border-radius: 0.9em; padding: 0.9em 1.2em; margin-bottom: 1.1em; font-size: 0.9em; color: var(--ink-dim); }
+.workspace-strip svg { color: #385DE9; }
+.workspace-strip b { color: var(--ink); font-weight: 600; }
+.workspace-badge { margin-left: auto; background: #EAEFFF; color: #385DE9; font-size: 0.8em; padding: 0.3em 0.8em; border-radius: 2em; }
+.settings-msg { margin-bottom: 0.8em; }
+.settings-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1.1em; align-items: start; margin-bottom: 1.1em; }
+.settings-stack { display: flex; flex-direction: column; gap: 1.1em; }
+.settings-card-title { display: flex; align-items: center; gap: 0.6em; font-size: 1.25em; font-weight: 600; padding-bottom: 0.8em; margin-bottom: 1em; border-bottom: 1px solid #ECEEF7; }
+.settings-card-title svg { color: #385DE9; }
+.settings-card .field { margin-bottom: 0.9em; }
+.settings-card .field input, .settings-card .field select { background: #F1F3FA; border: 0; border-radius: 0.8em; padding: 0.85em 1em; }
+.settings-card .field input[readonly] { color: var(--ink-dim); }
+.settings-card .logo-upload-row { margin-bottom: 1em; }
+.settings-card .quick-add-form { gap: 0; }
+.admin-row { display: flex; align-items: center; gap: 1em; margin-bottom: 1em; }
+.admin-row-avatar { width: 3.4em; height: 3.4em; border-radius: 50%; background: #EAEFFF; color: #385DE9; display: grid; place-items: center; font-size: 1.2em; font-weight: 600; flex-shrink: 0; }
+.admin-row-avatar-img { object-fit: cover; background: #fff; }
+.admin-row-hint { margin: 0; }
+.admin-role-row, .sec-row { display: flex; justify-content: space-between; align-items: center; gap: 1em; padding: 0.6em 0; }
+.sec-row-last { border-top: 1px solid #ECEEF7; margin-top: 0.8em; padding-top: 1em; }
+.admin-role-title { font-size: 0.92em; font-weight: 500; color: var(--ink); }
+.verified-pill { background: #E8F7EE; color: var(--green); font-size: 0.78em; padding: 0.3em 0.9em; border-radius: 2em; }
+.app-shell .sec-btn { background: #fff; border: 1px solid #E4E6F0; border-radius: 0.8em; padding: 0.6em 1.1em; color: #385DE9; font: inherit; font-size: 0.88em; font-weight: 500; cursor: pointer; white-space: nowrap; }
+.signout-btn { display: inline-flex; align-items: center; gap: 0.5em; background: #fff; color: var(--red); border: 1px solid #F0C9C2; border-radius: 0.8em; padding: 0.6em 1.1em; font: inherit; font-size: 0.88em; font-weight: 500; cursor: pointer; white-space: nowrap; }
+.signout-btn:hover { background: var(--red-bg); }
+.pw-form { margin: 0.6em 0; }
+.settings-classes { margin-bottom: 0.5em; }
+@media (max-width: 960px) { .settings-cols { grid-template-columns: 1fr; } }
+.settings-classes input, .settings-classes select, .settings-classes button { font-family: inherit; font-size: 0.9em; }
+.settings-classes input[type="text"], .settings-classes input:not([type]), .settings-classes select { border: 1px solid #E4E6F0; border-radius: 0.7em; padding: 0.65em 0.9em; background: #fff; }

@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutGrid, GraduationCap, FileText, ClipboardList,
-  CreditCard, Settings as SettingsIcon, LogOut,
+  CreditCard, Settings as SettingsIcon,
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -35,10 +35,6 @@ export default function Sidebar() {
             <span>{item.label}</span>
           </NavLink>
         ))}
-        <NavLink to="/sign-out" className="sidebar-link sidebar-link-signout">
-          <LogOut size={18} />
-          <span>Sign Out</span>
-        </NavLink>
       </nav>
 
       <div className="sidebar-upgrade">
