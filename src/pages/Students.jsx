@@ -4,10 +4,9 @@ import * as XLSX from 'xlsx';
 import { Search, Pencil, Trash2, Plus, Upload, Download, Users, MoreHorizontal, ChevronDown, Check, GraduationCap, UserCheck } from 'lucide-react';
 import DashboardLayout from '../components/DashboardLayout';
 import Badge from '../components/Badge';
-import AdminRail, { adminNameFrom } from '../components/AdminRail';
+import AdminRail from '../components/AdminRail';
 import Modal from '../components/Modal';
 import StudentImportModal from '../components/StudentImportModal';
-import AssignClassModal from '../components/AssignClassModal';
 import { useClassSetup } from '../context/ClassSetupContext';
 import { useSchool } from '../context/SchoolContext';
 import { createStudent, updateStudent, deleteStudent } from '../lib/students';
@@ -15,18 +14,15 @@ import { nextUsername, studentSequence, STUDENT_STATUSES, statusLabel, statusBad
 
 export default function Students({ students, setStudents, questions = [], license, setLicense }) {
   const { classes: CLASSES, subjectsFor: subjectPoolForClass } = useClassSetup();
-  const { school, session } = useSchool();
+  const { school } = useSchool();
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [classFilter, setClassFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [page, setPage] = useState(1);
-  const [selected, setSelected] = useState([]); // ticked student ids
   const [menuFor, setMenuFor] = useState(null); // student id whose "..." menu is open
   const [editing, setEditing] = useState(null); // student object or 'new'
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [importing, setImporting] = useState(false);
-  const [classAssignOpen, setClassAssignOpen] = useState(false);
   const [form, setForm] = useState({ name: '', class: CLASSES[0] || '', subjects: [], status: 'pending' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -42,22 +38,11 @@ export default function Students({ students, setStudents, questions = [], licens
     });
   }, [students, search, classFilter, statusFilter]);
 
-  // Show 8 students per page; go back to page 1 whenever the filters change.
-  const PAGE_SIZE = 8;
-  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const currentPage = Math.min(page, pageCount);
-  const pageRows = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
-  const changeFilter = (setter) => (e) => { setter(e.target.value); setPage(1); setSelected([]); };
+  const changeFilter = (setter) => (e) => setter(e.target.value);
 
-  const allOnPageTicked = pageRows.length > 0 && pageRows.every(s => selected.includes(s.id));
-  const togglePageTick = () => setSelected(prev => allOnPageTicked
-    ? prev.filter(id => !pageRows.some(s => s.id === id))
-    : [...new Set([...prev, ...pageRows.map(s => s.id)])]);
-  const toggleTick = (id) => setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
-
-  // Downloads the ticked students, or everyone matching the current filters if none are ticked.
+  // Downloads everyone matching the current filters.
   const exportRoster = () => {
-    const list = selected.length ? students.filter(s => selected.includes(s.id)) : filtered;
+    const list = filtered;
     const rows = list.map(s => ({
       'Student name': s.name, Class: s.class, Username: s.username,
       Subjects: s.subjects.join(', '), Status: statusLabel(s.status),
@@ -66,14 +51,6 @@ export default function Students({ students, setStudents, questions = [], licens
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Students');
     XLSX.writeFile(wb, `${(school.name || 'school').replace(/[^a-z0-9]+/gi, '-')}-student-roster.xlsx`);
-  };
-
-  // Page numbers with "…" gaps, e.g. 1 2 3 … 12
-  const pageNumbers = () => {
-    if (pageCount <= 5) return Array.from({ length: pageCount }, (_, i) => i + 1);
-    const set = new Set([1, pageCount, currentPage - 1, currentPage, currentPage + 1]);
-    const nums = [...set].filter(n => n >= 1 && n <= pageCount).sort((a, b) => a - b);
-    return nums.flatMap((n, i) => (i > 0 && n - nums[i - 1] > 1 ? ['…', n] : [n]));
   };
 
   const openNew = () => {
@@ -137,7 +114,6 @@ export default function Students({ students, setStudents, questions = [], licens
   const subjectPool = subjectPoolForClass(form.class);
   const classOptions = [...new Set([...CLASSES, ...students.map(s => s.class)])];
 
-  const adminName = adminNameFrom(session);
   const activeCount = students.filter(s => s.status !== 'suspended').length;
   const focusClass = classFilter !== 'all' ? classFilter : null;
   const inFocusClass = focusClass ? students.filter(s => s.class === focusClass).length : 0;
@@ -177,7 +153,7 @@ export default function Students({ students, setStudents, questions = [], licens
   );
 
   return (
-    <DashboardLayout title={`Hello ${adminName.split(' ')[0]}`} subtitle="Let's try something new today" rail={rail} flush>
+    <DashboardLayout rail={rail} flush>
       <div className="page-panel" onClick={() => setMenuFor(null)}>
         <div className="panel-head">
           <div>
@@ -185,7 +161,6 @@ export default function Students({ students, setStudents, questions = [], licens
             <p className="panel-sub">Manage your students and keep every class assessment-ready.</p>
           </div>
           <div className="panel-actions">
-            <button className="btn-ghost" onClick={() => setClassAssignOpen(true)}><Users size={15} /> Set test / exam for a class</button>
             <button className="btn-ghost" onClick={() => setImporting(true)}><Upload size={15} /> Import Excel</button>
             <button className="btn-primary" onClick={openNew}><Plus size={15} /> Add student</button>
           </div>
@@ -205,7 +180,7 @@ export default function Students({ students, setStudents, questions = [], licens
         <div className="card roster-card">
           <div className="roster-head">
             <div className="roster-title">Student roster <span className="count-pill">{filtered.length} {filtered.length === 1 ? 'student' : 'students'}</span></div>
-            <button className="btn-ghost" onClick={exportRoster}><Download size={15} /> {selected.length ? `Export ${selected.length} selected` : 'Export roster'}</button>
+            <button className="btn-ghost" onClick={exportRoster}><Download size={15} /> Export roster</button>
           </div>
 
           <div className="roster-filters">
@@ -213,7 +188,7 @@ export default function Students({ students, setStudents, questions = [], licens
               <Search size={16} className="search-input-icon" />
               <input
                 type="text" placeholder="Search by name or username"
-                value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} className="search-input"
+                value={search} onChange={e => setSearch(e.target.value)} className="search-input"
               />
             </div>
             <label className="select-pill">
@@ -240,7 +215,6 @@ export default function Students({ students, setStudents, questions = [], licens
             <table className="data-table roster-table">
               <thead>
                 <tr>
-                  <th className="col-check"><input type="checkbox" checked={allOnPageTicked} onChange={togglePageTick} aria-label="Select all on this page" /></th>
                   <th>Student name</th>
                   <th>Class</th>
                   <th>Username</th>
@@ -250,11 +224,10 @@ export default function Students({ students, setStudents, questions = [], licens
                 </tr>
               </thead>
               <tbody>
-                {pageRows.length === 0 ? (
-                  <tr><td colSpan={7} className="empty-note-cell">{students.length === 0 ? 'No students yet. Add one or import an Excel file.' : 'No students match your search.'}</td></tr>
-                ) : pageRows.map(s => (
+                {filtered.length === 0 ? (
+                  <tr><td colSpan={6} className="empty-note-cell">{students.length === 0 ? 'No students yet. Add one or import an Excel file.' : 'No students match your search.'}</td></tr>
+                ) : filtered.map(s => (
                   <tr key={s.id}>
-                    <td className="col-check"><input type="checkbox" checked={selected.includes(s.id)} onChange={() => toggleTick(s.id)} aria-label={`Select ${s.name}`} /></td>
                     <td>
                       <div className="student-cell">
                         <span className="student-avatar">{initials(s.name)}</span>
@@ -285,17 +258,8 @@ export default function Students({ students, setStudents, questions = [], licens
 
           <div className="roster-foot">
             <span className="roster-showing">
-              {filtered.length === 0 ? 'No students to show' : `Showing ${(currentPage - 1) * PAGE_SIZE + 1}–${Math.min(currentPage * PAGE_SIZE, filtered.length)} of ${filtered.length} students`}
+              {filtered.length === 0 ? 'No students to show' : `Showing all ${filtered.length} ${filtered.length === 1 ? 'student' : 'students'} · scroll the list to see more`}
             </span>
-            {pageCount > 1 && (
-              <div className="pager">
-                <button className="pager-btn" disabled={currentPage === 1} onClick={() => setPage(currentPage - 1)}>Previous</button>
-                {pageNumbers().map((n, i) => n === '…'
-                  ? <span key={`g${i}`} className="pager-gap">…</span>
-                  : <button key={n} className={`pager-num ${n === currentPage ? 'pager-num-active' : ''}`} onClick={() => setPage(n)}>{n}</button>)}
-                <button className="pager-btn" disabled={currentPage === pageCount} onClick={() => setPage(currentPage + 1)}>Next</button>
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -358,12 +322,6 @@ export default function Students({ students, setStudents, questions = [], licens
             <button className="btn-danger" onClick={doDelete}>Remove Student</button>
           </div>
         </Modal>
-      )}
-      {classAssignOpen && license && (
-        <AssignClassModal
-          students={students} setStudents={setStudents} questions={questions}
-          license={license} setLicense={setLicense} onClose={() => setClassAssignOpen(false)}
-        />
       )}
       {importing && (
         <StudentImportModal

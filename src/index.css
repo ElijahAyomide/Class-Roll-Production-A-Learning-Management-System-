@@ -1081,3 +1081,18 @@ button, input, select { font-family: inherit; }
 .panel-actions { flex-wrap: nowrap; flex-shrink: 0; }
 .app-shell .panel-actions button { white-space: nowrap; }
 @media (max-width: 960px) { .panel-actions { flex-wrap: wrap; } }
+
+/* Fixed-height pages (Students): the page itself never scrolls, only the roster list does */
+.app-shell-fixed { height: 100vh; overflow: hidden; }
+.app-shell-fixed .app-main { display: flex; flex-direction: column; height: 100vh; min-height: 0; }
+.app-shell-fixed .page-content-flush { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 1em 0 0; }
+.app-shell-fixed .page-panel { flex: 1; min-height: 0; display: flex; flex-direction: column; padding-bottom: 1.2em; }
+.app-shell-fixed .roster-card { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.app-shell-fixed .table-wrap { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #C9D1F0 transparent; }
+.app-shell-fixed .roster-table thead th { position: sticky; top: 0; z-index: 2; }
+.app-shell-fixed .page-footer { padding: 0.6em 2em 0.8em; }
+.app-shell-fixed .roster-foot { margin-top: 0.8em; }
+.app-shell-fixed .stat-grid { margin-bottom: 1.1em; }
+.app-shell-fixed .panel-head { margin-bottom: 1em; }
+.table-wrap::-webkit-scrollbar { width: 6px; }
+.table-wrap::-webkit-scrollbar-thumb { background: #C9D1F0; border-radius: 3px; }
