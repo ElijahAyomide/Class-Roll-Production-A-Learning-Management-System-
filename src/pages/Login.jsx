@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import PasswordInput from '../components/PasswordInput';
 import { useNavigate } from 'react-router-dom';
-import { GraduationCap, ArrowRight, UserPlus, MailCheck } from 'lucide-react';
+import { GraduationCap, MailCheck } from 'lucide-react';
 import Modal from '../components/Modal';
 import { SIGNOUT_REASON_KEY } from '../lib/idleLogout';
 import { useSchool } from '../context/SchoolContext';
@@ -10,7 +10,6 @@ import { signUpAdmin, signInAdmin, requestPasswordReset, resendConfirmation } fr
 import { claimOrCreateSchool, schoolCodeTaken } from '../lib/schools';
 import { studentApi } from '../lib/studentApi';
 import { NIGERIAN_STATES } from '../data/mockData';
-import ExamIllustration from '../components/ExamIllustration';
 
 const EMPTY_REGISTER = {
   name: '', code: '', email: '', phone: '', address: '', state: NIGERIAN_STATES[0], lga: '',
@@ -23,7 +22,6 @@ export default function Login() {
   const { setStudentToken } = useStudentSession();
   const [tab, setTab] = useState('admin'); // 'admin' | 'student'
   const [adminMode, setAdminMode] = useState('signin'); // 'signin' | 'register' | 'forgot'
-  const [imageFailed, setImageFailed] = useState(false);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -179,29 +177,20 @@ export default function Login() {
   return (
     <div className="login-screen">
       <div className="login-image-panel">
-        {imageFailed ? (
-          <ExamIllustration />
-        ) : (
-          <img
-            src="/images/login-photo.jpg"
-            alt="Students taking a computer-based exam"
-            className="login-hero-image"
-            onError={() => setImageFailed(true)}
-          />
-        )}
-        <div className="login-image-caption">
-          <div className="login-image-title">Computer-based testing, built for Nigerian secondary schools</div>
-          <div className="login-image-sub">Set up a test or exam in minutes — students take it from their own login, and results land on your dashboard the moment they submit.</div>
+        <div className="login-image-text">
+          <h1 className="login-image-title">Computer-Based Testing,<br />Built for Nigeria Education</h1>
+          <p className="login-image-sub">Set up a test or exam in minutes — students take it from their own login, and results land on your dashboard the moment they submit.</p>
         </div>
+        <img src="/images/login-illustration.png" alt="" className="login-illustration" />
       </div>
 
       <div className="login-form-panel">
         <div className={`login-card ${tab === 'admin' && adminMode === 'register' ? 'login-card-wide' : ''}`}>
         <div className="login-brand">
-          <div className="brand-mark brand-mark-lg">CR</div>
+          <img src="/images/assessly-logo.png" alt="" className="login-logo" />
           <div>
-            <div className="login-brand-name">ClassRoll</div>
-            <div className="login-brand-tag">Exam management for secondary schools</div>
+            <div className="login-brand-name">Assessly</div>
+            <div className="login-brand-tag">Exam management for schools</div>
           </div>
         </div>
 
@@ -217,12 +206,12 @@ export default function Login() {
         {tab === 'admin' && adminMode === 'signin' && (
           <form onSubmit={submitSignIn} className="login-form">
             <div className="field">
-              <label>SCHOOL EMAIL</label>
+              <label>Email address</label>
               <input type="email" placeholder="admin@yourschool.edu.ng" value={email} onChange={e => setEmail(e.target.value)} />
             </div>
             <div className="field">
-              <label>PASSWORD</label>
-              <PasswordInput placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} />
+              <label>Password</label>
+              <PasswordInput placeholder="••••••••••••" value={password} onChange={e => setPassword(e.target.value)} />
             </div>
             {autoSignedOut && !signInError && (
               <div className="success-note">
@@ -238,14 +227,17 @@ export default function Login() {
               </button>
             )}
             <button type="submit" className="btn-primary login-submit" disabled={signingIn}>
-              {signingIn ? 'Signing In…' : 'Sign In'} {!signingIn && <ArrowRight size={15} />}
+              {signingIn ? 'Signing In…' : 'Sign In'}
             </button>
-            <button type="button" className="login-switch-link" onClick={() => { setResetSent(false); setResetError(''); setAdminMode('forgot'); }}>
-              Forgot password?
-            </button>
-            <button type="button" className="login-switch-link" onClick={() => setAdminMode('register')}>
-              New school? Register here
-            </button>
+            <div className="login-links">
+              <button type="button" className="login-switch-link" onClick={() => { setResetSent(false); setResetError(''); setAdminMode('forgot'); }}>
+                Forgot password?
+              </button>
+              <div className="login-prompt">
+                Are you a New School?{' '}
+                <button type="button" className="login-switch-link" onClick={() => setAdminMode('register')}>Register here</button>
+              </div>
+            </div>
           </form>
         )}
 
@@ -253,7 +245,7 @@ export default function Login() {
           <form onSubmit={submitForgot} className="login-form">
             <div className="field-hint">Enter the email you registered with and we'll send you a link to choose a new password.</div>
             <div className="field">
-              <label>SCHOOL EMAIL</label>
+              <label>Email address</label>
               <input type="email" placeholder="admin@yourschool.edu.ng" value={email} onChange={e => setEmail(e.target.value)} />
             </div>
             {resetError && <div className="error-text">{resetError}</div>}
@@ -270,30 +262,30 @@ export default function Login() {
         {tab === 'admin' && adminMode === 'register' && (
           <form onSubmit={submitRegister} className="login-form">
             <div className="field">
-              <label>SCHOOL NAME</label>
+              <label>School name</label>
               <input type="text" placeholder="e.g. Green Valley College" value={registerForm.name} onChange={e => setRegisterForm({ ...registerForm, name: e.target.value })} />
             </div>
             <div className="form-row-2">
               <div className="field">
-                <label>SCHOOL CODE</label>
+                <label>School code</label>
                 <input type="text" placeholder="e.g. GVC" value={registerForm.code} onChange={e => setRegisterForm({ ...registerForm, code: e.target.value })} />
               </div>
               <div className="field">
-                <label>PHONE</label>
-                <input type="text" placeholder="+234…" value={registerForm.phone} onChange={e => setRegisterForm({ ...registerForm, phone: e.target.value })} />
+                <label>Phone number</label>
+                <input type="text" placeholder="+234" value={registerForm.phone} onChange={e => setRegisterForm({ ...registerForm, phone: e.target.value })} />
               </div>
             </div>
             <div className="field">
-              <label>SCHOOL EMAIL</label>
+              <label>Email address</label>
               <input type="email" placeholder="admin@yourschool.edu.ng" value={registerForm.email} onChange={e => setRegisterForm({ ...registerForm, email: e.target.value })} />
             </div>
             <div className="field">
-              <label>ADDRESS</label>
-              <input type="text" placeholder="Street, city" value={registerForm.address} onChange={e => setRegisterForm({ ...registerForm, address: e.target.value })} />
+              <label>Address</label>
+              <input type="text" placeholder="Street, City" value={registerForm.address} onChange={e => setRegisterForm({ ...registerForm, address: e.target.value })} />
             </div>
             <div className="form-row-2">
               <div className="field">
-                <label>STATE</label>
+                <label>State</label>
                 <select value={registerForm.state} onChange={e => setRegisterForm({ ...registerForm, state: e.target.value })}>
                   {NIGERIAN_STATES.map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
@@ -305,35 +297,38 @@ export default function Login() {
             </div>
             <div className="form-row-2">
               <div className="field">
-                <label>PASSWORD</label>
-                <PasswordInput placeholder="At least 6 characters" value={registerForm.password} onChange={e => setRegisterForm({ ...registerForm, password: e.target.value })} />
+                <label>Password</label>
+                <PasswordInput placeholder="Min. 6 characters" value={registerForm.password} onChange={e => setRegisterForm({ ...registerForm, password: e.target.value })} />
               </div>
               <div className="field">
-                <label>CONFIRM PASSWORD</label>
-                <PasswordInput placeholder="••••••••" value={registerForm.confirmPassword} onChange={e => setRegisterForm({ ...registerForm, confirmPassword: e.target.value })} />
+                <label>Confirm password</label>
+                <PasswordInput placeholder="••••••••••••" value={registerForm.confirmPassword} onChange={e => setRegisterForm({ ...registerForm, confirmPassword: e.target.value })} />
               </div>
             </div>
             {registerError && <div className="error-text">{registerError}</div>}
             <button type="submit" className="btn-primary login-submit" disabled={registering}>
-              <UserPlus size={15} /> {registering ? 'Creating Account…' : 'Register School'}
+              {registering ? 'Creating Account…' : 'Sign Up'}
             </button>
-            <button type="button" className="login-switch-link" onClick={() => { setAdminMode('signin'); setRegisterError(''); }}>
-              Already registered? Sign in
-            </button>
+            <div className="login-links">
+              <div className="login-prompt">
+                Already registered?{' '}
+                <button type="button" className="login-switch-link" onClick={() => { setAdminMode('signin'); setRegisterError(''); }}>Sign in</button>
+              </div>
+            </div>
           </form>
         )}
 
         {tab === 'student' && (
           <form onSubmit={submitStudentSignIn} className="login-form">
             <div className="field">
-              <label>USERNAME</label>
+              <label>Username</label>
               <input
                 type="text" placeholder="GVC/2026/001"
                 value={studentUsername} onChange={e => setStudentUsername(e.target.value)}
               />
             </div>
             <div className="field">
-              <label>PASSWORD (SURNAME)</label>
+              <label>Password (surname)</label>
               <PasswordInput
                 placeholder="e.g. Okafor"
                 value={studentPassword} onChange={e => setStudentPassword(e.target.value)}
@@ -341,7 +336,7 @@ export default function Login() {
             </div>
             {studentError && <div className="error-text">{studentError}</div>}
             <button type="submit" className="btn-primary login-submit" disabled={studentChecking}>
-              {studentChecking ? 'Checking…' : 'Sign In'} {!studentChecking && <ArrowRight size={15} />}
+              {studentChecking ? 'Checking…' : 'Sign In'}
             </button>
             <div className="student-portal-notice">
               <GraduationCap size={16} />
