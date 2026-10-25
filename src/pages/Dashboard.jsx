@@ -382,9 +382,8 @@ export default function Dashboard({ students, setStudents, questions, results, l
             <div className="card-label">Recent activity</div>
             <div className="activity-list">
               {activity.length === 0 && <div className="activity-time">Nothing yet. Activity will show here as you add students, upload questions and set tests.</div>}
-              {activity.map((a, i) => (
+              {activity.map(a => (
                 <div key={a.id} className="activity-row">
-                  <div className="activity-dot">{i + 1}</div>
                   <div>
                     <div className="activity-text" title={a.text}>{a.text}</div>
                     <div className="activity-time">{a.time}</div>

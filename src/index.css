@@ -981,3 +981,23 @@ button, input, select { font-family: inherit; }
 .app-shell .stat-card-icon { width: 2.4em; height: 2.4em; }
 .app-shell .stat-card { gap: 0.75em; padding: 1.1em 1em; }
 .app-shell .stat-card-label { white-space: nowrap; }
+
+/* Compact right rail (no scrolling) and 3-row recent activity */
+.app-rail { overflow-y: hidden; padding: 1.5em 1.2em 1.1em; gap: 0.9em; }
+.app-rail .rail-profile { padding-bottom: 0.9em; }
+.app-rail .rail-avatar { width: 3.4em; height: 3.4em; font-size: 1.3em; margin-bottom: 0.5em; }
+.app-rail .rail-progress { margin-bottom: 0.8em; }
+.app-rail .rail-steps { gap: 0.7em; }
+.app-rail .rail-step-desc { font-size: 0.74em; line-height: 1.35; }
+.app-rail .rail-license { padding: 0.65em 0.8em; border-radius: 0.8em; }
+.app-rail .rail-license-row { font-size: 0.85em; }
+.app-rail .rail-license-row b { font-size: 1.2em; }
+.app-rail .rail-license p { font-size: 0.7em; line-height: 1.4; margin: 0.3em 0 0.5em; }
+.app-rail .rail-license button { font-size: 0.74em; }
+
+.app-shell .activity-list { max-height: 11.2em; gap: 0.7em; }
+.app-shell .activity-row { height: 3.1em; gap: 0.6em; }
+.app-shell .activity-dot { width: 0.55em; height: 0.55em; font-size: 0; margin-top: 0.1em; flex-shrink: 0; }
+.app-shell .activity-text { font-size: 0.82em; }
+.app-shell .activity-time { font-size: 0.72em; }
+@media (max-width: 1100px) { .app-rail { overflow-y: visible; } }
