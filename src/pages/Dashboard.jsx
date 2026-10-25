@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Users, CreditCard, FileText, ClipboardList, Search, UserPlus, Pencil, Trash2, X, ListChecks, GraduationCap, ArrowRight, Check } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import DashboardLayout from '../components/DashboardLayout';
 import StatCard from '../components/StatCard';
 import Badge from '../components/Badge';
@@ -14,8 +13,6 @@ import { createAssignments, replaceAssignments } from '../lib/assignments';
 import { deductLicense } from '../lib/license';
 import { buildActivity } from '../lib/activity';
 import { nextUsername, studentSequence, statusLabel, statusBadgeTone, DURATION_OPTIONS } from '../data/mockData';
-
-const CHART_COLORS = { line: '#E4E6F0', dim: '#6B7280', bar: '#385DE9' };
 
 export default function Dashboard({ students, setStudents, questions, results, license, setLicense }) {
   const { classes: CLASSES, subjectsFor: subjectPoolForClass } = useClassSetup();
@@ -185,20 +182,6 @@ export default function Dashboard({ students, setStudents, questions, results, l
   };
 
   const editSubjectPool = subjectPoolForClass(editForm.class);
-
-  const avgByClass = useMemo(() => {
-    const map = {};
-    results.forEach(r => {
-      if (!map[r.class]) map[r.class] = { class: r.class, total: 0, count: 0 };
-      map[r.class].total += (r.total ? (r.score / r.total) * 100 : 0);
-      map[r.class].count += 1;
-    });
-    const classList = [...new Set([...CLASSES, ...results.map(r => r.class)])];
-    return classList.map(c => ({
-      class: c,
-      avg: map[c] ? Math.round(map[c].total / map[c].count) : 0,
-    })).filter(c => c.avg > 0);
-  }, [results, CLASSES]);
 
   const activity = useMemo(
     () => buildActivity({ students, questions, results, license }, 40),
@@ -412,26 +395,6 @@ export default function Dashboard({ students, setStudents, questions, results, l
           </div>
         </div>
       </div>
-
-      {avgByClass.length > 0 && (
-        <div className="card">
-          <div className="card-label">Average score by class</div>
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={avgByClass} margin={{ top: 10, right: 10, left: -18, bottom: 0 }}>
-              <CartesianGrid stroke={CHART_COLORS.line} vertical={false} />
-              <XAxis dataKey="class" tick={{ fill: CHART_COLORS.dim, fontSize: 11 }} axisLine={{ stroke: CHART_COLORS.line }} tickLine={false} />
-              <YAxis tick={{ fill: CHART_COLORS.dim, fontSize: 11 }} axisLine={{ stroke: CHART_COLORS.line }} tickLine={false} />
-              <Tooltip
-                contentStyle={{ background: '#FFFFFF', border: '1px solid #E4E6F0', borderRadius: 6, fontSize: 12 }}
-                formatter={(v) => [`${v}%`, 'Average score']}
-              />
-              <Bar dataKey="avg" radius={[4, 4, 0, 0]}>
-                {avgByClass.map((c, i) => <Cell key={i} fill={CHART_COLORS.bar} />)}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      )}
 
       {viewingStudent && detailMode === 'view' && (
         <Modal title="Student Details" onClose={() => setViewingStudent(null)}>
