@@ -46,7 +46,6 @@ export default function QuestionBank({ questions, setQuestions, students = [], l
     });
   }, [questions, classFilter, subjectFilter, typeFilter, search]);
 
-  const resetFilters = () => { setSearch(''); setClassFilter('all'); setSubjectFilter('all'); setTypeFilter('all'); };
 
   const allSubjects = [...new Set(questions.map(q => q.subject))];
   const classOptions = [...new Set([...CLASSES, ...questions.map(q => q.class)])];
@@ -105,7 +104,6 @@ export default function QuestionBank({ questions, setQuestions, students = [], l
   const totalQuestions = questions.reduce((n, q) => n + (q.questionCount || 0), 0);
   const testCount = questions.filter(q => q.type === 'test').length;
   const examCount = questions.filter(q => q.type === 'exam').length;
-  const filtersOn = search.trim() || classFilter !== 'all' || subjectFilter !== 'all' || typeFilter !== 'all';
   const scopeText = [classFilter !== 'all' ? classFilter : null, subjectFilter !== 'all' ? subjectFilter : null].filter(Boolean).join(' · ');
 
   const rail = (
@@ -197,7 +195,6 @@ export default function QuestionBank({ questions, setQuestions, students = [], l
               </select>
               <ChevronDown size={15} />
             </label>
-            <button className="btn-ghost btn-ghost-blue" onClick={resetFilters} disabled={!filtersOn}>Reset</button>
           </div>
 
           <div className="qlist">
