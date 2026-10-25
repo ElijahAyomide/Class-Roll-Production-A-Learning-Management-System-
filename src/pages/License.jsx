@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import PasswordInput from '../components/PasswordInput';
-import { CreditCard, ShieldCheck, Lock } from 'lucide-react';
+import * as XLSX from 'xlsx';
+import { CreditCard, Lock, Plus, Download, Check } from 'lucide-react';
 import DashboardLayout from '../components/DashboardLayout';
+import AdminRail from '../components/AdminRail';
 import Badge from '../components/Badge';
 import Modal from '../components/Modal';
 import { useSchool } from '../context/SchoolContext';
@@ -92,67 +94,162 @@ export default function License({ license, setLicense }) {
     }
   };
 
+  // Starts a purchase of a fixed pack: sets the amount, then asks for the password.
+  const buyPack = (n) => {
+    setExamCount(n);
+    setPassword('');
+    setPasswordError('');
+    setPurchaseError('');
+    setConfirmingPassword(true);
+  };
+
+  const price = license.pricePerExam;
+  const PACKS = [
+    { name: 'Starter', credits: 100, blurb: 'For a single class or a short test.' },
+    { name: 'School', credits: 500, blurb: 'A great fit for your next exam week.', recommended: true },
+    { name: 'Campus', credits: 1000, blurb: 'For bigger schools and busy terms.' },
+  ];
+  const naira = (n) => `₦${n.toLocaleString('en-NG')}`;
+
+  // Used = everything ever bought minus what's left (never below zero).
+  const purchased = license.history.reduce((n, p) => n + (p.exams || 0), 0);
+  const used = Math.max(0, purchased - license.balance);
+  const usedPct = purchased > 0 ? Math.min(100, (used / purchased) * 100) : 0;
+
+  const exportHistory = () => {
+    const rows = license.history.map(p => ({
+      Date: p.date, 'Exam credits': p.exams, Amount: p.amount, Reference: p.reference, Status: p.status,
+    }));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), 'Billing history');
+    XLSX.writeFile(wb, `billing-history-${new Date().toISOString().slice(0, 10)}.xlsx`);
+  };
+
+  const rail = (
+    <AdminRail license={license}>
+      <>
+        <div className="rail-eyebrow">{school.name}</div>
+        <div className="rail-title">Ready for the next exam</div>
+        <p className="rail-lead">One exam credit covers one subject for one student.</p>
+        <ul className="rail-checks">
+          <li>
+            <span className="rail-check"><Check size={13} /></span>
+            <span>
+              <span className="rail-step-title">Credits are used automatically</span>
+              <span className="rail-step-desc">They're deducted when you set a test or exam.</span>
+            </span>
+          </li>
+          <li>
+            <span className="rail-check"><Check size={13} /></span>
+            <span>
+              <span className="rail-step-title">Only pay for what you use</span>
+              <span className="rail-step-desc">Questions and student records stay free.</span>
+            </span>
+          </li>
+          <li>
+            <span className="rail-check"><Check size={13} /></span>
+            <span>
+              <span className="rail-step-title">Secure payments</span>
+              <span className="rail-step-desc">Pay safely with Paystack. Your password is confirmed first.</span>
+            </span>
+          </li>
+        </ul>
+      </>
+    </AdminRail>
+  );
+
   return (
-    <DashboardLayout title="License" subtitle="Each subject you set a test or exam for uses 1 credit — buy more here when you run low">
-      <div className="license-grid">
-        <div className="card license-balance-card">
-          <div className="license-balance-icon"><ShieldCheck size={22} /></div>
-          <div className="license-balance-value">{license.balance}</div>
-          <div className="license-balance-label">exam credits remaining</div>
-          <div className="license-balance-note">Each credit lets one student take one exam. Credits are used automatically as students submit exams.</div>
+    <DashboardLayout rail={rail} flush>
+      <div className="page-panel">
+        <div className="panel-head">
+          <div>
+            <h2 className="panel-title">License</h2>
+            <p className="panel-sub">Manage exam credits and keep your assessments running.</p>
+          </div>
         </div>
 
-        <div className="card">
-          <div className="card-label">Buy exam credits</div>
-          <form onSubmit={requestPurchase} className="quick-add-form">
-            <div className="field">
-              <label>NUMBER OF EXAMS</label>
-              <input
-                type="number" min="1" value={examCount}
-                onChange={e => setExamCount(parseInt(e.target.value) || 0)}
-              />
+        <div className="license-top">
+          <div className="license-balance-blue">
+            <div className="lb-label"><span>Available exam credits</span><CreditCard size={18} /></div>
+            <div className="lb-value">{license.balance} <small>credits remaining</small></div>
+            <div className="lb-note">1 credit = 1 subject for 1 student, on a test or exam.</div>
+          </div>
+          <div className="card license-usage">
+            <div className="usage-head"><span className="usage-title">Credit usage</span><span className="usage-sub">{purchased.toLocaleString('en-NG')} credits purchased</span></div>
+            <div className="usage-value">{used.toLocaleString('en-NG')} used</div>
+            <div className="usage-bar"><span style={{ width: `${usedPct}%` }} /></div>
+            <div className="usage-foot">{license.balance.toLocaleString('en-NG')} left to use</div>
+          </div>
+        </div>
+
+        <div className="card buy-card">
+          <div className="buy-head">
+            <div>
+              <div className="buy-title">Buy exam credits</div>
+              <div className="buy-sub">Choose a pack for your school. Credits are added instantly after payment.</div>
             </div>
-            <div className="purchase-summary">
-              <div className="purchase-row"><span>Price per subject</span><span>₦{license.pricePerExam}</span></div>
-              <div className="purchase-row purchase-total"><span>Total</span><span>₦{total.toLocaleString('en-NG')}</span></div>
-            </div>
-            <button type="submit" className="btn-primary" disabled={processing}>
-              <CreditCard size={15} /> {processing ? 'Processing…' : 'Proceed to Payment'}
-            </button>
-            {purchaseError && <div className="error-text">{purchaseError}</div>}
-            <div className="field-hint">You'll be asked to confirm your password, then pay securely via Paystack.</div>
+            <span className="buy-secure"><Lock size={13} /> Secure checkout · NGN</span>
+          </div>
+          <div className="pack-grid">
+            {PACKS.map(pk => (
+              <div key={pk.name} className={`pack ${pk.recommended ? 'pack-recommended' : ''}`}>
+                <div className="pack-top"><span className="pack-name">{pk.name}</span>{pk.recommended && <span className="pack-flag">Recommended</span>}</div>
+                <div className="pack-credits">{pk.credits.toLocaleString('en-NG')} <small>exam credits</small></div>
+                <div className="pack-price">{naira(pk.credits * price)}</div>
+                <div className="pack-per">{naira(price)} per credit</div>
+                <div className="pack-blurb">{pk.blurb}</div>
+                <button type="button" className={pk.recommended ? 'pack-btn pack-btn-solid' : 'pack-btn'} disabled={processing} onClick={() => buyPack(pk.credits)}>
+                  <Plus size={15} /> {processing ? 'Processing…' : `Buy ${pk.credits.toLocaleString('en-NG')} credits`}
+                </button>
+              </div>
+            ))}
+          </div>
+          <form onSubmit={requestPurchase} className="custom-buy">
+            <span>Need a different amount?</span>
+            <input type="number" min="1" value={examCount || ''} onChange={e => setExamCount(parseInt(e.target.value) || 0)} aria-label="Number of exam credits" />
+            <span className="custom-total">= {naira(total)}</span>
+            <button type="submit" className="pack-btn" disabled={processing || !examCount}>Buy</button>
           </form>
+          {purchaseError && <div className="error-text">{purchaseError}</div>}
+        </div>
+
+        <div className="card roster-card billing-card">
+          <div className="roster-head">
+            <div className="roster-title">Billing history</div>
+            <button className="btn-ghost" disabled={license.history.length === 0} onClick={exportHistory}><Download size={15} /> Download all</button>
+          </div>
+          <div className="table-wrap">
+            <table className="data-table roster-table">
+              <thead>
+                <tr>
+                  <th>Reference</th>
+                  <th>Date</th>
+                  <th>Description</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {license.history.length === 0 ? (
+                  <tr><td colSpan={5} className="empty-note-cell">No payments yet.</td></tr>
+                ) : license.history.map(p => (
+                  <tr key={p.id}>
+                    <td className="cell-strong cell-ref">{p.reference}</td>
+                    <td className="cell-dim">{p.date}</td>
+                    <td>{p.exams} exam credits</td>
+                    <td className="cell-strong">₦{p.amount.toLocaleString('en-NG')}</td>
+                    <td><Badge tone="green">{p.status}</Badge></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
-      <div className="card">
-        <div className="card-label">Payment history</div>
-        <div className="table-wrap">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Exams Purchased</th>
-                <th>Amount</th>
-                <th>Reference</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {license.history.length === 0 ? (
-                <tr><td colSpan={5} className="empty-note-cell">No payments yet.</td></tr>
-              ) : license.history.map(p => (
-                <tr key={p.id}>
-                  <td className="cell-dim">{p.date}</td>
-                  <td>{p.exams}</td>
-                  <td className="cell-strong">₦{p.amount.toLocaleString('en-NG')}</td>
-                  <td className="cell-mono">{p.reference}</td>
-                  <td><Badge tone="green">{p.status}</Badge></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      <div className="page-footer">
+        <span>{school.name}</span>
+        <span>© {new Date().getFullYear()} Assessly</span>
       </div>
 
       {confirmingPassword && (
