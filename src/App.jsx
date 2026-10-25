@@ -147,7 +147,7 @@ function AdminArea() {
       } />
       <Route path="students" element={<Students students={students} setStudents={setStudents} questions={questions} license={license} setLicense={setLicense} />} />
       <Route path="question-bank" element={<QuestionBank questions={questions} setQuestions={setQuestions} students={students} license={license} />} />
-      <Route path="results" element={<Results results={results} />} />
+      <Route path="results" element={<Results results={results} license={license} />} />
       <Route path="license" element={<License license={license} setLicense={setLicense} />} />
       <Route path="settings" element={<Settings />} />
       <Route path="sign-out" element={<SignOut />} />

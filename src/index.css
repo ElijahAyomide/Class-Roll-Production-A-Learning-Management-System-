@@ -1115,3 +1115,11 @@ button, input, select { font-family: inherit; }
 .qrow-side { display: flex; align-items: center; gap: 0.5em; flex-shrink: 0; }
 .qrow-side .row-actions-menu { display: inline-flex; position: relative; }
 .app-shell-fixed .qlist + .roster-foot { margin-top: 0.8em; }
+
+/* Results page */
+.cell-sub { display: block; font-size: 0.78em; color: var(--ink-dim); font-weight: 400; margin-top: 0.15em; }
+.student-cell .cell-strong { display: block; }
+.app-shell-fixed .stat-grid:not(.stat-grid-3) { grid-template-columns: repeat(4, 1fr); }
+@media (max-width: 960px) { .app-shell-fixed .stat-grid:not(.stat-grid-3) { grid-template-columns: repeat(2, 1fr); } }
+.roster-search { flex: 1 1 9em; min-width: 9em; }
+.roster-filters .select-pill select { padding-right: 2.2em; padding-left: 0.8em; }

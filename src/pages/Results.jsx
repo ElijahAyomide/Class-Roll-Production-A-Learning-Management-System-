@@ -1,14 +1,14 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import * as XLSX from 'xlsx';
-import { Search, Printer, FileDown, FileText } from 'lucide-react';
+import { Search, Printer, FileDown, FileText, Download, ChevronDown, Check, ClipboardCheck, BarChart3, CheckCircle2, Trophy } from 'lucide-react';
 import { useClassSetup } from '../context/ClassSetupContext';
 import { useSchool } from '../context/SchoolContext';
 import DashboardLayout from '../components/DashboardLayout';
-import Badge from '../components/Badge';
-import { percentOf } from '../lib/resultStats';
+import AdminRail from '../components/AdminRail';
+import { percentOf, resultStats } from '../lib/resultStats';
 import ResultsPrintSheet from '../components/ResultsPrintSheet';
 
-export default function Results({ results }) {
+export default function Results({ results, license }) {
   const { school } = useSchool();
   const { classes: CLASSES } = useClassSetup();
   const classOptions = [...new Set([...CLASSES, ...results.map(r => r.class)])];
@@ -69,94 +69,167 @@ export default function Results({ results }) {
 
   const hasRows = filtered.length > 0;
 
+  // Summary cards follow whatever filters are applied. 50% is used as the pass mark.
+  const PASS_MARK = 50;
+  const stats = resultStats(filtered);
+  const passed = filtered.filter(r => percentOf(r) >= PASS_MARK).length;
+  const below = filtered.length - passed;
+  const top = filtered.reduce((best, r) => (!best || percentOf(r) > percentOf(best) ? r : best), null);
+  const fmt = (n) => `${Math.round(n * 10) / 10}%`;
+  const initials = (name) => name.split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+  const scopeText = [classFilter !== 'all' ? classFilter : null, subjectFilter !== 'all' ? subjectFilter : null].filter(Boolean).join(' · ');
+
+  const rail = (
+    <AdminRail license={license}>
+      <>
+        <div className="rail-eyebrow">{school.name}</div>
+        <div className="rail-title">Turn results into progress</div>
+        <p className="rail-lead">See what your students understand and where they need support.</p>
+        <ul className="rail-checks">
+          <li>
+            <span className="rail-check"><Check size={13} /></span>
+            <span>
+              <span className="rail-step-title">{scopeText || 'All classes and subjects'}</span>
+              <span className="rail-step-desc">{typeFilter === 'test' ? 'Tests only' : typeFilter === 'exam' ? 'Exams only' : 'Tests and exams'} shown below.</span>
+            </span>
+          </li>
+          <li>
+            <span className="rail-check"><Check size={13} /></span>
+            <span>
+              <span className="rail-step-title">{results.length} {results.length === 1 ? 'result' : 'results'} recorded</span>
+              <span className="rail-step-desc">Results appear the moment a student submits.</span>
+            </span>
+          </li>
+          <li>
+            <span className="rail-check"><Check size={13} /></span>
+            <span>
+              <span className="rail-step-title">Support the next step</span>
+              <span className="rail-step-desc">{below > 0 ? `${below} ${below === 1 ? 'result is' : 'results are'} below the ${PASS_MARK}% pass mark.` : `Everyone shown is at or above the ${PASS_MARK}% pass mark.`}</span>
+            </span>
+          </li>
+        </ul>
+      </>
+    </AdminRail>
+  );
+
   return (
     <>
-      <DashboardLayout title="Results" subtitle="Results appear here the moment a student submits their test or exam">
-        <div className="card">
-          <div className="toolbar">
-            <div className="search-input-wrap toolbar-search">
-              <Search size={15} className="search-input-icon" />
-              <input
-                type="text" placeholder="Search by student name or username…"
-                value={search} onChange={e => setSearch(e.target.value)} className="search-input"
-              />
+      <DashboardLayout rail={rail} flush>
+        <div className="page-panel">
+          <div className="panel-head">
+            <div>
+              <h2 className="panel-title">Results</h2>
+              <p className="panel-sub">Understand performance and help every student move forward.</p>
             </div>
-            <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} className="filter-select">
-              <option value="all">Tests & Exams</option>
-              <option value="test">Tests only</option>
-              <option value="exam">Exams only</option>
-            </select>
-            <select value={classFilter} onChange={e => setClassFilter(e.target.value)} className="filter-select">
-              <option value="all">All classes</option>
-              {classOptions.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-            <select value={subjectFilter} onChange={e => setSubjectFilter(e.target.value)} className="filter-select">
-              <option value="all">All subjects</option>
-              {subjectOptions.map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
-            <select value={sortBy} onChange={e => setSortBy(e.target.value)} className="filter-select" aria-label="Sort results">
-              <option value="newest">Newest first</option>
-              <option value="name">Name A–Z</option>
-              <option value="score">Highest score</option>
-            </select>
-          </div>
-          <div className="toolbar" style={{ paddingTop: 0 }}>
-            <button className="btn-ghost" disabled={!hasRows} onClick={() => startPrint({ kind: 'report' })}>
-              <Printer size={15} /> Print Report
-            </button>
-            <button className="btn-ghost" disabled={!hasRows} onClick={() => startPrint({ kind: 'slips' })}>
-              <FileText size={15} /> Print Result Slips
-            </button>
-            <button className="btn-ghost" disabled={!hasRows} onClick={exportExcel}>
-              <FileDown size={15} /> Export to Excel
-            </button>
-            <span className="field-hint" style={{ margin: 0 }}>
-              {filtered.length} result{filtered.length === 1 ? '' : 's'} — printing and export use the filters above.
-            </span>
+            <div className="panel-actions">
+              <button className="btn-ghost" disabled={!hasRows} onClick={() => startPrint({ kind: 'report' })}><Printer size={15} /> Print report</button>
+              <button className="btn-ghost" disabled={!hasRows} onClick={() => startPrint({ kind: 'slips' })}><FileText size={15} /> Print slips</button>
+              <button className="btn-primary" disabled={!hasRows} onClick={exportExcel}><Download size={15} /> Export results</button>
+            </div>
           </div>
 
-          <div className="table-wrap">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Student</th>
-                  <th>Class</th>
-                  <th>Subject</th>
-                  <th>Type</th>
-                  <th>Title</th>
-                  <th>Score</th>
-                  <th>Date</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.length === 0 ? (
-                  <tr><td colSpan={8} className="empty-note-cell">No results match your search yet.</td></tr>
-                ) : filtered.map(r => (
-                  <tr key={r.id}>
-                    <td>
-                      <div className="cell-strong">{r.studentName}</div>
-                      <div className="cell-mono cell-dim-sm">{r.username}</div>
-                    </td>
-                    <td><Badge tone="class">{r.class}</Badge></td>
-                    <td>{r.subject}</td>
-                    <td><Badge tone={r.type === 'exam' ? 'class' : 'purple'}>{r.type}</Badge></td>
-                    <td className="cell-dim">{r.exam}</td>
-                    <td className="cell-strong">{r.score}/{r.total}</td>
-                    <td className="cell-dim">{r.date}</td>
-                    <td>
-                      <button
-                        className="icon-btn" title="Print this student's result slip" aria-label="Print result slip"
-                        onClick={() => startPrint({ kind: 'slip', username: r.username })}
-                      >
-                        <Printer size={14} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="stat-grid">
+            <div className="stat-card"><div className="stat-card-icon"><ClipboardCheck size={18} /></div><div className="stat-card-body">
+              <div className="stat-card-value">{filtered.length}</div><div className="stat-card-label">Submitted</div><div className="stat-card-sub">Results shown</div></div></div>
+            <div className="stat-card"><div className="stat-card-icon"><BarChart3 size={18} /></div><div className="stat-card-body">
+              <div className="stat-card-value">{fmt(stats.average)}</div><div className="stat-card-label">Average score</div><div className="stat-card-sub">Across results shown</div></div></div>
+            <div className="stat-card"><div className="stat-card-icon"><CheckCircle2 size={18} /></div><div className="stat-card-body">
+              <div className="stat-card-value">{filtered.length ? fmt((passed / filtered.length) * 100) : '0%'}</div><div className="stat-card-label">Pass rate</div><div className="stat-card-sub">{passed} {passed === 1 ? 'result' : 'results'} passed</div></div></div>
+            <div className="stat-card"><div className="stat-card-icon"><Trophy size={18} /></div><div className="stat-card-body">
+              <div className="stat-card-value">{top ? fmt(percentOf(top)) : '0%'}</div><div className="stat-card-label">Highest score</div><div className="stat-card-sub">{top ? `${top.score} out of ${top.total} marks` : 'No results yet'}</div></div></div>
           </div>
+
+          <div className="card roster-card">
+            <div className="roster-head">
+              <div className="roster-title">Student results <span className="count-pill">{filtered.length} {filtered.length === 1 ? 'result' : 'results'}</span></div>
+            </div>
+
+            <div className="roster-filters">
+              <div className="search-input-wrap roster-search">
+                <Search size={16} className="search-input-icon" />
+                <input type="text" placeholder="Search student" value={search} onChange={e => setSearch(e.target.value)} className="search-input" />
+              </div>
+              <label className="select-pill">
+                <select value={classFilter} onChange={e => setClassFilter(e.target.value)}>
+                  <option value="all">All classes</option>
+                  {classOptions.map(c => <option key={c} value={c}>Class: {c}</option>)}
+                </select>
+                <ChevronDown size={15} />
+              </label>
+              <label className="select-pill">
+                <select value={subjectFilter} onChange={e => setSubjectFilter(e.target.value)}>
+                  <option value="all">All subjects</option>
+                  {subjectOptions.map(sub => <option key={sub} value={sub}>{sub}</option>)}
+                </select>
+                <ChevronDown size={15} />
+              </label>
+              <label className="select-pill">
+                <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)}>
+                  <option value="all">Tests &amp; exams</option>
+                  <option value="test">Tests only</option>
+                  <option value="exam">Exams only</option>
+                </select>
+                <ChevronDown size={15} />
+              </label>
+              <label className="select-pill">
+                <select value={sortBy} onChange={e => setSortBy(e.target.value)} aria-label="Sort results">
+                  <option value="newest">Newest first</option>
+                  <option value="name">Name A–Z</option>
+                  <option value="score">Highest score</option>
+                </select>
+                <ChevronDown size={15} />
+              </label>
+            </div>
+
+            <div className="table-wrap">
+              <table className="data-table roster-table">
+                <thead>
+                  <tr>
+                    <th>Student</th>
+                    <th>Class</th>
+                    <th>Subject</th>
+                    <th>Score</th>
+                    <th>Report</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.length === 0 ? (
+                    <tr><td colSpan={5} className="empty-note-cell">{results.length === 0 ? 'No results yet. They appear here the moment a student submits.' : 'No results match your search.'}</td></tr>
+                  ) : filtered.map(r => (
+                    <tr key={r.id}>
+                      <td>
+                        <div className="student-cell">
+                          <span className="student-avatar">{initials(r.studentName)}</span>
+                          <span>
+                            <span className="cell-strong">{r.studentName}</span>
+                            <span className="cell-sub">{r.username}</span>
+                          </span>
+                        </div>
+                      </td>
+                      <td>{r.class}</td>
+                      <td>
+                        {r.subject}
+                        <span className="cell-sub">{r.type === 'exam' ? 'Exam' : 'Test'} · {r.exam}{r.date ? ` · ${r.date}` : ''}</span>
+                      </td>
+                      <td className="cell-strong">{r.score} / {r.total}</td>
+                      <td><button className="link-btn" onClick={() => startPrint({ kind: 'slip', username: r.username })}>View result</button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="roster-foot">
+              <span className="roster-showing">
+                {filtered.length === 0 ? 'Nothing to show' : `Showing all ${filtered.length} ${filtered.length === 1 ? 'result' : 'results'} · scroll the list to see more`}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="page-footer">
+          <span>{school.name}</span>
+          <span>© {new Date().getFullYear()} Assessly</span>
         </div>
       </DashboardLayout>
 
