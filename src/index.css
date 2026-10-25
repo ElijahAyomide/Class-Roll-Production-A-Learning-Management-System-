@@ -1096,3 +1096,22 @@ button, input, select { font-family: inherit; }
 .app-shell-fixed .panel-head { margin-bottom: 1em; }
 .table-wrap::-webkit-scrollbar { width: 6px; }
 .table-wrap::-webkit-scrollbar-thumb { background: #C9D1F0; border-radius: 3px; }
+
+/* Question Bank list */
+.panel-actions a.btn-ghost { text-decoration: none; }
+.btn-ghost:disabled { opacity: 0.45; cursor: default; }
+.qlist { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #C9D1F0 transparent; margin-right: -0.4em; padding-right: 0.4em; }
+.qlist::-webkit-scrollbar { width: 6px; }
+.qlist::-webkit-scrollbar-thumb { background: #C9D1F0; border-radius: 3px; }
+.qrow { display: flex; justify-content: space-between; align-items: flex-start; gap: 1em; padding: 1.1em 0.4em; border-bottom: 1px solid #ECEEF7; }
+.qrow:last-child { border-bottom: 0; }
+.qrow-main { min-width: 0; }
+.qrow-meta { display: flex; flex-wrap: wrap; gap: 0.4em; align-items: center; font-size: 0.78em; color: var(--ink-dim); }
+.qrow-type { background: #EAEFFF; color: #385DE9; border-radius: 0.4em; padding: 0.2em 0.6em; font-weight: 500; }
+.qrow-subject { color: #385DE9; font-weight: 500; }
+.qrow-title { font-size: 1em; font-weight: 500; color: var(--ink); margin: 0.5em 0 0.5em; }
+.qrow-sub { display: flex; flex-wrap: wrap; gap: 0.8em; align-items: center; font-size: 0.8em; }
+.qrow-pending { color: var(--green); }
+.qrow-side { display: flex; align-items: center; gap: 0.5em; flex-shrink: 0; }
+.qrow-side .row-actions-menu { display: inline-flex; position: relative; }
+.app-shell-fixed .qlist + .roster-foot { margin-top: 0.8em; }

@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from 'react';
-import { Upload, Trash2, Pencil, FileText, File as FileIcon, Download } from 'lucide-react';
+import { Upload, Trash2, Pencil, FileText, File as FileIcon, Download, Search, ChevronDown, MoreHorizontal, Check, ListChecks, GraduationCap } from 'lucide-react';
 import QuestionEditorModal from '../components/QuestionEditorModal';
 import DashboardLayout from '../components/DashboardLayout';
 import Badge from '../components/Badge';
+import AdminRail from '../components/AdminRail';
 import Modal from '../components/Modal';
 import { useClassSetup } from '../context/ClassSetupContext';
 import { useSchool } from '../context/SchoolContext';
@@ -12,7 +13,7 @@ import { parseQuestionFile } from '../lib/parseQuestionFile';
 
 const DEFAULT_TITLES = { test: 'Mid-Term Test', exam: 'First Term Examination' };
 
-export default function QuestionBank({ questions, setQuestions, students = [] }) {
+export default function QuestionBank({ questions, setQuestions, students = [], license }) {
   const { classes: CLASSES, subjectsFor: subjectPoolForClass } = useClassSetup();
   const { school } = useSchool();
   const [classFilter, setClassFilter] = useState('all');
@@ -21,6 +22,8 @@ export default function QuestionBank({ questions, setQuestions, students = [] })
   const [uploading, setUploading] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [editing, setEditing] = useState(null);
+  const [search, setSearch] = useState('');
+  const [menuFor, setMenuFor] = useState(null); // set id whose "..." menu is open
 
   // Students who have this set assigned but haven't submitted it yet.
   const pendingFor = (q) => students.reduce(
@@ -37,9 +40,13 @@ export default function QuestionBank({ questions, setQuestions, students = [] })
       const matchesClass = classFilter === 'all' || q.class === classFilter;
       const matchesSubject = subjectFilter === 'all' || q.subject === subjectFilter;
       const matchesType = typeFilter === 'all' || q.type === typeFilter;
-      return matchesClass && matchesSubject && matchesType;
+      const term = search.trim().toLowerCase();
+      const matchesSearch = !term || [q.title, q.subject, q.class, q.fileName].some(v => (v || '').toLowerCase().includes(term));
+      return matchesClass && matchesSubject && matchesType && matchesSearch;
     });
-  }, [questions, classFilter, subjectFilter, typeFilter]);
+  }, [questions, classFilter, subjectFilter, typeFilter, search]);
+
+  const resetFilters = () => { setSearch(''); setClassFilter('all'); setSubjectFilter('all'); setTypeFilter('all'); };
 
   const allSubjects = [...new Set(questions.map(q => q.subject))];
   const classOptions = [...new Set([...CLASSES, ...questions.map(q => q.class)])];
@@ -95,70 +102,154 @@ export default function QuestionBank({ questions, setQuestions, students = [] })
     }
   };
 
+  const totalQuestions = questions.reduce((n, q) => n + (q.questionCount || 0), 0);
+  const testCount = questions.filter(q => q.type === 'test').length;
+  const examCount = questions.filter(q => q.type === 'exam').length;
+  const filtersOn = search.trim() || classFilter !== 'all' || subjectFilter !== 'all' || typeFilter !== 'all';
+  const scopeText = [classFilter !== 'all' ? classFilter : null, subjectFilter !== 'all' ? subjectFilter : null].filter(Boolean).join(' · ');
+
+  const rail = (
+    <AdminRail license={license}>
+      <>
+        <div className="rail-eyebrow">{school.name}</div>
+        <div className="rail-title">Better questions. Better insights.</div>
+        <p className="rail-lead">Build a reusable bank for every subject and class.</p>
+        <ul className="rail-checks">
+          <li>
+            <span className="rail-check"><Check size={13} /></span>
+            <span>
+              <span className="rail-step-title">Use the Excel template</span>
+              <span className="rail-step-desc">One row per question, with the correct answer marked A, B, C or D.</span>
+            </span>
+          </li>
+          <li>
+            <span className="rail-check"><Check size={13} /></span>
+            <span>
+              <span className="rail-step-title">Review before students sit it</span>
+              <span className="rail-step-desc">Open a set to check the answers and marks.</span>
+            </span>
+          </li>
+          <li>
+            <span className="rail-check"><Check size={13} /></span>
+            <span>
+              <span className="rail-step-title">Ready for an assessment</span>
+              <span className="rail-step-desc">Set a test or exam from the Dashboard once your questions are in.</span>
+            </span>
+          </li>
+        </ul>
+      </>
+    </AdminRail>
+  );
+
   return (
-    <DashboardLayout title="Question Bank" subtitle="Upload and manage test and exam questions by class and subject">
-      <div className="card">
-        <div className="toolbar">
-          <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} className="filter-select">
-            <option value="all">Tests & Exams</option>
-            <option value="test">Tests only</option>
-            <option value="exam">Exams only</option>
-          </select>
-          <select value={classFilter} onChange={e => setClassFilter(e.target.value)} className="filter-select">
-            <option value="all">All classes</option>
-            {classOptions.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
-          <select value={subjectFilter} onChange={e => setSubjectFilter(e.target.value)} className="filter-select">
-            <option value="all">All subjects</option>
-            {allSubjects.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
-          <button className="btn-primary" onClick={() => setUploading(true)}><Upload size={15} /> Upload Questions</button>
+    <DashboardLayout rail={rail} flush>
+      <div className="page-panel" onClick={() => setMenuFor(null)}>
+        <div className="panel-head">
+          <div>
+            <h2 className="panel-title">Question Bank</h2>
+            <p className="panel-sub">Upload, organise and reuse questions for every assessment.</p>
+          </div>
+          <div className="panel-actions">
+            <a className="btn-ghost" href="/templates/classroll-question-template.xlsx" download><Download size={15} /> Download template</a>
+            <button className="btn-primary" onClick={() => setUploading(true)}><Upload size={15} /> Upload questions</button>
+          </div>
         </div>
 
-        <div className="table-wrap">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Title</th>
-                <th>Type</th>
-                <th>Subject</th>
-                <th>Class</th>
-                <th>File</th>
-                <th>Questions</th>
-                <th>Uploaded</th>
-                <th>Status</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.length === 0 ? (
-                <tr><td colSpan={9} className="empty-note-cell">No questions match this filter.</td></tr>
-              ) : filtered.map(q => (
-                <tr key={q.id}>
-                  <td className="cell-strong">{q.title}</td>
-                  <td><Badge tone={q.type === 'exam' ? 'class' : 'purple'}>{q.type}</Badge></td>
-                  <td>{q.subject}</td>
-                  <td><Badge tone="class">{q.class}</Badge></td>
-                  <td>
-                    <div className="file-chip">
-                      {q.fileType === 'pdf' ? <FileText size={13} /> : <FileIcon size={13} />}
-                      <span>{q.fileName}</span>
-                    </div>
-                  </td>
-                  <td>{q.questionCount || '—'}</td>
-                  <td className="cell-dim">{q.uploadDate}</td>
-                  <td><Badge tone={q.status === 'ready' ? 'green' : 'amber'}>{q.status}</Badge></td>
-                  <td>
-                    <div className="row-actions">
-                      <button className="icon-btn" onClick={() => setEditing(q)} aria-label="Edit questions" title="Edit questions"><Pencil size={14} /></button>
-                      <button className="icon-btn icon-btn-danger" onClick={() => setConfirmDelete(q)} aria-label="Delete"><Trash2 size={14} /></button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="stat-grid stat-grid-3">
+          <div className="stat-card"><div className="stat-card-icon"><FileText size={18} /></div><div className="stat-card-body">
+            <div className="stat-card-value">{totalQuestions}</div><div className="stat-card-label">Total questions</div><div className="stat-card-sub">In {questions.length} {questions.length === 1 ? 'set' : 'sets'} across {allSubjects.length} {allSubjects.length === 1 ? 'subject' : 'subjects'}</div></div></div>
+          <div className="stat-card"><div className="stat-card-icon"><ListChecks size={18} /></div><div className="stat-card-body">
+            <div className="stat-card-value">{testCount}</div><div className="stat-card-label">Tests</div><div className="stat-card-sub">Continuous assessment sets</div></div></div>
+          <div className="stat-card"><div className="stat-card-icon"><GraduationCap size={18} /></div><div className="stat-card-body">
+            <div className="stat-card-value">{examCount}</div><div className="stat-card-label">Exams</div><div className="stat-card-sub">Term examination sets</div></div></div>
         </div>
+
+        <div className="card roster-card">
+          <div className="roster-head">
+            <div className="roster-title">Your question sets <span className="count-pill">{filtered.length} {filtered.length === 1 ? 'set' : 'sets'}</span></div>
+            {scopeText && <span className="roster-classes">{scopeText}</span>}
+          </div>
+
+          <div className="roster-filters">
+            <div className="search-input-wrap roster-search">
+              <Search size={16} className="search-input-icon" />
+              <input type="text" placeholder="Search title, subject or file" value={search} onChange={e => setSearch(e.target.value)} className="search-input" />
+            </div>
+            <label className="select-pill">
+              <select value={subjectFilter} onChange={e => setSubjectFilter(e.target.value)}>
+                <option value="all">All subjects</option>
+                {allSubjects.map(sub => <option key={sub} value={sub}>{sub}</option>)}
+              </select>
+              <ChevronDown size={15} />
+            </label>
+            <label className="select-pill">
+              <select value={classFilter} onChange={e => setClassFilter(e.target.value)}>
+                <option value="all">All classes</option>
+                {classOptions.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+              <ChevronDown size={15} />
+            </label>
+            <label className="select-pill">
+              <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)}>
+                <option value="all">Tests &amp; exams</option>
+                <option value="test">Tests only</option>
+                <option value="exam">Exams only</option>
+              </select>
+              <ChevronDown size={15} />
+            </label>
+            <button className="btn-ghost btn-ghost-blue" onClick={resetFilters} disabled={!filtersOn}>Reset</button>
+          </div>
+
+          <div className="qlist">
+            {filtered.length === 0 ? (
+              <div className="empty-note-cell">{questions.length === 0 ? 'No questions yet. Upload your first Excel question file.' : 'No question sets match these filters.'}</div>
+            ) : filtered.map(q => {
+              const pending = pendingFor(q);
+              return (
+                <div key={q.id} className="qrow">
+                  <div className="qrow-main">
+                    <div className="qrow-meta">
+                      <span className="qrow-type">{q.type === 'exam' ? 'Exam' : 'Test'}</span>
+                      <span className="qrow-subject">{q.subject}</span>
+                      <span>· {q.class}</span>
+                      <span>· {q.questionCount || 0} {q.questionCount === 1 ? 'question' : 'questions'}</span>
+                      {q.uploadDate && <span>· Uploaded {q.uploadDate}</span>}
+                    </div>
+                    <div className="qrow-title">{q.title}</div>
+                    <div className="qrow-sub">
+                      <span className="file-chip">{q.fileType === 'pdf' ? <FileText size={13} /> : <FileIcon size={13} />}<span>{q.fileName}</span></span>
+                      {pending > 0 && <span className="qrow-pending">{pending} {pending === 1 ? 'student' : 'students'} yet to submit</span>}
+                    </div>
+                  </div>
+                  <div className="qrow-side" onClick={e => e.stopPropagation()}>
+                    <Badge tone={q.status === 'ready' ? 'green' : 'amber'}>{q.status === 'ready' ? 'Ready' : q.status}</Badge>
+                    <button className="icon-btn icon-btn-plain" onClick={() => setEditing(q)} aria-label="Edit questions" title="Edit questions"><Pencil size={15} /></button>
+                    <div className="row-actions-menu">
+                      <button className="icon-btn icon-btn-plain" onClick={() => setMenuFor(menuFor === q.id ? null : q.id)} aria-label="More actions"><MoreHorizontal size={16} /></button>
+                      {menuFor === q.id && (
+                        <div className="row-menu">
+                          <button onClick={() => { setMenuFor(null); setEditing(q); }}><Pencil size={13} /> Edit questions</button>
+                          <button className="row-menu-danger" onClick={() => { setMenuFor(null); setConfirmDelete(q); }}><Trash2 size={13} /> Delete</button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="roster-foot">
+            <span className="roster-showing">
+              {filtered.length === 0 ? 'Nothing to show' : `Showing all ${filtered.length} ${filtered.length === 1 ? 'set' : 'sets'} · scroll the list to see more`}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div className="page-footer">
+        <span>{school.name}</span>
+        <span>© {new Date().getFullYear()} Assessly</span>
       </div>
 
       {uploading && (
