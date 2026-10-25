@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, CreditCard, FileText, ClipboardList, Search, UserPlus, Pencil, Trash2, X, ListChecks, GraduationCap, ArrowRight, Check } from 'lucide-react';
+import { Users, CreditCard, FileText, ClipboardList, Search, UserPlus, Pencil, Trash2, X, ListChecks, GraduationCap, Check } from 'lucide-react';
 import DashboardLayout from '../components/DashboardLayout';
 import StatCard from '../components/StatCard';
+import AdminRail, { adminNameFrom } from '../components/AdminRail';
 import Badge from '../components/Badge';
 import Modal from '../components/Modal';
 import AssignClassModal from '../components/AssignClassModal';
@@ -227,7 +228,7 @@ export default function Dashboard({ students, setStudents, questions, results, l
   };
 
   // Name shown in the greeting and the right-hand profile (saved at registration; "Admin" if none).
-  const adminName = (session?.user?.user_metadata?.school_profile?.contactName || '').trim() || 'Admin';
+  const adminName = adminNameFrom(session);
   const firstName = adminName.split(' ')[0];
 
   // "Getting started" checklist: each step ticks itself off once it's done.
@@ -240,16 +241,8 @@ export default function Dashboard({ students, setStudents, questions, results, l
   const firstOpen = steps.find(x => !x.done);
 
   const rail = (
-    <>
-      <div className="rail-profile">
-        {school.logo
-          ? <img src={school.logo} alt={`${school.name} logo`} className="rail-avatar rail-avatar-img" />
-          : <div className="rail-avatar">{adminName.charAt(0).toUpperCase()}</div>}
-        <div className="rail-name">{adminName}</div>
-        <div className="rail-role">School administrator</div>
-      </div>
-
-      <div className="rail-section">
+    <AdminRail license={license}>
+      <>
         <div className="rail-eyebrow">Getting started</div>
         <div className="rail-title">{stepsDone === steps.length ? "You're all set" : 'Build your first assessment'}</div>
         <div className="rail-progress-text">{stepsDone} of {steps.length} steps complete</div>
@@ -274,18 +267,8 @@ export default function Dashboard({ students, setStudents, questions, results, l
             </li>
           ))}
         </ol>
-      </div>
-
-      <div className="rail-license">
-        <div className="rail-license-row"><span>License Balance</span><b>{license.balance}</b></div>
-        <p>
-          {license.balance > 0
-            ? `You have ${license.balance} exam credit${license.balance === 1 ? '' : 's'} ready to use.`
-            : "You can add questions now. Get exam credits when you're ready to run an assessment."}
-        </p>
-        <button type="button" onClick={() => navigate('/license')}>Continue to License payment <ArrowRight size={14} /></button>
-      </div>
-    </>
+      </>
+    </AdminRail>
   );
 
   return (

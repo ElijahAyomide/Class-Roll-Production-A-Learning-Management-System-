@@ -1001,3 +1001,83 @@ button, input, select { font-family: inherit; }
 .app-shell .activity-text { font-size: 0.82em; }
 .app-shell .activity-time { font-size: 0.72em; }
 @media (max-width: 1100px) { .app-rail { overflow-y: visible; } }
+
+/* ============================================
+   STUDENTS PAGE
+   ============================================ */
+.app-shell .page-content-flush { padding: 0.4em 0 0; }
+.page-panel { background: #E6E9F9; border-radius: 1.3em; padding: 1.6em 2em 1.8em; }
+.panel-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 1em; flex-wrap: wrap; margin-bottom: 1.2em; }
+.panel-title { font-size: 1.6em; font-weight: 600; margin: 0; color: var(--ink); }
+.panel-sub { font-size: 0.9em; color: var(--ink-dim); margin: 0.3em 0 0; }
+.panel-actions { display: flex; gap: 0.7em; flex-wrap: wrap; }
+.app-shell .panel-actions .btn-ghost, .app-shell .roster-head .btn-ghost, .app-shell .roster-filters .btn-ghost {
+  display: inline-flex; align-items: center; gap: 0.5em; background: #fff; border: 1px solid #E4E6F0; border-radius: 0.8em;
+  padding: 0.7em 1.1em; font-family: inherit; font-size: 0.88em; font-weight: 500; color: var(--ink); cursor: pointer;
+}
+.app-shell .panel-actions .btn-ghost:hover, .app-shell .roster-head .btn-ghost:hover { background: #F6F7FD; }
+.app-shell .panel-actions .btn-primary {
+  display: inline-flex; align-items: center; gap: 0.5em; background: #385DE9; color: #fff; border: 0; border-radius: 0.8em;
+  padding: 0.7em 1.2em; font-family: inherit; font-size: 0.88em; font-weight: 500; cursor: pointer;
+}
+.app-shell .panel-actions .btn-primary:hover { background: #2D4CC4; }
+.stat-grid-3 { grid-template-columns: repeat(3, 1fr) !important; }
+
+.roster-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.1em; }
+.roster-title { font-size: 1.15em; font-weight: 600; display: flex; align-items: center; gap: 0.7em; }
+.count-pill { background: #EAEFFF; color: #385DE9; font-size: 0.65em; font-weight: 500; padding: 0.35em 0.8em; border-radius: 2em; }
+.roster-filters { display: flex; align-items: center; gap: 0.8em; margin-bottom: 1.1em; flex-wrap: wrap; }
+.roster-search { flex: 1 1 14em; min-width: 12em; max-width: 26em; }
+.app-shell .roster-search .search-input { background: #F1F3FA; border: 0; }
+.select-pill { position: relative; display: inline-flex; align-items: center; background: #F1F3FA; border-radius: 0.8em; color: var(--ink-dim); }
+.select-pill select {
+  appearance: none; -webkit-appearance: none; background: transparent; border: 0; font-family: inherit; font-size: 0.88em;
+  color: var(--ink); padding: 0.85em 2.4em 0.85em 1em; cursor: pointer; outline: none;
+}
+.select-pill svg { position: absolute; right: 0.8em; pointer-events: none; }
+.roster-filters-end { margin-left: auto; display: flex; align-items: center; gap: 0.8em; }
+.roster-classes { font-size: 0.85em; color: var(--ink-dim); }
+.app-shell .roster-filters .btn-ghost-blue { color: #385DE9; padding: 0.55em 1em; }
+
+.roster-table thead th { background: #F1F3FA; font-size: 0.8em; font-weight: 400; color: var(--ink-dim); text-transform: none; letter-spacing: 0; padding: 0.9em 0.8em; border: 0; }
+.roster-table thead th:first-child { border-radius: 0.8em 0 0 0.8em; }
+.roster-table thead th:last-child { border-radius: 0 0.8em 0.8em 0; }
+.roster-table td { font-size: 0.9em; padding: 0.8em; }
+.roster-table .col-check { width: 2.4em; }
+.roster-table input[type="checkbox"] { width: 1.1em; height: 1.1em; accent-color: #385DE9; cursor: pointer; }
+.student-cell { display: flex; align-items: center; gap: 0.8em; }
+.student-avatar { width: 2.4em; height: 2.4em; border-radius: 50%; background: #EAEFFF; color: #385DE9; display: grid; place-items: center; font-size: 0.75em; font-weight: 500; flex-shrink: 0; }
+.roster-table .cell-mono { font-family: inherit; color: var(--ink-dim); }
+.app-shell .badge { font-size: 0.78em; padding: 0.35em 0.9em; }
+.row-actions-menu { position: relative; align-items: center; gap: 0.5em; }
+.link-btn { background: none; border: 0; color: #385DE9; font: inherit; font-size: 0.95em; cursor: pointer; padding: 0; }
+.link-btn:hover { text-decoration: underline; }
+.icon-btn-plain { border: 0; background: none; color: var(--ink-dim); width: 2em; height: 2em; display: inline-grid; place-items: center; border-radius: 0.5em; cursor: pointer; }
+.icon-btn-plain:hover { background: #F1F3FA; }
+.row-menu { position: absolute; right: 0; top: 2.2em; z-index: 5; background: #fff; border: 1px solid #E4E6F0; border-radius: 0.7em; box-shadow: 0 0.4em 1.2em rgba(30,40,90,0.12); padding: 0.3em; min-width: 8.5em; }
+.row-menu button { display: flex; align-items: center; gap: 0.6em; width: 100%; background: none; border: 0; padding: 0.55em 0.7em; font: inherit; font-size: 0.85em; color: var(--ink); border-radius: 0.5em; cursor: pointer; text-align: left; }
+.row-menu button:hover { background: #F1F3FA; }
+.row-menu .row-menu-danger { color: var(--red); }
+
+.roster-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 1.1em; gap: 1em; flex-wrap: wrap; }
+.roster-showing { font-size: 0.85em; color: var(--ink-dim); }
+.pager { display: flex; align-items: center; gap: 0.4em; }
+.pager-btn { background: #fff; border: 1px solid #E4E6F0; color: #385DE9; font: inherit; font-size: 0.85em; font-weight: 500; padding: 0.6em 1em; border-radius: 0.7em; cursor: pointer; }
+.pager-btn:disabled { color: var(--ink-faint); cursor: default; }
+.pager-num { background: none; border: 0; font: inherit; font-size: 0.85em; color: var(--ink-dim); width: 2.2em; height: 2.2em; border-radius: 0.6em; cursor: pointer; }
+.pager-num-active { background: #385DE9; color: #fff; }
+.pager-gap { color: var(--ink-dim); padding: 0 0.2em; }
+.page-footer { display: flex; justify-content: space-between; padding: 1em 2em 1.4em; font-size: 0.75em; color: var(--ink-dim); }
+
+/* Right rail: checklist used on the Students page */
+.rail-lead { font-size: 0.85em; line-height: 1.45; color: #D5DEFF; margin: 0.5em 0 0.9em; }
+.rail-checks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.8em; }
+.rail-checks li { display: flex; gap: 0.8em; align-items: flex-start; }
+.rail-check { width: 1.9em; height: 1.9em; border-radius: 50%; border: 1px solid rgba(255,255,255,0.6); display: grid; place-items: center; flex-shrink: 0; }
+
+@media (max-width: 960px) { .stat-grid-3 { grid-template-columns: 1fr !important; } .roster-filters-end { margin-left: 0; } }
+@media (max-width: 720px) { .page-panel { padding: 1.2em 1em; border-radius: 1em; } .app-shell .page-content-flush { padding: 0.4em 0.6em 0; } }
+.panel-head > div:first-child { flex: 1 1 12em; min-width: 0; }
+.panel-actions { flex-wrap: nowrap; flex-shrink: 0; }
+.app-shell .panel-actions button { white-space: nowrap; }
+@media (max-width: 960px) { .panel-actions { flex-wrap: wrap; } }
