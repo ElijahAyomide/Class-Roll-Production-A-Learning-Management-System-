@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { fetchMySchool, claimOrCreateSchool, updateSchool as updateSchoolInDb } from '../lib/schools';
 import { getCurrentSession, onAuthStateChange } from '../lib/auth';
+import { enforceRememberChoice } from '../lib/rememberMe';
 
 const SchoolContext = createContext(null);
 
@@ -76,7 +77,9 @@ export function SchoolProvider({ children }) {
   useEffect(() => {
     let active = true;
 
-    getCurrentSession().then((s) => {
+    // If "Remember me" was left unticked and the browser was closed since,
+    // this signs the admin out before the saved session is read.
+    enforceRememberChoice().then(() => getCurrentSession()).then((s) => {
       if (!active) return;
       setSession(s);
       if (s) loadSchool(s.user);

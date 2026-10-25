@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import PasswordInput from '../components/PasswordInput';
-import { useNavigate } from 'react-router-dom';
-import { GraduationCap, MailCheck } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { GraduationCap, MailCheck, ArrowRight, Check, CheckCircle2, ClipboardCheck, MoreHorizontal } from 'lucide-react';
 import Modal from '../components/Modal';
 import { SIGNOUT_REASON_KEY } from '../lib/idleLogout';
 import { useSchool } from '../context/SchoolContext';
@@ -9,12 +9,14 @@ import { useStudentSession } from '../context/StudentSessionContext';
 import { signUpAdmin, signInAdmin, requestPasswordReset, resendConfirmation } from '../lib/auth';
 import { claimOrCreateSchool, schoolCodeTaken } from '../lib/schools';
 import { studentApi } from '../lib/studentApi';
-import { NIGERIAN_STATES } from '../data/mockData';
+import { setRememberChoice } from '../lib/rememberMe';
 
 const EMPTY_REGISTER = {
-  name: '', code: '', email: '', phone: '', address: '', state: NIGERIAN_STATES[0], lga: '',
-  password: '', confirmPassword: '',
+  fullName: '', name: '', code: '', email: '', phone: '',
+  password: '', confirmPassword: '', agree: false,
 };
+const MIN_PASSWORD = 8;
+const SUPPORT_EMAIL = import.meta.env.VITE_SUPPORT_EMAIL || '';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -35,6 +37,7 @@ export default function Login() {
     } catch { return null; }
   });
   const [signingIn, setSigningIn] = useState(false);
+  const [remember, setRemember] = useState(true);
 
   const [studentUsername, setStudentUsername] = useState('');
   const [studentPassword, setStudentPassword] = useState('');
@@ -55,6 +58,7 @@ export default function Login() {
     setSigningIn(true);
     try {
       await signInAdmin(email.trim(), password);
+      setRememberChoice(remember);
       navigate('/dashboard');
     } catch (err) {
       if (/not confirmed/i.test(err.message || '')) {
@@ -129,12 +133,16 @@ export default function Login() {
       setRegisterError('School name, code, and email are required.');
       return;
     }
-    if (!registerForm.password || registerForm.password.length < 6) {
-      setRegisterError('Password must be at least 6 characters.');
+    if (!registerForm.password || registerForm.password.length < MIN_PASSWORD) {
+      setRegisterError(`Password must be at least ${MIN_PASSWORD} characters.`);
       return;
     }
     if (registerForm.password !== registerForm.confirmPassword) {
       setRegisterError('Passwords do not match.');
+      return;
+    }
+    if (!registerForm.agree) {
+      setRegisterError('Please agree to the Terms of service and Privacy policy to continue.');
       return;
     }
     setRegistering(true);
@@ -144,9 +152,11 @@ export default function Login() {
         code: registerForm.code.trim().toUpperCase(),
         email: registerForm.email.trim(),
         phone: registerForm.phone.trim(),
-        address: registerForm.address.trim(),
-        state: registerForm.state,
-        lga: registerForm.lga.trim(),
+        // Address, state and LGA are filled in later under Settings.
+        address: '',
+        state: '',
+        lga: '',
+        contactName: registerForm.fullName.trim(),
       };
       // Check the code now, so nobody confirms their email and then finds the
       // school couldn't be created.
@@ -174,178 +184,219 @@ export default function Login() {
     }
   };
 
-  return (
-    <div className="login-screen">
-      <div className="login-image-panel">
-        <div className="login-image-text">
-          <h1 className="login-image-title">Computer-Based Testing,<br />Built for Nigeria Education</h1>
-          <p className="login-image-sub">Set up a test or exam in minutes — students take it from their own login, and results land on your dashboard the moment they submit.</p>
-        </div>
-        <img src="/images/login-illustration.png" alt="" className="login-illustration" />
-      </div>
+  // Which screen is showing.
+  const view = tab === 'student' ? 'student' : adminMode; // 'signin' | 'register' | 'forgot' | 'student'
 
-      <div className="login-form-panel">
-        <div className={`login-card ${tab === 'admin' && adminMode === 'register' ? 'login-card-wide' : ''}`}>
-        <div className="login-brand">
-          <img src="/images/assessly-logo.png" alt="" className="login-logo" />
-          <div>
-            <div className="login-brand-name">Assessly</div>
-            <div className="login-brand-tag">Exam management for schools</div>
+  const goAdmin = (mode) => { setTab('admin'); setAdminMode(mode); };
+
+  const topPrompt = {
+    signin: { text: 'New to Assessly?', label: 'Sign up', go: () => goAdmin('register') },
+    register: { text: 'Already have an account?', label: 'Sign in', go: () => { goAdmin('signin'); setRegisterError(''); } },
+    forgot: { text: 'Remembered it?', label: 'Sign in', go: () => goAdmin('signin') },
+    student: { text: 'School admin?', label: 'Admin sign in', go: () => goAdmin('signin') },
+  }[view];
+
+  const heading = {
+    signin: { eyebrow: 'School workspace', title: 'Welcome back', sub: 'Sign in to manage your students and pick up where you left off.' },
+    register: { eyebrow: 'Get started with Assessly', title: 'Create your account', sub: 'Set up your school workspace and make your next assessment a little simpler.' },
+    forgot: { eyebrow: 'Password help', title: 'Reset your password', sub: "Enter the email you registered with and we'll send you a link to choose a new password." },
+    student: { eyebrow: 'Student portal', title: 'Student sign in', sub: 'Use the username and surname your school gave you.' },
+  }[view];
+
+  const setReg = (patch) => setRegisterForm({ ...registerForm, ...patch });
+
+  return (
+    <div className="auth-screen">
+      <aside className="auth-aside">
+        <div className="auth-aside-brand">
+          <img src="/images/assessly-logo-white.png" alt="" className="auth-aside-logo" />
+          <span className="auth-aside-name">Assessly</span>
+        </div>
+
+        <div className="auth-aside-mid">
+          <div className="auth-eyebrow auth-eyebrow-light">Your school. One workspace.</div>
+          <h1 className="auth-aside-title">Great assessments.<br />Brighter futures.</h1>
+          <p className="auth-aside-sub">Bring your students, questions and results together. Spend less time managing assessments and more time helping students grow.</p>
+
+          <div className="auth-mock" aria-hidden="true">
+            <div className="auth-mock-head">
+              <div className="auth-mock-icon"><ClipboardCheck size={18} /></div>
+              <div className="auth-mock-titles">
+                <div className="auth-mock-title">Mathematics</div>
+                <div className="auth-mock-sub">PRY 5 · End of term exam</div>
+              </div>
+              <MoreHorizontal size={18} className="auth-mock-more" />
+            </div>
+            <div className="auth-mock-stats">
+              <div><div className="auth-mock-num">32</div><div className="auth-mock-label">Students</div></div>
+              <div><div className="auth-mock-num">25</div><div className="auth-mock-label">Questions</div></div>
+              <div><div className="auth-mock-num">45 min</div><div className="auth-mock-label">Duration</div></div>
+            </div>
+            <div className="auth-mock-ready"><CheckCircle2 size={16} /> All set for your next assessment</div>
+          </div>
+
+          <ul className="auth-points">
+            <li><Check size={14} /> Manage students</li>
+            <li><Check size={14} /> Build question banks</li>
+            <li><Check size={14} /> Track results</li>
+          </ul>
+        </div>
+
+        <div className="auth-aside-foot">© {new Date().getFullYear()} Assessly. All rights reserved.</div>
+      </aside>
+
+      <main className="auth-main">
+        <div className="auth-topbar">
+          <div className="auth-mobile-brand">
+            <img src="/images/assessly-logo.png" alt="" />
+            <span>Assessly</span>
+          </div>
+          <div className="auth-topbar-right">
+            <span className="auth-topbar-text">{topPrompt.text}</span>
+            <button type="button" className="auth-outline-btn" onClick={topPrompt.go}>{topPrompt.label}</button>
           </div>
         </div>
 
-        <div className="login-tabs">
-          <button className={`login-tab ${tab === 'admin' ? 'login-tab-active' : ''}`} onClick={() => setTab('admin')}>
-            Admin
-          </button>
-          <button className={`login-tab ${tab === 'student' ? 'login-tab-active' : ''}`} onClick={() => setTab('student')}>
-            Student
-          </button>
+        <div className="auth-center">
+          <div className="auth-form-col">
+            <div className="auth-eyebrow">{heading.eyebrow}</div>
+            <h2 className="auth-title">{heading.title}</h2>
+            <p className="auth-sub">{heading.sub}</p>
+
+            {view === 'signin' && (
+              <form onSubmit={submitSignIn} className="auth-form">
+                <div className="field">
+                  <label>Email address</label>
+                  <input type="email" placeholder="you@school.edu" autoComplete="email" value={email} onChange={e => setEmail(e.target.value)} />
+                </div>
+                <div className="field">
+                  <label>Password</label>
+                  <PasswordInput slashWhenHidden placeholder="Enter your password" autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} />
+                </div>
+                <div className="auth-row">
+                  <label className="auth-check">
+                    <input type="checkbox" checked={remember} onChange={e => setRemember(e.target.checked)} />
+                    <span>Remember me</span>
+                  </label>
+                  <button type="button" className="auth-link" onClick={() => { setResetSent(false); setResetError(''); setAdminMode('forgot'); }}>
+                    Forgot password?
+                  </button>
+                </div>
+                {autoSignedOut && !signInError && (
+                  <div className="success-note">
+                    {autoSignedOut === 'sleep'
+                      ? 'You were signed out because your computer went to sleep. Please sign in again.'
+                      : 'You were signed out because you were inactive for a while. Please sign in again.'}
+                  </div>
+                )}
+                {signInError && <div className="error-text">{signInError}</div>}
+                {needsConfirm && (
+                  <button type="button" className="auth-link" disabled={resendState === 'sending'} onClick={() => resendLink(email.trim())}>
+                    {resendState === 'sent' ? 'Verification email sent. Check your inbox.' : resendState === 'sending' ? 'Sending…' : 'Resend verification email'}
+                  </button>
+                )}
+                <button type="submit" className="auth-submit" disabled={signingIn}>
+                  {signingIn ? 'Signing in…' : <>Sign in <ArrowRight size={17} /></>}
+                </button>
+                <div className="auth-switch">Don't have an account? <button type="button" className="auth-link" onClick={() => goAdmin('register')}>Sign up</button></div>
+                <div className="auth-switch auth-switch-soft">Are you a student? <button type="button" className="auth-link" onClick={() => setTab('student')}>Student sign in</button></div>
+              </form>
+            )}
+
+            {view === 'forgot' && (
+              <form onSubmit={submitForgot} className="auth-form">
+                <div className="field">
+                  <label>Email address</label>
+                  <input type="email" placeholder="you@school.edu" value={email} onChange={e => setEmail(e.target.value)} />
+                </div>
+                {resetError && <div className="error-text">{resetError}</div>}
+                {resetSent && <div className="success-note">If that email is registered, a reset link is on its way. Check your inbox (and spam folder).</div>}
+                <button type="submit" className="auth-submit" disabled={resetSending}>
+                  {resetSending ? 'Sending…' : resetSent ? 'Send again' : <>Send reset link <ArrowRight size={17} /></>}
+                </button>
+                <div className="auth-switch"><button type="button" className="auth-link" onClick={() => goAdmin('signin')}>Back to sign in</button></div>
+              </form>
+            )}
+
+            {view === 'register' && (
+              <form onSubmit={submitRegister} className="auth-form">
+                <div className="field">
+                  <label>Full name</label>
+                  <input type="text" placeholder="e.g. Tunde Balogun" autoComplete="name" value={registerForm.fullName} onChange={e => setReg({ fullName: e.target.value })} />
+                </div>
+                <div className="field">
+                  <label>School name</label>
+                  <input type="text" placeholder="Enter your school name" value={registerForm.name} onChange={e => setReg({ name: e.target.value })} />
+                </div>
+                <div className="form-row-2">
+                  <div className="field">
+                    <label>School code</label>
+                    <input type="text" placeholder="Enter your school code" value={registerForm.code} onChange={e => setReg({ code: e.target.value })} />
+                  </div>
+                  <div className="field">
+                    <label>Phone number</label>
+                    <input type="tel" placeholder="+234" autoComplete="tel" value={registerForm.phone} onChange={e => setReg({ phone: e.target.value })} />
+                  </div>
+                </div>
+                <div className="field">
+                  <label>Email address</label>
+                  <input type="email" placeholder="you@school.edu" autoComplete="email" value={registerForm.email} onChange={e => setReg({ email: e.target.value })} />
+                </div>
+                <div className="form-row-2">
+                  <div className="field">
+                    <label>Password</label>
+                    <PasswordInput slashWhenHidden placeholder="Create a password" autoComplete="new-password" value={registerForm.password} onChange={e => setReg({ password: e.target.value })} />
+                    <div className="auth-hint">Use at least {MIN_PASSWORD} characters.</div>
+                  </div>
+                  <div className="field">
+                    <label>Confirm password</label>
+                    <PasswordInput slashWhenHidden placeholder="Create a password" autoComplete="new-password" value={registerForm.confirmPassword} onChange={e => setReg({ confirmPassword: e.target.value })} />
+                    <div className="auth-hint">Use at least {MIN_PASSWORD} characters.</div>
+                  </div>
+                </div>
+                <label className="auth-check auth-agree">
+                  <input type="checkbox" checked={registerForm.agree} onChange={e => setReg({ agree: e.target.checked })} />
+                  <span>I agree to the <Link to="/terms" target="_blank">Terms of service</Link> and <Link to="/privacy" target="_blank">Privacy policy</Link>.</span>
+                </label>
+                {registerError && <div className="error-text">{registerError}</div>}
+                <button type="submit" className="auth-submit" disabled={registering}>
+                  {registering ? 'Creating account…' : <>Create account <ArrowRight size={17} /></>}
+                </button>
+                <div className="auth-switch">Already have an account? <button type="button" className="auth-link" onClick={() => { goAdmin('signin'); setRegisterError(''); }}>Sign in</button></div>
+              </form>
+            )}
+
+            {view === 'student' && (
+              <form onSubmit={submitStudentSignIn} className="auth-form">
+                <div className="field">
+                  <label>Username</label>
+                  <input type="text" placeholder="GVC/2026/001" value={studentUsername} onChange={e => setStudentUsername(e.target.value)} />
+                </div>
+                <div className="field">
+                  <label>Password (surname)</label>
+                  <PasswordInput slashWhenHidden placeholder="e.g. Okafor" value={studentPassword} onChange={e => setStudentPassword(e.target.value)} />
+                </div>
+                {studentError && <div className="error-text">{studentError}</div>}
+                <button type="submit" className="auth-submit" disabled={studentChecking}>
+                  {studentChecking ? 'Checking…' : <>Sign in <ArrowRight size={17} /></>}
+                </button>
+                <div className="student-portal-notice">
+                  <GraduationCap size={16} />
+                  <span>Your username and surname are given to you by your school admin — you don't need to register.</span>
+                </div>
+              </form>
+            )}
+          </div>
         </div>
 
-        {tab === 'admin' && adminMode === 'signin' && (
-          <form onSubmit={submitSignIn} className="login-form">
-            <div className="field">
-              <label>Email address</label>
-              <input type="email" placeholder="admin@yourschool.edu.ng" value={email} onChange={e => setEmail(e.target.value)} />
-            </div>
-            <div className="field">
-              <label>Password</label>
-              <PasswordInput placeholder="••••••••••••" value={password} onChange={e => setPassword(e.target.value)} />
-            </div>
-            {autoSignedOut && !signInError && (
-              <div className="success-note">
-                {autoSignedOut === 'sleep'
-                  ? 'You were signed out because your computer went to sleep. Please sign in again.'
-                  : 'You were signed out because you were inactive for a while. Please sign in again.'}
-              </div>
-            )}
-            {signInError && <div className="error-text">{signInError}</div>}
-            {needsConfirm && (
-              <button type="button" className="login-switch-link" disabled={resendState === 'sending'} onClick={() => resendLink(email.trim())}>
-                {resendState === 'sent' ? 'Verification email sent. Check your inbox.' : resendState === 'sending' ? 'Sending…' : 'Resend verification email'}
-              </button>
-            )}
-            <button type="submit" className="btn-primary login-submit" disabled={signingIn}>
-              {signingIn ? 'Signing In…' : 'Sign In'}
-            </button>
-            <div className="login-links">
-              <button type="button" className="login-switch-link" onClick={() => { setResetSent(false); setResetError(''); setAdminMode('forgot'); }}>
-                Forgot password?
-              </button>
-              <div className="login-prompt">
-                Are you a New School?{' '}
-                <button type="button" className="login-switch-link" onClick={() => setAdminMode('register')}>Register here</button>
-              </div>
-            </div>
-          </form>
-        )}
-
-        {tab === 'admin' && adminMode === 'forgot' && (
-          <form onSubmit={submitForgot} className="login-form">
-            <div className="field-hint">Enter the email you registered with and we'll send you a link to choose a new password.</div>
-            <div className="field">
-              <label>Email address</label>
-              <input type="email" placeholder="admin@yourschool.edu.ng" value={email} onChange={e => setEmail(e.target.value)} />
-            </div>
-            {resetError && <div className="error-text">{resetError}</div>}
-            {resetSent && <div className="success-note">If that email is registered, a reset link is on its way. Check your inbox (and spam folder).</div>}
-            <button type="submit" className="btn-primary login-submit" disabled={resetSending}>
-              {resetSending ? 'Sending…' : resetSent ? 'Send Again' : 'Send Reset Link'}
-            </button>
-            <button type="button" className="login-switch-link" onClick={() => setAdminMode('signin')}>
-              Back to sign in
-            </button>
-          </form>
-        )}
-
-        {tab === 'admin' && adminMode === 'register' && (
-          <form onSubmit={submitRegister} className="login-form">
-            <div className="field">
-              <label>School name</label>
-              <input type="text" placeholder="e.g. Green Valley College" value={registerForm.name} onChange={e => setRegisterForm({ ...registerForm, name: e.target.value })} />
-            </div>
-            <div className="form-row-2">
-              <div className="field">
-                <label>School code</label>
-                <input type="text" placeholder="e.g. GVC" value={registerForm.code} onChange={e => setRegisterForm({ ...registerForm, code: e.target.value })} />
-              </div>
-              <div className="field">
-                <label>Phone number</label>
-                <input type="text" placeholder="+234" value={registerForm.phone} onChange={e => setRegisterForm({ ...registerForm, phone: e.target.value })} />
-              </div>
-            </div>
-            <div className="field">
-              <label>Email address</label>
-              <input type="email" placeholder="admin@yourschool.edu.ng" value={registerForm.email} onChange={e => setRegisterForm({ ...registerForm, email: e.target.value })} />
-            </div>
-            <div className="field">
-              <label>Address</label>
-              <input type="text" placeholder="Street, City" value={registerForm.address} onChange={e => setRegisterForm({ ...registerForm, address: e.target.value })} />
-            </div>
-            <div className="form-row-2">
-              <div className="field">
-                <label>State</label>
-                <select value={registerForm.state} onChange={e => setRegisterForm({ ...registerForm, state: e.target.value })}>
-                  {NIGERIAN_STATES.map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </div>
-              <div className="field">
-                <label>LGA</label>
-                <input type="text" placeholder="e.g. Ikeja" value={registerForm.lga} onChange={e => setRegisterForm({ ...registerForm, lga: e.target.value })} />
-              </div>
-            </div>
-            <div className="form-row-2">
-              <div className="field">
-                <label>Password</label>
-                <PasswordInput placeholder="Min. 6 characters" value={registerForm.password} onChange={e => setRegisterForm({ ...registerForm, password: e.target.value })} />
-              </div>
-              <div className="field">
-                <label>Confirm password</label>
-                <PasswordInput placeholder="••••••••••••" value={registerForm.confirmPassword} onChange={e => setRegisterForm({ ...registerForm, confirmPassword: e.target.value })} />
-              </div>
-            </div>
-            {registerError && <div className="error-text">{registerError}</div>}
-            <button type="submit" className="btn-primary login-submit" disabled={registering}>
-              {registering ? 'Creating Account…' : 'Sign Up'}
-            </button>
-            <div className="login-links">
-              <div className="login-prompt">
-                Already registered?{' '}
-                <button type="button" className="login-switch-link" onClick={() => { setAdminMode('signin'); setRegisterError(''); }}>Sign in</button>
-              </div>
-            </div>
-          </form>
-        )}
-
-        {tab === 'student' && (
-          <form onSubmit={submitStudentSignIn} className="login-form">
-            <div className="field">
-              <label>Username</label>
-              <input
-                type="text" placeholder="GVC/2026/001"
-                value={studentUsername} onChange={e => setStudentUsername(e.target.value)}
-              />
-            </div>
-            <div className="field">
-              <label>Password (surname)</label>
-              <PasswordInput
-                placeholder="e.g. Okafor"
-                value={studentPassword} onChange={e => setStudentPassword(e.target.value)}
-              />
-            </div>
-            {studentError && <div className="error-text">{studentError}</div>}
-            <button type="submit" className="btn-primary login-submit" disabled={studentChecking}>
-              {studentChecking ? 'Checking…' : 'Sign In'}
-            </button>
-            <div className="student-portal-notice">
-              <GraduationCap size={16} />
-              <span>Your username and surname are given to you by your school admin — you don't need to register.</span>
-            </div>
-          </form>
-        )}
-      </div>
-      </div>
+        <footer className="auth-footer">
+          <div>{SUPPORT_EMAIL && <>Need help? <a href={`mailto:${SUPPORT_EMAIL}`}>Contact support</a></>}</div>
+          <div className="auth-footer-links">
+            <Link to="/privacy">Privacy</Link>
+            <Link to="/terms">Terms</Link>
+          </div>
+        </footer>
+      </main>
 
       {verifyEmail && (
         <Modal title="Account created!" onClose={() => { setVerifyEmail(null); setAdminMode('signin'); }} width={420}>
