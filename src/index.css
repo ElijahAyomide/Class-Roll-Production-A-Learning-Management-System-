@@ -64,16 +64,16 @@ button, input, select { font-family: inherit; }
   display: flex; flex-direction: column; justify-content: space-between; gap: 1.5em;
   min-height: 100vh;
 }
-.auth-aside-brand { display: flex; align-items: center; gap: 0.7em; }
+.auth-aside-brand { display: flex; align-items: center; justify-content: center; gap: 0.7em; }
 .auth-aside-logo { height: 2.4em; width: auto; }
 .auth-aside-name { font-size: 1.6em; font-weight: 300; letter-spacing: -0.01em; }
-.auth-aside-mid { display: flex; flex-direction: column; }
+.auth-aside-mid { display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%; max-width: 28em; margin: 0 auto; }
 .auth-eyebrow { font-size: 0.62em; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--primary); }
 .auth-eyebrow-light { color: rgba(255,255,255,0.85); }
 .auth-aside-title { font-size: 2.1em; font-weight: 700; line-height: 1.2; letter-spacing: -0.01em; margin: 0.45em 0 0.7em; }
-.auth-aside-sub { font-size: 0.8em; line-height: 1.5; color: rgba(255,255,255,0.85); margin: 0; max-width: 28em; }
+.auth-aside-sub { font-size: 0.8em; line-height: 1.5; color: rgba(255,255,255,0.85); margin: 0 auto; max-width: 28em; }
 .auth-mock {
-  background: #fff; color: #111827; border-radius: 1.1em; padding: 1.2em; margin-top: 2em; max-width: 24em;
+  background: #fff; color: #111827; border-radius: 1.1em; padding: 1.2em; margin-top: 2em; width: 100%; max-width: 25em; text-align: left;
   box-shadow: 0 1.2em 2.4em rgba(10, 20, 80, 0.18);
 }
 .auth-mock-head { display: flex; align-items: center; gap: 0.8em; padding-bottom: 1em; border-bottom: 1px solid #E8EAF4; }
@@ -86,9 +86,9 @@ button, input, select { font-family: inherit; }
 .auth-mock-num { font-size: 1.35em; font-weight: 600; letter-spacing: -0.01em; }
 .auth-mock-label { font-size: 0.66em; color: #5B6478; margin-top: 0.15em; }
 .auth-mock-ready { display: flex; align-items: center; gap: 0.55em; background: #F1F2FB; color: var(--primary); border-radius: 0.7em; padding: 0.8em 0.9em; font-size: 0.74em; font-weight: 400; }
-.auth-points { list-style: none; display: flex; flex-wrap: wrap; gap: 0.7em 1.4em; margin: 1.5em 0 0; padding: 0; font-size: 0.66em; }
+.auth-points { list-style: none; display: flex; flex-wrap: wrap; justify-content: center; gap: 0.7em 1.4em; margin: 1.5em 0 0; padding: 0; font-size: 0.66em; }
 .auth-points li { display: inline-flex; align-items: center; gap: 0.5em; }
-.auth-aside-foot { font-size: 0.72em; color: rgba(255,255,255,0.85); }
+.auth-aside-foot { text-align: center; font-size: 0.72em; color: rgba(255,255,255,0.85); }
 
 /* ---- right side ---- */
 .auth-main { display: flex; flex-direction: column; min-height: 100vh; padding: 2.4em 2.4em 1.8em; min-width: 0; }
