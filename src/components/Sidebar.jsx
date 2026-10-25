@@ -1,31 +1,27 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import {
-  LayoutDashboard, Users, FileText, ClipboardCheck,
+  LayoutGrid, GraduationCap, FileText, ClipboardList,
   CreditCard, Settings as SettingsIcon, LogOut,
 } from 'lucide-react';
-import { useSchool } from '../context/SchoolContext';
 
 const NAV_ITEMS = [
-  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/students', label: 'Students', icon: Users },
+  { to: '/dashboard', label: 'Dashboard', icon: LayoutGrid },
+  { to: '/students', label: 'Students', icon: GraduationCap },
   { to: '/question-bank', label: 'Question Bank', icon: FileText },
-  { to: '/results', label: 'Results', icon: ClipboardCheck },
+  { to: '/results', label: 'Results', icon: ClipboardList },
   { to: '/license', label: 'License', icon: CreditCard },
   { to: '/settings', label: 'Settings', icon: SettingsIcon },
 ];
 
 export default function Sidebar() {
-  const { school } = useSchool();
+  const navigate = useNavigate();
 
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
-        <div className="brand-mark">CR</div>
-        <div className="brand-text">
-          <div className="brand-name">ClassRoll</div>
-          <div className="brand-sub">{school.name}</div>
-        </div>
+        <img src="/images/assessly-logo-white.png" alt="" className="sidebar-logo" />
+        <span className="sidebar-brand-name">Assessly</span>
       </div>
 
       <nav className="sidebar-nav">
@@ -35,17 +31,20 @@ export default function Sidebar() {
             to={item.to}
             className={({ isActive }) => `sidebar-link ${isActive ? 'sidebar-link-active' : ''}`}
           >
-            <item.icon size={17} />
+            <item.icon size={18} />
             <span>{item.label}</span>
           </NavLink>
         ))}
-      </nav>
-
-      <div className="sidebar-footer">
         <NavLink to="/sign-out" className="sidebar-link sidebar-link-signout">
-          <LogOut size={17} />
+          <LogOut size={18} />
           <span>Sign Out</span>
         </NavLink>
+      </nav>
+
+      <div className="sidebar-upgrade">
+        <div className="sidebar-upgrade-title">Upgrade to Premium</div>
+        <p>Access to AI agent to generate question and upload to Question bank</p>
+        <button type="button" onClick={() => navigate('/license')}>Continue to Payment</button>
       </div>
     </aside>
   );

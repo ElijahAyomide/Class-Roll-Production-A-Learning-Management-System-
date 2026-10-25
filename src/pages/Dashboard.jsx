@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, CreditCard, FileText, TrendingUp, Search, UserPlus, Pencil, Trash2, X, ListChecks, GraduationCap } from 'lucide-react';
+import { Users, CreditCard, FileText, ClipboardList, Search, UserPlus, Pencil, Trash2, X, ListChecks, GraduationCap, ArrowRight, Check } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import DashboardLayout from '../components/DashboardLayout';
 import StatCard from '../components/StatCard';
@@ -19,7 +19,7 @@ const CHART_COLORS = { line: '#E4E6F0', dim: '#6B7280', bar: '#385DE9' };
 
 export default function Dashboard({ students, setStudents, questions, results, license, setLicense }) {
   const { classes: CLASSES, subjectsFor: subjectPoolForClass } = useClassSetup();
-  const { school } = useSchool();
+  const { school, session } = useSchool();
   const navigate = useNavigate();
   const [classAssignOpen, setClassAssignOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -243,36 +243,93 @@ export default function Dashboard({ students, setStudents, questions, results, l
     }
   };
 
-  return (
-    <DashboardLayout title="Dashboard" subtitle="Here's what's happening across your school today.">
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 14 }}>
-        <button className="btn-primary" onClick={() => setClassAssignOpen(true)}>
-          <Users size={15} /> Set test / exam for a whole class
-        </button>
+  // Name shown in the greeting and the right-hand profile (saved at registration; "Admin" if none).
+  const adminName = (session?.user?.user_metadata?.school_profile?.contactName || '').trim() || 'Admin';
+  const firstName = adminName.split(' ')[0];
+
+  // "Getting started" checklist: each step ticks itself off once it's done.
+  const steps = [
+    { id: 1, title: 'Add your questions', desc: 'Create a question or import your existing question list.', done: questions.length > 0, to: '/question-bank' },
+    { id: 2, title: 'Add your students', desc: 'Set up classes and enrol your students.', done: students.length > 0, to: '/students' },
+    { id: 3, title: 'Create a test or exam', desc: 'Choose your questions and schedule an assessment.', done: students.some(s => s.assignments.length > 0), to: null },
+  ];
+  const stepsDone = steps.filter(x => x.done).length;
+  const firstOpen = steps.find(x => !x.done);
+
+  const rail = (
+    <>
+      <div className="rail-profile">
+        {school.logo
+          ? <img src={school.logo} alt={`${school.name} logo`} className="rail-avatar rail-avatar-img" />
+          : <div className="rail-avatar">{adminName.charAt(0).toUpperCase()}</div>}
+        <div className="rail-name">{adminName}</div>
+        <div className="rail-role">School administrator</div>
       </div>
+
+      <div className="rail-section">
+        <div className="rail-eyebrow">Getting started</div>
+        <div className="rail-title">{stepsDone === steps.length ? "You're all set" : 'Build your first assessment'}</div>
+        <div className="rail-progress-text">{stepsDone} of {steps.length} steps complete</div>
+        <div className="rail-progress">
+          {steps.map(st => <span key={st.id} className={st.done ? 'rail-seg rail-seg-done' : 'rail-seg'} />)}
+        </div>
+        <ol className="rail-steps">
+          {steps.map(st => (
+            <li key={st.id}>
+              <button
+                type="button" className="rail-step"
+                onClick={() => (st.to ? navigate(st.to) : setClassAssignOpen(true))}
+              >
+                <span className={`rail-step-num ${st.done ? 'rail-step-num-done' : st === firstOpen ? 'rail-step-num-active' : ''}`}>
+                  {st.done ? <Check size={13} /> : st.id}
+                </span>
+                <span>
+                  <span className="rail-step-title">{st.title}</span>
+                  <span className="rail-step-desc">{st.desc}</span>
+                </span>
+              </button>
+            </li>
+          ))}
+        </ol>
+      </div>
+
+      <div className="rail-license">
+        <div className="rail-license-row"><span>License Balance</span><b>{license.balance}</b></div>
+        <p>
+          {license.balance > 0
+            ? `You have ${license.balance} exam credit${license.balance === 1 ? '' : 's'} ready to use.`
+            : "You can add questions now. Get exam credits when you're ready to run an assessment."}
+        </p>
+        <button type="button" onClick={() => navigate('/license')}>Continue to License payment <ArrowRight size={14} /></button>
+      </div>
+    </>
+  );
+
+  return (
+    <DashboardLayout title={`Hello ${firstName}`} subtitle="Let's try something new today" rail={rail}>
       <div className="stat-grid">
-        <StatCard icon={Users} label="Total Students" value={students.length} sub={`${CLASSES.length} classes`} />
-        <StatCard icon={CreditCard} label="License Balance" value={license.balance} sub="exam credits left" tone={license.balance < 20 ? 'amber' : 'default'} />
-        <StatCard icon={FileText} label="Question Bank" value={questions.length} sub={`${questions.filter(q => q.type === 'test').length} tests · ${questions.filter(q => q.type === 'exam').length} exams`} />
-        <StatCard icon={TrendingUp} label="Results Recorded" value={results.length} sub="this term" />
+        <StatCard icon={GraduationCap} label="Total Students" value={students.length} sub={`${CLASSES.length} Classes`} />
+        <StatCard icon={CreditCard} label="License Balance" value={license.balance} sub="Exam credits left" tone={license.balance < 20 ? 'amber' : 'default'} />
+        <StatCard icon={FileText} label="Question Bank" value={questions.length} sub={`${questions.filter(q => q.type === 'test').length} ${questions.filter(q => q.type === 'test').length === 1 ? 'test' : 'tests'} · ${questions.filter(q => q.type === 'exam').length} ${questions.filter(q => q.type === 'exam').length === 1 ? 'exam' : 'exams'}`} />
+        <StatCard icon={ClipboardList} label="Results Recorded" value={results.length} sub={`${results.length} submitted`} />
       </div>
 
       <div className="dash-grid">
         <div className="card">
-          <div className="card-label">Quick add student</div>
+          <div className="card-label">Quick Add Student</div>
           <form onSubmit={submitAdd} className="quick-add-form">
             <div className="field">
-              <label>FULL NAME</label>
+              <label>Full name</label>
               <input type="text" placeholder="e.g. Tunde Balogun" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
             </div>
             <div className="field">
-              <label>CLASS</label>
+              <label>Class</label>
               <select value={form.class} onChange={e => setForm({ ...form, class: e.target.value, subjects: [] })}>
                 {CLASSES.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
             <div className="field">
-              <label>SUBJECT COMBINATION</label>
+              <label>Subject combination</label>
               <div className="subject-chips">
                 {subjectPool.length === 0 && <span className="field-hint">{CLASSES.length === 0 ? 'No classes yet.' : 'No subjects set for this class yet.'} <a href="/settings">Set them up in Settings</a>.</span>}
                 {subjectPool.map(subj => (
@@ -292,8 +349,8 @@ export default function Dashboard({ students, setStudents, questions, results, l
               </div>
             )}
             {addError && <div className="error-text">{addError}</div>}
-            <button type="submit" className="btn-primary" disabled={addSaving}>
-              <UserPlus size={15} /> {addSaving ? 'Adding…' : 'Add Student'}
+            <button type="submit" className="btn-primary btn-block" disabled={addSaving}>
+              <UserPlus size={16} /> {addSaving ? 'Adding…' : 'Add Student'}
             </button>
             {added && <div className="success-note">Student added successfully.</div>}
           </form>
@@ -302,13 +359,16 @@ export default function Dashboard({ students, setStudents, questions, results, l
         <div className="col-stack">
           <div className="card">
             <div className="card-label">Find a student</div>
-            <div className="search-input-wrap">
-              <Search size={15} className="search-input-icon" />
-              <input
-                type="text" placeholder="Search by name or username…"
-                value={search} onChange={e => setSearch(e.target.value)}
-                className="search-input"
-              />
+            <div className="field">
+              <label>Full name</label>
+              <div className="search-input-wrap">
+                <Search size={16} className="search-input-icon" />
+                <input
+                  type="text" placeholder="Search a student by name or username"
+                  value={search} onChange={e => setSearch(e.target.value)}
+                  className="search-input"
+                />
+              </div>
             </div>
             {search.trim() && (
               <div className="search-results">
@@ -330,15 +390,18 @@ export default function Dashboard({ students, setStudents, questions, results, l
                 ))}
               </div>
             )}
+            <button type="button" className="btn-primary btn-block find-class-btn" onClick={() => setClassAssignOpen(true)}>
+              Set test / exam for a whole class
+            </button>
           </div>
 
           <div className="card">
             <div className="card-label">Recent activity</div>
             <div className="activity-list">
               {activity.length === 0 && <div className="activity-time">Nothing yet. Activity will show here as you add students, upload questions and set tests.</div>}
-              {activity.map(a => (
+              {activity.map((a, i) => (
                 <div key={a.id} className="activity-row">
-                  <div className="activity-dot" />
+                  <div className="activity-dot">{i + 1}</div>
                   <div>
                     <div className="activity-text" title={a.text}>{a.text}</div>
                     <div className="activity-time">{a.time}</div>
