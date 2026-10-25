@@ -159,7 +159,7 @@ export default function License({ license, setLicense }) {
   );
 
   return (
-    <DashboardLayout rail={rail} flush>
+    <DashboardLayout rail={rail} flush scroll>
       <div className="page-panel">
         <div className="panel-head">
           <div>
@@ -204,13 +204,21 @@ export default function License({ license, setLicense }) {
               </div>
             ))}
           </div>
-          <form onSubmit={requestPurchase} className="custom-buy">
-            <span>Need a different amount?</span>
+          {purchaseError && <div className="error-text">{purchaseError}</div>}
+        </div>
+
+        <div className="card custom-card">
+          <div className="custom-card-text">
+            <div className="custom-card-title">Need a different amount?</div>
+            <div className="custom-card-sub">Enter exactly how many exam credits you want. {naira(price)} per credit.</div>
+          </div>
+          <form onSubmit={requestPurchase} className="custom-form">
             <input type="number" min="1" value={examCount || ''} onChange={e => setExamCount(parseInt(e.target.value) || 0)} aria-label="Number of exam credits" />
             <span className="custom-total">= {naira(total)}</span>
-            <button type="submit" className="pack-btn" disabled={processing || !examCount}>Buy</button>
+            <button type="submit" className="pack-btn pack-btn-solid" disabled={processing || !examCount}>
+              <CreditCard size={15} /> {processing ? 'Processing…' : 'Proceed to payment'}
+            </button>
           </form>
-          {purchaseError && <div className="error-text">{purchaseError}</div>}
         </div>
 
         <div className="card roster-card billing-card">
