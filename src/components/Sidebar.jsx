@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutGrid, GraduationCap, FileText, ClipboardList,
-  CreditCard, Settings as SettingsIcon,
+  CreditCard, Settings as SettingsIcon, ChevronLeft,
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -14,14 +14,15 @@ const NAV_ITEMS = [
   { to: '/settings', label: 'Settings', icon: SettingsIcon },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ open = false, onToggleCollapse, onNavigate }) {
   const navigate = useNavigate();
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar ${open ? 'sidebar-open' : ''}`}>
       <div className="sidebar-brand">
         <img src="/images/assessly-logo-white.png" alt="" className="sidebar-logo" />
         <span className="sidebar-brand-name">Assessly</span>
+        <button type="button" className="sidebar-collapse-btn" onClick={onToggleCollapse} aria-label="Collapse or expand sidebar"><ChevronLeft size={16} /></button>
       </div>
 
       <nav className="sidebar-nav">
@@ -29,6 +30,7 @@ export default function Sidebar() {
           <NavLink
             key={item.to}
             to={item.to}
+            onClick={onNavigate}
             className={({ isActive }) => `sidebar-link ${isActive ? 'sidebar-link-active' : ''}`}
           >
             <item.icon size={18} />

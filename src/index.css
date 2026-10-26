@@ -955,26 +955,6 @@ button, input, select { font-family: inherit; }
   font-size: 0.82em; font-weight: 500; cursor: pointer; padding: 0; text-decoration: underline;
 }
 
-@media (max-width: 1100px) {
-  .app-shell { flex-wrap: wrap; }
-  .app-shell .app-main { flex: 1 1 0; }
-  .app-rail { width: 100%; height: auto; position: static; border-radius: 1.3em 1.3em 0 0; order: 3; }
-  .rail-license { margin-top: 0; }
-}
-@media (max-width: 960px) {
-  .app-shell .dash-grid { grid-template-columns: 1fr; }
-}
-@media (max-width: 720px) {
-  .app-shell { flex-direction: column; }
-  .app-shell .sidebar { width: 100%; height: auto; position: static; flex-direction: row; align-items: center; border-radius: 0 0 1.1em 1.1em; padding: 0.8em; overflow-x: auto; }
-  .app-shell .sidebar-brand { border: 0; margin: 0; padding: 0 0.6em 0 0; }
-  .app-shell .sidebar-brand-name, .sidebar-upgrade, .app-shell .sidebar-link span { display: none; }
-  .app-shell .sidebar-nav { flex-direction: row; }
-  .app-shell .sidebar-link-signout { margin-top: 0; }
-  .app-shell .topbar { padding: 1.2em 1em 0; flex-direction: column; }
-  .app-shell .page-content { padding: 1em 1em 2em; }
-  .app-shell .stat-grid { grid-template-columns: 1fr 1fr; }
-}
 .app-shell .field label { text-transform: none; letter-spacing: 0; }
 .app-shell .field .search-input { padding-left: 2.6em; }
 .app-shell .card { margin-bottom: 0; }
@@ -1000,7 +980,6 @@ button, input, select { font-family: inherit; }
 .app-shell .activity-dot { width: 0.55em; height: 0.55em; font-size: 0; margin-top: 0.1em; flex-shrink: 0; }
 .app-shell .activity-text { font-size: 0.82em; }
 .app-shell .activity-time { font-size: 0.72em; }
-@media (max-width: 1100px) { .app-rail { overflow-y: visible; } }
 
 /* ============================================
    STUDENTS PAGE
@@ -1341,3 +1320,116 @@ button, input, select { font-family: inherit; }
   border-radius: 0.6em; padding: 0.45em 0.9em; margin-right: 0.8em; cursor: pointer;
 }
 .modal-overlay .student-detail .field-hint { font-size: 0.85em; }
+
+/* ============================================
+   TABLET (721–1100px) AND MOBILE (up to 720px)
+   ============================================ */
+.mobile-bar, .rail-toggle, .rail-backdrop, .drawer-overlay, .sidebar-collapse-btn { display: none; }
+
+/* ---------- Tablet: sidebar | content | "Get started" card ---------- */
+@media (min-width: 721px) and (max-width: 1100px) {
+  .app-shell {
+    display: grid; grid-template-columns: 13.6em minmax(0, 1fr) 15.5em;
+    grid-template-areas: "side top top" "side content rail"; grid-template-rows: auto 1fr; align-items: start;
+  }
+  .app-shell.shell-no-rail { grid-template-columns: 13.6em minmax(0, 1fr); grid-template-areas: "side top" "side content"; }
+  .app-shell.shell-collapsed { grid-template-columns: 4.8em minmax(0, 1fr) 15.5em; }
+  .app-shell.shell-collapsed.shell-no-rail { grid-template-columns: 4.8em minmax(0, 1fr); }
+  .app-shell .app-main { display: contents; }
+  .app-shell .sidebar { grid-area: side; position: sticky; top: 0; height: 100vh; width: auto; align-self: start; }
+  .app-shell .topbar { grid-area: top; padding: 1.6em 1.5em 0.2em; }
+  .app-shell .page-content { grid-area: content; padding: 1em 1em 2em 1.5em; min-width: 0; }
+  .app-shell .page-content-flush { padding: 0.4em 0 1em 1.5em; }
+  .app-shell .app-rail {
+    grid-area: rail; width: auto; height: auto; position: sticky; top: 1em; align-self: start;
+    margin: 1em 1.5em 1.5em 0; border-radius: 1.1em; padding: 1.2em 1.1em; overflow: visible; gap: 1em;
+  }
+  .app-shell .app-rail .rail-profile { display: none; }
+  .app-shell .app-rail .rail-license { margin-top: 0.4em; }
+  .app-shell .page-footer { grid-column: 2 / -1; }
+
+  /* sidebar collapse button */
+  .sidebar-collapse-btn { display: grid; place-items: center; margin-left: auto; width: 1.8em; height: 1.8em; border: 0; border-radius: 50%; background: transparent; color: #E4EAFF; cursor: pointer; flex-shrink: 0; }
+  .sidebar-collapse-btn:hover { background: rgba(255,255,255,0.15); }
+  .shell-collapsed .sidebar-collapse-btn svg { transform: rotate(180deg); }
+  .shell-collapsed .sidebar { padding-left: 0.6em; padding-right: 0.6em; border-radius: 0 1.1em 1.1em 0; }
+  .shell-collapsed .sidebar-brand { flex-direction: column; gap: 0.6em; padding-left: 0; padding-right: 0; align-items: center; }
+  .shell-collapsed .sidebar-brand-name, .shell-collapsed .sidebar-link span, .shell-collapsed .sidebar-upgrade { display: none; }
+  .shell-collapsed .sidebar-collapse-btn { margin-left: 0; }
+  .shell-collapsed .sidebar-link { justify-content: center; padding-left: 0; padding-right: 0; }
+
+  /* dashboard content */
+  .app-shell .stat-grid { grid-template-columns: repeat(2, 1fr); gap: 0.9em; }
+  .app-shell .dash-grid { grid-template-columns: 1fr 1fr; gap: 1em; }
+  .app-shell .col-stack { gap: 1em; }
+}
+
+/* ---------- Tablet and mobile: stacked stat cards ---------- */
+@media (max-width: 1100px) {
+  .app-shell .stat-card { flex-direction: column; align-items: flex-start; gap: 0.6em; padding: 1em; }
+  .app-shell .stat-card-label { white-space: normal; }
+}
+
+/* ---------- Mobile ---------- */
+@media (max-width: 720px) {
+  .app-shell { display: block; background: #EEF0F9; }
+  .mobile-bar {
+    display: flex; align-items: center; gap: 0.8em; position: sticky; top: 0; z-index: 20;
+    background: #385DE9; color: #fff; padding: 0.9em 1em; border-radius: 0 0 1.2em 1.2em;
+  }
+  .mobile-bar-btn { background: none; border: 0; color: #fff; display: grid; place-items: center; padding: 0.2em; cursor: pointer; }
+  .mobile-bar-brand { display: flex; align-items: center; gap: 0.5em; font-size: 1.15em; font-weight: 500; color: #E4EAFF; }
+  .mobile-bar-brand img { width: 1.9em; height: 1.9em; object-fit: contain; }
+  .mobile-bar-avatar { margin-left: auto; width: 2.1em; height: 2.1em; border-radius: 50%; background: #fff; color: #385DE9; display: grid; place-items: center; font-weight: 600; overflow: hidden; }
+  .mobile-bar-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+  /* sidebar becomes a slide-in drawer */
+  .app-shell .sidebar {
+    position: fixed; top: 0; left: 0; bottom: 0; height: 100%; width: 16em; max-width: 82vw; z-index: 60;
+    flex-direction: column; align-items: stretch; padding: 1.5em 1em 1.2em; overflow-y: auto; overflow-x: hidden;
+    border-radius: 0 1.3em 1.3em 0; transform: translateX(-105%); transition: transform 0.25s ease;
+  }
+  .app-shell .sidebar.sidebar-open { transform: none; box-shadow: 0 0 3em rgba(20, 30, 80, 0.4); }
+  .app-shell .sidebar-brand { border: 0; border-bottom: 1px solid rgba(255,255,255,0.25); margin-bottom: 1em; padding: 0 0.4em 1.1em; }
+  .app-shell .sidebar-brand-name, .app-shell .sidebar-link span { display: inline; }
+  .app-shell .sidebar-nav { flex-direction: column; }
+  .app-shell .sidebar-upgrade { display: block; }
+  .drawer-overlay { display: block; position: fixed; inset: 0; z-index: 55; background: rgba(20, 30, 80, 0.45); }
+
+  .app-shell .app-main { display: block; }
+  .app-shell .topbar { padding: 1.1em 1em 0; flex-direction: column; background: transparent; }
+  .app-shell .topbar-title { font-size: 1.5em; }
+  .topbar-crumb { display: none; }
+  .app-shell .page-content { padding: 0.9em 1em 7.5em; }
+  .app-shell .page-content-flush { padding: 0.9em 0.6em 7.5em; }
+  .app-shell .stat-grid { grid-template-columns: repeat(2, 1fr); gap: 0.7em; margin-bottom: 1em; }
+  .app-shell .stat-card-value { font-size: 1.45em; }
+  .app-shell .dash-grid { grid-template-columns: 1fr; gap: 1em; }
+  .app-shell .col-stack { gap: 1em; }
+  .app-shell .card { padding: 1.1em; }
+  .app-shell .page-footer { padding-bottom: 7em; }
+
+  /* the right panel becomes a bottom bar that opens into a sheet */
+  .app-shell .app-rail {
+    position: fixed; left: 0.8em; right: 0.8em; bottom: 0.8em; top: auto; width: auto; height: auto; z-index: 40;
+    border-radius: 1.1em; padding: 0.9em 3em 0.9em 1.1em; overflow: hidden; gap: 0; cursor: pointer;
+    box-shadow: 0 0.4em 1.6em rgba(30, 50, 140, 0.35);
+  }
+  .app-shell .app-rail:not(.app-rail-open) > *:not(.rail-section):not(.rail-toggle) { display: none; }
+  .app-shell .app-rail:not(.app-rail-open) .rail-section > *:not(.rail-eyebrow):not(.rail-title):not(.rail-progress-text) { display: none; }
+  .app-shell .app-rail .rail-eyebrow { margin-bottom: 0.2em; }
+  .app-shell .app-rail .rail-title { font-size: 1em; }
+  .app-shell .app-rail .rail-progress-text { margin: 0.2em 0 0; font-size: 0.75em; }
+  .rail-toggle { display: grid; place-items: center; position: absolute; top: 0.9em; right: 0.8em; width: 2em; height: 2em; border: 0; border-radius: 50%; background: rgba(255,255,255,0.18); color: #fff; cursor: pointer; }
+
+  .app-shell .app-rail.app-rail-open {
+    left: 0; right: 0; bottom: 0; max-height: 86vh; overflow-y: auto; border-radius: 1.3em 1.3em 0 0; padding: 1.4em 1.3em 1.6em;
+    gap: 1.1em; cursor: default; z-index: 70;
+  }
+  .app-shell .app-rail.app-rail-open .rail-title { font-size: 1.2em; }
+  .app-shell .app-rail.app-rail-open .rail-toggle svg { transform: rotate(90deg); }
+  .rail-backdrop { display: block; position: fixed; inset: 0; z-index: 65; background: rgba(20, 30, 80, 0.45); }
+
+  .page-panel { padding: 1.1em 0.9em; border-radius: 1em; }
+}
+.app-rail .rail-license button { text-align: left; }
