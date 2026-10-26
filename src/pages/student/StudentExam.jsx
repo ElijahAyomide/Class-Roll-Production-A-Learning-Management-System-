@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Clock, CheckCircle2, ArrowLeft, ArrowRight, AlertTriangle } from 'lucide-react';
+import { Clock, CheckCircle2, ArrowLeft, ArrowRight, AlertTriangle, ClipboardCheck } from 'lucide-react';
 import { useStudentSession } from '../../context/StudentSessionContext';
 import Modal from '../../components/Modal';
 import { studentApi } from '../../lib/studentApi';
@@ -192,9 +192,9 @@ export default function StudentExam() {
 
   if (setupLoading) {
     return (
-      <div className="exam-screen">
-        <div className="exam-result-card">
-          <div className="exam-result-detail">Loading your exam…</div>
+      <div className="sp-exam-screen sp-exam-center">
+        <div className="sp-result-card">
+          <div className="sp-result-detail">Loading your exam…</div>
         </div>
       </div>
     );
@@ -202,12 +202,12 @@ export default function StudentExam() {
 
   if (setupError) {
     return (
-      <div className="exam-screen">
-        <div className="exam-result-card">
-          <div className="exam-result-icon" style={{ background: 'var(--red-bg)', color: 'var(--red)' }}>!</div>
-          <div className="exam-result-title">Couldn't load this exam</div>
-          <div className="exam-result-detail">{setupError}</div>
-          <button className="btn-primary" onClick={() => navigate('/student')}>Back</button>
+      <div className="sp-exam-screen sp-exam-center">
+        <div className="sp-result-card">
+          <div className="sp-result-icon sp-result-icon-bad"><AlertTriangle size={26} /></div>
+          <div className="sp-result-title">Couldn't load this exam</div>
+          <div className="sp-result-detail">{setupError}</div>
+          <button className="sp-btn-primary" onClick={() => navigate('/student')}>Back to my assessments</button>
         </div>
       </div>
     );
@@ -218,11 +218,11 @@ export default function StudentExam() {
   if (submitted) {
     // Shown for a moment while the student is moved on automatically.
     return (
-      <div className="exam-screen">
-        <div className="exam-result-card">
-          <div className="exam-result-icon"><CheckCircle2 size={28} /></div>
-          <div className="exam-result-title">Submitted Successfully</div>
-          <div className="exam-result-subject">{subjects.map(s => s.subject).join(' · ')}</div>
+      <div className="sp-exam-screen sp-exam-center">
+        <div className="sp-result-card">
+          <div className="sp-result-icon"><CheckCircle2 size={28} /></div>
+          <div className="sp-result-title">Submitted successfully</div>
+          <div className="sp-result-detail">{subjects.map(s => s.subject).join(' · ')}</div>
         </div>
       </div>
     );
@@ -238,86 +238,107 @@ export default function StudentExam() {
   const setPos = (i) => setPositions(p => ({ ...p, [active.id]: i }));
   const activeIndex = subjects.findIndex(s => s.id === active.id);
   const nextSubject = subjects[activeIndex + 1];
+  const answeredHere = countFor(active);
+  const pct = Math.round((answeredHere / active.questions.length) * 100);
 
   return (
-    <div className="exam-screen">
-      <div className="exam-header">
-        <div>
-          <div className="exam-header-subject">{subjects[0].type === 'exam' ? 'Exam' : 'Test'} · {subjects.length} subject{subjects.length === 1 ? '' : 's'}</div>
-          <div className="exam-header-title">{active.subject} — {active.title}</div>
-        </div>
-        <div className="exam-header-actions">
-          <div className={`exam-timer ${lowTime ? 'exam-timer-low' : ''}`} title="Total time left for all your subjects">
-            <Clock size={15} /> {formatTime(secondsLeft)}
+    <div className="sp-exam-screen">
+      <header className="sp-exam-header">
+        <div className="sp-exam-header-main">
+          <div className="sp-exam-header-icon"><ClipboardCheck size={20} /></div>
+          <div className="sp-exam-header-text">
+            <div className="sp-eyebrow">{subjects[0].type === 'exam' ? 'Exam' : 'Test'} · {subjects.length} subject{subjects.length === 1 ? '' : 's'}</div>
+            <h1 className="sp-exam-title">{active.subject} — {active.title}</h1>
           </div>
-          {lowTime && secondsLeft > 0 && (
-            <div className="exam-time-alert" role="alert">
-              <AlertTriangle size={14} /> Less than 3 minutes left!
-            </div>
-          )}
-          <button className="exam-submit-btn" disabled={submitting} onClick={() => setConfirmingSubmit(true)}>
-            Submit All
+        </div>
+        <div className="sp-exam-actions">
+          <div className={`sp-timer ${lowTime ? 'sp-timer-low' : ''}`} title="Total time left for all your subjects">
+            <Clock size={16} /> {formatTime(secondsLeft)}
+          </div>
+          <button className="sp-btn-primary sp-btn-compact" disabled={submitting} onClick={() => setConfirmingSubmit(true)}>
+            Submit all
           </button>
         </div>
-      </div>
+      </header>
 
-      <div className="exam-body">
-        {submitError && <div className="error-text" style={{ marginBottom: 16 }}>{submitError}</div>}
-
-        <div className="subject-tabs" role="tablist">
-          {subjects.map(s => (
-            <button
-              key={s.id} role="tab" aria-selected={s.id === active.id}
-              className={`subject-tab ${s.id === active.id ? 'subject-tab-active' : ''}`}
-              onClick={() => setActiveId(s.id)}
-            >
-              {s.subject}
-              <span className="subject-tab-count">{countFor(s)}/{s.questions.length}</span>
-            </button>
-          ))}
+      {lowTime && secondsLeft > 0 && (
+        <div className="sp-exam-alert" role="alert">
+          <AlertTriangle size={16} /> Less than 3 minutes left!
         </div>
+      )}
+      {submitError && <div className="sp-exam-error">{submitError}</div>}
 
-        <div className="exam-nav-grid">
-          {active.questions.map((eq, i) => (
-            <button
-              key={eq.id}
-              className={`exam-nav-dot ${i === idx ? 'exam-nav-dot-current' : ''} ${activeAnswers[eq.id] !== undefined ? 'exam-nav-dot-answered' : ''}`}
-              onClick={() => setPos(i)}
-            >
-              {i + 1}
-            </button>
-          ))}
-        </div>
-
-        <div className="exam-question-card">
-          <div className="exam-question-count">Question {idx + 1} of {active.questions.length}</div>
-          <div className="exam-question-text">{q.text}</div>
-          <div className="exam-options">
-            {q.options.map((opt, i) => (
-              <label key={i} className={`exam-option ${activeAnswers[q.id] === i ? 'exam-option-selected' : ''}`}>
-                <input
-                  type="radio" name={`q-${active.id}-${q.id}`} checked={activeAnswers[q.id] === i}
-                  onChange={() => chooseAnswer(active.id, q.id, i)}
-                />
-                {opt}
-              </label>
+      <div className="sp-exam-grid">
+        <div className="sp-exam-main">
+          <div className="sp-tabs" role="tablist">
+            {subjects.map(s => (
+              <button
+                key={s.id} role="tab" aria-selected={s.id === active.id}
+                className={`sp-tab ${s.id === active.id ? 'sp-tab-active' : ''}`}
+                onClick={() => setActiveId(s.id)}
+              >
+                {s.subject}
+                <span className="sp-tab-count">{countFor(s)}/{s.questions.length}</span>
+              </button>
             ))}
           </div>
+
+          <section className="sp-card sp-question-card">
+            <div className="sp-question-count">Question {idx + 1} of {active.questions.length}</div>
+            <div className="sp-question-text">{q.text}</div>
+            <div className="sp-options">
+              {q.options.map((opt, i) => (
+                <label key={i} className={`sp-option ${activeAnswers[q.id] === i ? 'sp-option-selected' : ''}`}>
+                  <input
+                    type="radio" name={`q-${active.id}-${q.id}`} checked={activeAnswers[q.id] === i}
+                    onChange={() => chooseAnswer(active.id, q.id, i)}
+                  />
+                  <span className="sp-option-letter">{String.fromCharCode(65 + i)}</span>
+                  <span className="sp-option-text">{opt}</span>
+                </label>
+              ))}
+            </div>
+          </section>
+
+          <div className="sp-exam-footer">
+            <button className="sp-btn-ghost" disabled={idx === 0} onClick={() => setPos(idx - 1)}>
+              <ArrowLeft size={15} /> Previous
+            </button>
+            <span className="sp-progress-text">{answeredHere} of {active.questions.length} answered</span>
+            {idx < active.questions.length - 1 ? (
+              <button className="sp-btn-primary sp-btn-compact" onClick={() => setPos(idx + 1)}>Next <ArrowRight size={15} /></button>
+            ) : nextSubject ? (
+              <button className="sp-btn-primary sp-btn-compact" onClick={() => setActiveId(nextSubject.id)}>Next subject <ArrowRight size={15} /></button>
+            ) : (
+              <button className="sp-btn-primary sp-btn-compact" onClick={() => setConfirmingSubmit(true)}>Review &amp; submit</button>
+            )}
+          </div>
         </div>
 
-        <div className="exam-footer">
-          <button className="btn-ghost" disabled={idx === 0} onClick={() => setPos(idx - 1)}>
-            <ArrowLeft size={14} /> Previous
-          </button>
-          <span className="exam-progress-text">{countFor(active)} of {active.questions.length} answered</span>
-          {idx < active.questions.length - 1 ? (
-            <button className="btn-primary" onClick={() => setPos(idx + 1)}>Next <ArrowRight size={14} /></button>
-          ) : nextSubject ? (
-            <button className="btn-primary" onClick={() => setActiveId(nextSubject.id)}>Next subject <ArrowRight size={14} /></button>
-          ) : (
-            <button className="btn-primary" onClick={() => setConfirmingSubmit(true)}>Review &amp; Submit</button>
-          )}
-        </div>
+        <aside className="sp-exam-side">
+          <div className="sp-side-title">Question navigator</div>
+          <div className="sp-side-progress">
+            <div className="sp-bar"><div className="sp-bar-fill" style={{ width: `${pct}%` }} /></div>
+            <div className="sp-side-progress-text">{answeredHere} of {active.questions.length} answered</div>
+          </div>
+          <div className="sp-nav-grid">
+            {active.questions.map((eq, i) => (
+              <button
+                key={eq.id}
+                className={`sp-dot ${i === idx ? 'sp-dot-current' : ''} ${activeAnswers[eq.id] !== undefined ? 'sp-dot-answered' : ''}`}
+                onClick={() => setPos(i)}
+                aria-label={`Question ${i + 1}${activeAnswers[eq.id] !== undefined ? ', answered' : ''}`}
+              >
+                {i + 1}
+              </button>
+            ))}
+          </div>
+          <div className="sp-legend">
+            <span><i className="sp-legend-dot sp-legend-current" /> Current</span>
+            <span><i className="sp-legend-dot sp-legend-answered" /> Answered</span>
+            <span><i className="sp-legend-dot" /> Not answered</span>
+          </div>
+        </aside>
       </div>
 
       {confirmingSubmit && (
@@ -335,8 +356,8 @@ export default function StudentExam() {
             After you submit you can only look back at your answers, not change them.
           </p>
           <div className="confirm-actions">
-            <button className="btn-ghost" onClick={() => setConfirmingSubmit(false)}>Keep Working</button>
-            <button className="btn-primary" onClick={() => { setConfirmingSubmit(false); doSubmit(); }}>Submit All</button>
+            <button className="btn-ghost" onClick={() => setConfirmingSubmit(false)}>Keep working</button>
+            <button className="btn-primary" onClick={() => { setConfirmingSubmit(false); doSubmit(); }}>Submit all</button>
           </div>
         </Modal>
       )}

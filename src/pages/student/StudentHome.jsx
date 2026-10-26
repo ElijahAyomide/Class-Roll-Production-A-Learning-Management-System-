@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Clock, PlayCircle } from 'lucide-react';
+import { Clock, PlayCircle, BookOpen, ClipboardCheck } from 'lucide-react';
+import StudentLayout, { initialsOf } from '../../components/StudentLayout';
 import { useStudentSession } from '../../context/StudentSessionContext';
 import Modal from '../../components/Modal';
 import { studentApi } from '../../lib/studentApi';
@@ -84,57 +85,90 @@ export default function StudentHome() {
   };
 
   const groupIds = [...new Set(todo.map(a => a.groupId))];
+  const totalMinutes = groupIds.reduce((n, gid) => n + (groups[gid]?.totalMinutes || 0), 0);
+  const kind = todo[0]?.type === 'exam' ? 'Exam' : 'Test';
+
+  const rail = (
+    <>
+      <div className="sp-rail-profile">
+        <div className="sp-rail-avatar">{initialsOf(student.name)}</div>
+        <div className="sp-rail-name">{student.name}</div>
+        <div className="sp-rail-role">{student.class} · {schoolName}</div>
+      </div>
+      <div>
+        <div className="sp-rail-eyebrow">Before you start</div>
+        <div className="sp-rail-title">A few quick tips</div>
+        <ul className="sp-rail-steps">
+          <li><span className="sp-rail-num">1</span><div><b>Find a quiet spot</b><span>Make sure your phone or computer is charged and the internet is steady.</span></div></li>
+          <li><span className="sp-rail-num">2</span><div><b>One clock for everything</b><span>The timer starts when you open your first subject and covers all of them.</span></div></li>
+          <li><span className="sp-rail-num">3</span><div><b>Answers save as you go</b><span>If you sign out, your answers are kept and you can continue.</span></div></li>
+        </ul>
+      </div>
+    </>
+  );
 
   return (
-    <div className="student-portal">
-      <header className="student-topbar">
-        <div>
-          <div className="student-topbar-brand">{schoolName}</div>
-          <div className="student-topbar-name">{student.name} · {student.class}</div>
+    <>
+    <StudentLayout
+      title="My assessments"
+      subtitle="Everything your school has set for you to take."
+      student={student}
+      schoolName={schoolName}
+      onSignOut={() => setConfirmingSignOut(true)}
+      rail={rail}
+    >
+      <div className="sp-stats">
+        <div className="sp-stat">
+          <div className="sp-stat-icon"><BookOpen size={17} /></div>
+          <div><div className="sp-stat-value">{todo.length}</div><div className="sp-stat-label">Subject{todo.length === 1 ? '' : 's'} to take</div></div>
         </div>
-        <button className="btn-signout" onClick={() => setConfirmingSignOut(true)}><LogOut size={14} /> Sign Out</button>
-      </header>
-
-      <div className="student-page-content">
-        {groupIds.length === 0 ? (
-          <>
-            <div className="student-section-title">Ready to take</div>
-            <div className="student-empty-card">
-              <CheckCircle size={20} />
-              <span>You're all caught up — nothing left to take right now. You can check your answers below, then sign out.</span>
-            </div>
-          </>
-        ) : groupIds.map(gid => {
-          const g = groups[gid];
-          const subjects = todo.filter(a => a.groupId === gid);
-          const left = secondsLeftFor(g, loadedAt, now);
-          return (
-            <div key={gid} className="student-sitting">
-              <div className="student-section-title">Ready to take</div>
-              <div className={`student-timer-banner ${g.started && left <= 180 ? 'student-timer-banner-low' : ''}`}>
-                <Clock size={15} />
-                {g.started ? (
-                  <span>Time left for all subjects: <b>{formatTime(left)}</b></span>
-                ) : (
-                  <span>Total time for {subjects.length === 1 ? 'this subject' : `all ${subjects.length} subjects`}: <b>{g.totalMinutes} minutes</b>. The clock starts when you open your first subject.</span>
-                )}
-              </div>
-              <div className="sitting-card">
-                <div className="field-hint" style={{ marginBottom: 8 }}>
-                  {subjects[0].type === 'exam' ? 'EXAM' : 'TEST'} · {subjects.length} SUBJECT{subjects.length === 1 ? '' : 'S'}
-                </div>
-                <div className="sitting-subjects">
-                  {subjects.map(a => <span key={a.id} className="sitting-subject-chip">{a.subject}</span>)}
-                </div>
-                <button className="btn-primary sitting-start" disabled={g.started && left <= 0} onClick={() => navigate(`/student/exam/${gid}`)}>
-                  <PlayCircle size={16} /> {g.started ? 'Continue' : `Start ${subjects.length === 1 ? '' : 'All Subjects'}`.trim()}
-                </button>
-                {subjects.length > 1 && <div className="field-hint" style={{ marginTop: 8 }}>You can switch between subjects with tabs and check your work before you submit everything at once.</div>}
-              </div>
-            </div>
-          );
-        })}
+        <div className="sp-stat">
+          <div className="sp-stat-icon"><Clock size={17} /></div>
+          <div><div className="sp-stat-value">{totalMinutes} min</div><div className="sp-stat-label">Total time</div></div>
+        </div>
+        <div className="sp-stat">
+          <div className="sp-stat-icon"><ClipboardCheck size={17} /></div>
+          <div><div className="sp-stat-value">{kind}</div><div className="sp-stat-label">{inProgress ? 'In progress' : 'Not started'}</div></div>
+        </div>
       </div>
+
+      {groupIds.map(gid => {
+        const g = groups[gid];
+        const subjects = todo.filter(a => a.groupId === gid);
+        const left = secondsLeftFor(g, loadedAt, now);
+        const low = g.started && left <= 180;
+        return (
+          <section key={gid} className="sp-card">
+            <div className="sp-card-head">
+              <div className="sp-card-title">
+                Ready to take
+                <span className="sp-pill">{subjects[0].type === 'exam' ? 'Exam' : 'Test'} · {subjects.length} subject{subjects.length === 1 ? '' : 's'}</span>
+              </div>
+            </div>
+
+            <div className={`sp-timer-note ${low ? 'sp-timer-note-low' : ''}`}>
+              <Clock size={16} />
+              {g.started ? (
+                <span>Time left for all subjects: <b>{formatTime(left)}</b></span>
+              ) : (
+                <span>Total time for {subjects.length === 1 ? 'this subject' : `all ${subjects.length} subjects`}: <b>{g.totalMinutes} minutes</b>. The clock starts when you open your first subject.</span>
+              )}
+            </div>
+
+            <div className="sp-subject-label">Subjects</div>
+            <div className="sp-chips">
+              {subjects.map(a => <span key={a.id} className="sp-chip">{a.subject}</span>)}
+            </div>
+
+            <button className="sp-btn-primary" disabled={g.started && left <= 0} onClick={() => navigate(`/student/exam/${gid}`)}>
+              <PlayCircle size={17} /> {g.started ? 'Continue' : `Start ${subjects.length === 1 ? '' : 'all subjects'}`.trim()}
+            </button>
+            {subjects.length > 1 && <p className="sp-hint">You can switch between subjects with tabs and check your work before you submit everything at once.</p>}
+          </section>
+        );
+      })}
+
+    </StudentLayout>
 
       {confirmingSignOut && (
         <Modal title="Sign out?" onClose={() => setConfirmingSignOut(false)} width={400}>
@@ -155,7 +189,7 @@ export default function StudentHome() {
           </div>
         </Modal>
       )}
-    </div>
+    </>
   );
 }
 
