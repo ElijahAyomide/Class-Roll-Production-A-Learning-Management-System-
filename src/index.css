@@ -1433,3 +1433,118 @@ button, input, select { font-family: inherit; }
   .page-panel { padding: 1.1em 0.9em; border-radius: 1em; }
 }
 .app-rail .rail-license button { text-align: left; }
+
+/* ============================================
+   TABLET / MOBILE: the other pages (Students, Question Bank, Results, License, Settings)
+   ============================================ */
+/* Portrait tablets: the "Getting started" card sits below the content so the page gets the full width */
+@media (min-width: 721px) and (max-width: 900px) {
+  .app-shell { grid-template-columns: 13.6em minmax(0, 1fr); grid-template-areas: "side top" "side content" "side rail"; grid-template-rows: auto auto auto; }
+  .app-shell.shell-collapsed { grid-template-columns: 4.8em minmax(0, 1fr); }
+  .app-shell .sidebar { grid-row: 1 / 4; }
+  .app-shell .app-rail { position: static; margin: 0 1.5em 1.5em 1.5em; align-self: stretch; }
+}
+@media (min-width: 721px) and (max-width: 1100px) {
+  .stat-grid-3 { grid-template-columns: repeat(3, 1fr) !important; }
+  .license-top { grid-template-columns: 1fr 1fr; }
+  .pack-grid { grid-template-columns: repeat(3, 1fr); }
+  .pack-btn { padding: 0.55em 0.8em; }
+  .app-shell .panel-actions { flex-wrap: wrap; }
+}
+@media (max-width: 1100px) {
+  .roster-table td { white-space: nowrap; }
+  .roster-table .cell-sub { white-space: normal; min-width: 11em; }
+}
+
+@media (max-width: 720px) {
+  /* roster tables turn into stacked rows */
+  .roster-table thead { display: none; }
+  .roster-table, .roster-table tbody { display: block; width: 100%; }
+  .roster-table tr { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35em 0.9em; padding: 0.9em 0.2em; border-bottom: 1px solid #ECEEF7; }
+  .roster-table tbody tr:last-child { border-bottom: 0; }
+  .roster-table td { display: block; padding: 0 !important; border: 0 !important; font-size: 0.85em; white-space: normal; }
+  .roster-table td:first-child { flex: 1 1 calc(100% - 8.5em); font-size: 0.95em; min-width: 0; }
+  .roster-table td:last-child { order: 1; margin-left: auto; }
+  .roster-table td:not(:first-child):not(:last-child) { order: 2; color: var(--ink-dim); }
+  .roster-table td.cell-strong { color: var(--ink); }
+  .roster-table td[colspan] { flex: 1 1 100%; order: 0; text-align: center; }
+  .roster-table .cell-sub { min-width: 0; }
+  .app-shell .table-wrap { overflow-x: hidden; }
+
+  /* keep the pinned list clear of the top bar and the bottom bar */
+  .app-shell-collapse .roster-card { top: 4.7em; height: calc(100vh - 10.7em); height: calc(100dvh - 10.7em); }
+  .app-shell .page-content-flush { padding-top: 0.6em; }
+
+  /* three summary cards: two across, last one full width */
+  .stat-grid-3 { grid-template-columns: 1fr 1fr !important; }
+  .stat-grid-3 > :last-child { grid-column: 1 / -1; }
+  .stat-grid-3 .stat-card, .app-shell .stat-grid .stat-card { padding: 0.9em; }
+
+  .app-shell .panel-head { margin-bottom: 0.8em; }
+  .app-shell .panel-title { font-size: 1.4em; }
+  .app-shell .panel-actions { width: 100%; }
+  .app-shell .panel-actions > * { flex: 1 1 auto; justify-content: center; }
+
+  /* filters and list rows */
+  .roster-filters { gap: 0.6em; }
+  .roster-filters-end { margin-left: 0; width: 100%; justify-content: space-between; }
+  .roster-search { flex: 1 1 100%; max-width: none; }
+  .roster-head { flex-wrap: wrap; gap: 0.6em; }
+  .qrow { flex-direction: column; gap: 0.6em; }
+  .qrow-side { width: 100%; justify-content: flex-start; }
+
+  /* license */
+  .license-top, .pack-grid { grid-template-columns: 1fr; }
+  .custom-card { flex-direction: column; align-items: stretch; }
+  .custom-form { width: 100%; }
+  .custom-form input { flex: 1 1 6em; }
+  .buy-head { flex-direction: column; gap: 0.5em; }
+
+  /* settings */
+  .settings-cols { grid-template-columns: 1fr; }
+  .workspace-strip { flex-wrap: wrap; }
+  .workspace-badge { margin-left: 0; }
+  .sec-row, .admin-role-row { flex-wrap: wrap; }
+}
+
+/* ============================================
+   TABLET / MOBILE: other pages follow the dashboard template
+   (plain white cards on the page background, page title as the header)
+   ============================================ */
+@media (max-width: 1100px) {
+  .app-shell .page-panel { background: transparent; padding: 0; border-radius: 0; }
+  .app-shell .panel-head { margin-bottom: 1em; }
+  .app-shell .panel-title { font-size: 1.7em; }
+  .app-shell .panel-sub { font-size: 0.95em; }
+  .app-shell .stat-grid-3 { grid-template-columns: repeat(3, 1fr) !important; gap: 0.9em; }
+  .app-shell .workspace-strip { background: #fff; }
+  .app-shell .page-footer { padding-left: 0; padding-right: 0; }
+}
+@media (min-width: 721px) and (max-width: 1100px) {
+  .app-shell .page-content-flush { padding: 1.6em 1em 1em 1.5em; }
+  .app-shell .stat-grid-3 .stat-card-sub { font-size: 0.75em; }
+}
+@media (max-width: 720px) {
+  .app-shell .page-content-flush { padding: 1.1em 1em 7.5em; }
+  .app-shell .panel-head { flex-direction: column; align-items: stretch; gap: 0.8em; }
+  .app-shell .panel-head > div:first-child { flex: none; }
+  .app-shell .panel-actions { flex-wrap: wrap; }
+  .app-shell .panel-actions > * { flex: 1 1 auto; justify-content: center; }
+  .app-shell .stat-grid-3 { grid-template-columns: repeat(2, 1fr) !important; gap: 0.7em; }
+  .app-shell .stat-grid-3 .stat-card:last-child { grid-column: 1 / -1; }
+
+  /* lists flow with the page instead of being pinned */
+  .app-shell-collapse .roster-card { position: static; height: auto; }
+  .app-shell-collapse .table-wrap, .app-shell-collapse .qlist { max-height: 65vh; }
+  .app-shell .roster-filters { gap: 0.6em; }
+  .app-shell .roster-search { flex: 1 1 100%; max-width: none; }
+  .app-shell .roster-filters-end { margin-left: 0; width: 100%; justify-content: space-between; }
+  .app-shell .roster-head { flex-wrap: wrap; gap: 0.6em; }
+  .app-shell .pack-grid { gap: 0.8em; }
+  .app-shell .custom-card { align-items: stretch; }
+  .app-shell .custom-form { width: 100%; }
+  .app-shell .custom-form input { flex: 1 1 6em; }
+  .app-shell .buy-head { flex-direction: column; gap: 0.4em; }
+  .app-shell .settings-cols { gap: 1em; }
+  .app-shell .license-top { gap: 0.8em; }
+}
