@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { Upload, Trash2, Pencil, FileText, File as FileIcon, Download, Search, ChevronDown, MoreHorizontal, Check, ListChecks, GraduationCap } from 'lucide-react';
 import QuestionEditorModal from '../components/QuestionEditorModal';
 import DashboardLayout from '../components/DashboardLayout';
@@ -7,6 +7,7 @@ import AdminRail from '../components/AdminRail';
 import Modal from '../components/Modal';
 import { useClassSetup } from '../context/ClassSetupContext';
 import { useSchool } from '../context/SchoolContext';
+import { useScrollHandoff } from '../lib/useScrollHandoff';
 import { createQuestion, deleteQuestion } from '../lib/questions';
 import { createQuestionItems } from '../lib/questionItems';
 import { parseQuestionFile } from '../lib/parseQuestionFile';
@@ -16,6 +17,8 @@ const DEFAULT_TITLES = { test: 'Mid-Term Test', exam: 'First Term Examination' }
 export default function QuestionBank({ questions, setQuestions, students = [], license }) {
   const { classes: CLASSES, subjectsFor: subjectPoolForClass } = useClassSetup();
   const { school } = useSchool();
+  const cardRef = useRef(null);
+  useScrollHandoff(cardRef);
   const [classFilter, setClassFilter] = useState('all');
   const [subjectFilter, setSubjectFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
@@ -162,7 +165,7 @@ export default function QuestionBank({ questions, setQuestions, students = [], l
             <div className="stat-card-value">{examCount}</div><div className="stat-card-label">Exams</div><div className="stat-card-sub">Term examination sets</div></div></div>
         </div>
 
-        <div className="card roster-card">
+        <div className="card roster-card" ref={cardRef}>
           <div className="roster-head">
             <div className="roster-title">Your question sets <span className="count-pill">{filtered.length} {filtered.length === 1 ? 'set' : 'sets'}</span></div>
             {scopeText && <span className="roster-classes">{scopeText}</span>}

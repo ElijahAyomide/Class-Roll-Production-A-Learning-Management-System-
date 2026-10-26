@@ -1082,18 +1082,16 @@ button, input, select { font-family: inherit; }
 .app-shell .panel-actions button { white-space: nowrap; }
 @media (max-width: 960px) { .panel-actions { flex-wrap: wrap; } }
 
-/* Fixed-height pages (Students): the page itself never scrolls, only the roster list does */
-.app-shell-fixed { height: 100vh; overflow: hidden; }
-.app-shell-fixed .app-main { display: flex; flex-direction: column; height: 100vh; min-height: 0; }
-.app-shell-fixed .page-content-flush { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 1em 0 0; }
-.app-shell-fixed .page-panel { flex: 1; min-height: 0; display: flex; flex-direction: column; padding-bottom: 1.2em; }
-.app-shell-fixed .roster-card { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-.app-shell-fixed .table-wrap { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #C9D1F0 transparent; }
-.app-shell-fixed .roster-table thead th { position: sticky; top: 0; z-index: 2; }
-.app-shell-fixed .page-footer { padding: 0.6em 2em 0.8em; }
-.app-shell-fixed .roster-foot { margin-top: 0.8em; }
-.app-shell-fixed .stat-grid { margin-bottom: 1.1em; }
-.app-shell-fixed .panel-head { margin-bottom: 1em; }
+/* Students / Question Bank / Results: the page scrolls until the title and summary cards are gone,
+   then the list card stays pinned and only its own list scrolls. */
+.app-shell-collapse .page-content-flush { padding: 1em 0 0; }
+.app-shell-collapse .roster-card { position: sticky; top: 0.6em; height: calc(100vh - 4.5em); display: flex; flex-direction: column; min-height: 0; }
+.app-shell-collapse .table-wrap, .app-shell-collapse .qlist { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #C9D1F0 transparent; }
+.app-shell-collapse .roster-table thead th { position: sticky; top: 0; z-index: 2; }
+.app-shell-collapse .page-footer { padding: 0.6em 2em 0.8em; }
+.app-shell-collapse .roster-foot { margin-top: 0.8em; }
+.app-shell-collapse .stat-grid { margin-bottom: 1.1em; }
+.app-shell-collapse .panel-head { margin-bottom: 1em; }
 .table-wrap::-webkit-scrollbar { width: 6px; }
 .table-wrap::-webkit-scrollbar-thumb { background: #C9D1F0; border-radius: 3px; }
 
@@ -1114,18 +1112,17 @@ button, input, select { font-family: inherit; }
 .qrow-pending { color: var(--green); }
 .qrow-side { display: flex; align-items: center; gap: 0.5em; flex-shrink: 0; }
 .qrow-side .row-actions-menu { display: inline-flex; position: relative; }
-.app-shell-fixed .qlist + .roster-foot { margin-top: 0.8em; }
+.app-shell-collapse .qlist + .roster-foot { margin-top: 0.8em; }
 
 /* Results page */
 .cell-sub { display: block; font-size: 0.78em; color: var(--ink-dim); font-weight: 400; margin-top: 0.15em; }
 .student-cell .cell-strong { display: block; }
-.app-shell-fixed .stat-grid:not(.stat-grid-3) { grid-template-columns: repeat(4, 1fr); }
-@media (max-width: 960px) { .app-shell-fixed .stat-grid:not(.stat-grid-3) { grid-template-columns: repeat(2, 1fr); } }
+.app-shell-collapse .stat-grid:not(.stat-grid-3) { grid-template-columns: repeat(4, 1fr); }
+@media (max-width: 960px) { .app-shell-collapse .stat-grid:not(.stat-grid-3) { grid-template-columns: repeat(2, 1fr); } }
 .roster-search { flex: 1 1 9em; min-width: 9em; }
 .roster-filters .select-pill select { padding-right: 2.2em; padding-left: 0.8em; }
 
 /* License page */
-.app-shell-fixed .page-panel { overflow-y: auto; }
 .license-top { display: grid; grid-template-columns: 1fr 1.5fr; gap: 1.1em; margin-bottom: 1.1em; }
 .license-balance-blue { background: #385DE9; color: #fff; border-radius: 1.1em; padding: 1.2em 1.4em; }
 .lb-label { display: flex; justify-content: space-between; align-items: center; font-size: 0.9em; font-weight: 500; }
@@ -1212,4 +1209,18 @@ button, input, select { font-family: inherit; }
 .settings-classes { margin-bottom: 0.5em; }
 @media (max-width: 960px) { .settings-cols { grid-template-columns: 1fr; } }
 .settings-classes input, .settings-classes select, .settings-classes button { font-family: inherit; font-size: 0.9em; }
-.settings-classes input[type="text"], .settings-classes input:not([type]), .settings-classes select { border: 1px solid #E4E6F0; border-radius: 0.7em; padding: 0.65em 0.9em; background: #fff; }
+.settings-classes input[type="text"], .settings-classes input:not([type]), .settings-classes select { border: 1px solid #E4E6F0; border-radius: 0.7em; padding: 0.65em 0.9em; background-color: #fff; }
+
+/* Classes & subjects: scrolls after ~3 classes */
+.cs-list { overflow-y: auto; padding-right: 0.5em; scrollbar-width: thin; scrollbar-color: #C9D1F0 transparent; }
+.cs-list::-webkit-scrollbar { width: 6px; }
+.cs-list::-webkit-scrollbar-thumb { background: #C9D1F0; border-radius: 3px; }
+
+/* Dropdowns: arrow sits the same distance from the right edge as the text does from the left */
+.settings-card .field select, .cs-copy-select {
+  appearance: none; -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 1em center; padding-right: 2.6em !important; padding-left: 0.9em;
+}
+.settings-card .field select { background-color: #F1F3FA; }
+.cs-copy-select { max-width: 15em; }

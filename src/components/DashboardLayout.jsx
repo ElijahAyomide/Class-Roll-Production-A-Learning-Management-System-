@@ -5,7 +5,7 @@ import Topbar from './Topbar';
 // `rail` (optional) is a right-hand column, used by the Dashboard.
 export default function DashboardLayout({ title, subtitle, rail, flush, scroll, children }) {
   return (
-    <div className={`app-shell ${flush && !scroll ? 'app-shell-fixed' : ''}`}>
+    <div className={`app-shell ${flush && !scroll ? 'app-shell-collapse' : ''}`}>
       <Sidebar />
       <div className="app-main">
         {title && <Topbar title={title} subtitle={subtitle} />}

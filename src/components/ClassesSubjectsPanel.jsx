@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useLayoutEffect } from 'react';
 import { Pencil, Trash2, Plus, X, Check, Wand2 } from 'lucide-react';
 import { useSchool } from '../context/SchoolContext';
 import { useClassSetup } from '../context/ClassSetupContext';
@@ -20,6 +20,23 @@ export default function ClassesSubjectsPanel() {
   const [renameValue, setRenameValue] = useState('');
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const [subjectDrafts, setSubjectDrafts] = useState({}); // classId -> text being typed
+
+  // Show about 3 classes at a time; the rest scroll inside the list.
+  const listRef = useRef(null);
+  const [listMax, setListMax] = useState(null);
+  useLayoutEffect(() => {
+    const el = listRef.current;
+    if (!el) return;
+    const measure = () => {
+      const kids = [...el.children];
+      if (kids.length <= 3) { setListMax(null); return; }
+      const gap = parseFloat(getComputedStyle(el).rowGap) || 0;
+      setListMax(kids.slice(0, 3).reduce((h, k) => h + k.offsetHeight, 0) + gap * 2 + 2);
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [classRows, subjectDrafts, renamingId, confirmDeleteId]);
 
   const replaceRow = (updated) => setClassRows(prev => prev.map(c => (c.id === updated.id ? updated : c)));
 
@@ -122,7 +139,7 @@ export default function ClassesSubjectsPanel() {
           </button>
         </div>
       ) : (
-        <div className="cs-list">
+        <div className="cs-list" ref={listRef} style={listMax ? { maxHeight: listMax } : undefined}>
           {classRows.map(cls => (
             <div key={cls.id} className="cs-card">
               <div className="cs-card-head">

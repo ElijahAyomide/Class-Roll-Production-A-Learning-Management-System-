@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import { Search, Pencil, Trash2, Plus, Upload, Download, Users, MoreHorizontal, ChevronDown, Check, GraduationCap, UserCheck } from 'lucide-react';
@@ -9,12 +9,15 @@ import Modal from '../components/Modal';
 import StudentImportModal from '../components/StudentImportModal';
 import { useClassSetup } from '../context/ClassSetupContext';
 import { useSchool } from '../context/SchoolContext';
+import { useScrollHandoff } from '../lib/useScrollHandoff';
 import { createStudent, updateStudent, deleteStudent } from '../lib/students';
 import { nextUsername, studentSequence, STUDENT_STATUSES, statusLabel, statusBadgeTone } from '../data/mockData';
 
 export default function Students({ students, setStudents, questions = [], license, setLicense }) {
   const { classes: CLASSES, subjectsFor: subjectPoolForClass } = useClassSetup();
   const { school } = useSchool();
+  const cardRef = useRef(null);
+  useScrollHandoff(cardRef);
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [classFilter, setClassFilter] = useState('all');
@@ -177,7 +180,7 @@ export default function Students({ students, setStudents, questions = [], licens
             <div className="stat-card-value">{activeCount}</div><div className="stat-card-label">Active students</div><div className="stat-card-sub">Ready to take assessments</div></div></div>
         </div>
 
-        <div className="card roster-card">
+        <div className="card roster-card" ref={cardRef}>
           <div className="roster-head">
             <div className="roster-title">Student roster <span className="count-pill">{filtered.length} {filtered.length === 1 ? 'student' : 'students'}</span></div>
             <button className="btn-ghost" onClick={exportRoster}><Download size={15} /> Export roster</button>

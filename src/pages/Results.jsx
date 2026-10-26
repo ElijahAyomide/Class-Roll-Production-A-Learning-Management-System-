@@ -1,8 +1,9 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useRef, useState, useEffect } from 'react';
 import * as XLSX from 'xlsx';
 import { Search, Printer, FileDown, FileText, Download, ChevronDown, Check, ClipboardCheck, BarChart3, CheckCircle2, Trophy } from 'lucide-react';
 import { useClassSetup } from '../context/ClassSetupContext';
 import { useSchool } from '../context/SchoolContext';
+import { useScrollHandoff } from '../lib/useScrollHandoff';
 import DashboardLayout from '../components/DashboardLayout';
 import AdminRail from '../components/AdminRail';
 import { percentOf, resultStats } from '../lib/resultStats';
@@ -10,6 +11,8 @@ import ResultsPrintSheet from '../components/ResultsPrintSheet';
 
 export default function Results({ results, license }) {
   const { school } = useSchool();
+  const cardRef = useRef(null);
+  useScrollHandoff(cardRef);
   const { classes: CLASSES } = useClassSetup();
   const classOptions = [...new Set([...CLASSES, ...results.map(r => r.class)])];
   const subjectOptions = [...new Set(results.map(r => r.subject))].sort();
@@ -139,7 +142,7 @@ export default function Results({ results, license }) {
               <div className="stat-card-value">{top ? fmt(percentOf(top)) : '0%'}</div><div className="stat-card-label">Highest score</div><div className="stat-card-sub">{top ? `${top.score} out of ${top.total} marks` : 'No results yet'}</div></div></div>
           </div>
 
-          <div className="card roster-card">
+          <div className="card roster-card" ref={cardRef}>
             <div className="roster-head">
               <div className="roster-title">Student results <span className="count-pill">{filtered.length} {filtered.length === 1 ? 'result' : 'results'}</span></div>
             </div>
