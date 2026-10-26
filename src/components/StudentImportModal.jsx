@@ -105,7 +105,7 @@ export default function StudentImportModal({ students, onImported, onClose }) {
         </div>
 
         <div className="field">
-          <label>STUDENT FILE (.XLSX)</label>
+          <label>Student file (.xlsx)</label>
           <input type="file" accept=".xlsx" onChange={chooseFile} />
         </div>
 

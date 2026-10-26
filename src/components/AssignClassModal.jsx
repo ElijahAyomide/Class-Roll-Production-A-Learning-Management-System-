@@ -114,14 +114,14 @@ export default function AssignClassModal({ students, setStudents, questions, lic
     <Modal title="Set test or exam for a whole class" onClose={onClose} width={520}>
       <div className="form-row-2">
         <div className="field">
-          <label>TYPE</label>
+          <label>Type</label>
           <select value={type} onChange={e => changeType(e.target.value)}>
             <option value="test">Test</option>
             <option value="exam">Exam</option>
           </select>
         </div>
         <div className="field">
-          <label>CLASS</label>
+          <label>Class</label>
           <select value={cls} onChange={e => changeClass(e.target.value)}>
             {CLASSES.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
@@ -137,7 +137,7 @@ export default function AssignClassModal({ students, setStudents, questions, lic
       ) : (
         <>
           <div className="field">
-            <label>SUBJECTS TO ASSIGN</label>
+            <label>Subjects to assign</label>
             <div className="assign-question-list">
               {available.map(q => (
                 <label key={q.id} className="assign-question-row">
@@ -158,11 +158,11 @@ export default function AssignClassModal({ students, setStudents, questions, lic
 
           <div className="form-row-2">
             <div className="field">
-              <label>DATE</label>
+              <label>Date</label>
               <input type="date" value={date} onChange={e => setDate(e.target.value)} />
             </div>
             <div className="field">
-              <label>TOTAL TIME (MINUTES)</label>
+              <label>Total time (minutes)</label>
               <input
                 type="number" min="5" max="600" step="1" inputMode="numeric" value={duration}
                 onChange={e => setDuration(e.target.value === '' ? '' : Math.min(600, parseInt(e.target.value) || 0))}

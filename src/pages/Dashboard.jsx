@@ -387,13 +387,13 @@ export default function Dashboard({ students, setStudents, questions, results, l
               <Badge tone="class">{viewingStudent.class}</Badge>
               <Badge tone={statusBadgeTone(viewingStudent.status)}>{statusLabel(viewingStudent.status)}</Badge>
             </div>
-            <div className="field-hint" style={{ marginTop: 14, marginBottom: 6 }}>SUBJECT COMBINATION</div>
+            <div className="field-hint" style={{ marginTop: 14, marginBottom: 6 }}>Subject combination</div>
             <div className="mini-chip-row">
               {viewingStudent.subjects.map(subj => <span key={subj} className="mini-chip">{subj}</span>)}
             </div>
             {viewingStudent.assignments.length > 0 && (
               <>
-                <div className="field-hint" style={{ marginTop: 14, marginBottom: 6 }}>CURRENT ASSIGNMENTS</div>
+                <div className="field-hint" style={{ marginTop: 14, marginBottom: 6 }}>Current assignments</div>
                 <div className="assignment-list">
                   {viewingStudent.assignments.map(a => (
                     <div key={a.id} className="assignment-row">
@@ -421,17 +421,17 @@ export default function Dashboard({ students, setStudents, questions, results, l
         <Modal title="Edit Student" onClose={() => setViewingStudent(null)}>
           <form onSubmit={saveEdit} className="quick-add-form">
             <div className="field">
-              <label>FULL NAME</label>
+              <label>Full name</label>
               <input type="text" value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} />
             </div>
             <div className="field">
-              <label>CLASS</label>
+              <label>Class</label>
               <select value={editForm.class} onChange={e => setEditForm({ ...editForm, class: e.target.value, subjects: [] })}>
                 {CLASSES.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
             <div className="field">
-              <label>SUBJECT COMBINATION</label>
+              <label>Subject combination</label>
               <div className="subject-chips">
                 {editSubjectPool.length === 0 && <span className="field-hint">No subjects set for this class yet. <a href="/settings">Set them up in Settings</a>.</span>}
                 {editSubjectPool.map(subj => (
@@ -446,7 +446,7 @@ export default function Dashboard({ students, setStudents, questions, results, l
               </div>
             </div>
             <div className="field">
-              <label>STATUS</label>
+              <label>Status</label>
               <select value={editForm.status} onChange={e => setEditForm({ ...editForm, status: e.target.value })}>
                 <option value="pending">Pending</option>
                 <option value="test-active">Test Active</option>
@@ -479,7 +479,7 @@ export default function Dashboard({ students, setStudents, questions, results, l
           ) : (
             <>
               <div className="field">
-                <label>SUBJECTS TO ASSIGN</label>
+                <label>Subjects to assign</label>
                 <div className="assign-question-list">
                   {assignableQuestions.map(q => (
                     <label key={q.id} className="assign-question-row">
@@ -507,11 +507,11 @@ export default function Dashboard({ students, setStudents, questions, results, l
 
               <div className="form-row-2">
                 <div className="field">
-                  <label>DATE</label>
+                  <label>Date</label>
                   <input type="date" value={assignDate} onChange={e => setAssignDate(e.target.value)} />
                 </div>
                 <div className="field">
-                  <label>TOTAL TIME (MINUTES)</label>
+                  <label>Total time (minutes)</label>
                   <input
                     type="number" min="5" max="600" step="1" inputMode="numeric"
                     value={assignDuration}

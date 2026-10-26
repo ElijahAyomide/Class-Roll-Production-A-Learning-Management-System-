@@ -1224,3 +1224,120 @@ button, input, select { font-family: inherit; }
 }
 .settings-card .field select { background-color: #F1F3FA; }
 .cs-copy-select { max-width: 15em; }
+
+/* ============================================
+   POP-UPS (modals) — same fonts, spacing and hierarchy as the main pages
+   ============================================ */
+.modal-overlay {
+  font-family: 'Lexend', var(--font-sans);
+  font-size: clamp(13px, 1.1vw, 18px);
+  background: rgba(30, 40, 90, 0.45);
+  backdrop-filter: blur(2px);
+  padding: 1.2em;
+}
+.modal-overlay .modal-panel {
+  background: #fff; border-radius: 1.3em; box-shadow: 0 1em 3em rgba(30, 40, 90, 0.28);
+  max-height: calc(100vh - 2.4em); max-height: calc(100dvh - 2.4em);
+}
+.modal-overlay .modal-panel-header {
+  padding: 1.3em 1.6em 0.9em; border-bottom: 0; font-family: inherit; font-size: 1.2em; font-weight: 600; color: var(--ink); gap: 1em;
+}
+.modal-overlay .modal-close-btn {
+  width: 2.2em; height: 2.2em; display: grid; place-items: center; border-radius: 50%; background: #F1F3FA; color: var(--ink-dim); flex-shrink: 0;
+}
+.modal-overlay .modal-close-btn:hover { background: #E4E8F7; color: var(--ink); }
+.modal-overlay .modal-panel-body { padding: 0.4em 1.6em 1.6em; font-size: 0.95em; color: var(--ink); }
+
+/* Fields */
+.modal-overlay .quick-add-form { gap: 1em; }
+.modal-overlay .field label { display: block; font-size: 0.88em; font-weight: 500; color: var(--ink); text-transform: none; letter-spacing: 0; margin-bottom: 0.45em; }
+.modal-overlay .field input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+.modal-overlay .field select,
+.modal-overlay .field textarea {
+  width: 100%; font-family: inherit; font-size: 0.95em; color: var(--ink); background-color: #F1F3FA; border: 1px solid transparent; border-radius: 0.8em; padding: 0.8em 1em;
+}
+.modal-overlay .field input:focus, .modal-overlay .field select:focus, .modal-overlay .field textarea:focus { outline: none; border-color: #385DE9; background-color: #fff; }
+.modal-overlay .field input[type="file"] { font-family: inherit; font-size: 0.9em; padding: 0.7em 0.8em; background: #F1F3FA; border-radius: 0.8em; width: 100%; }
+.modal-overlay .field select {
+  appearance: none; -webkit-appearance: none; padding-right: 2.6em;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 1em center;
+}
+.modal-overlay .field-hint { font-size: 0.8em; color: var(--ink-dim); margin-top: 0.5em; line-height: 1.5; }
+.modal-overlay .error-text { font-size: 0.88em; line-height: 1.5; }
+.modal-overlay .success-note { font-size: 0.88em; }
+.modal-overlay .form-row-2 { gap: 1em; }
+
+/* Buttons */
+.modal-overlay .btn-primary, .modal-overlay .btn-ghost, .modal-overlay .btn-danger {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.5em;
+  font-family: inherit; font-size: 0.92em; font-weight: 500; border-radius: 0.8em; padding: 0.8em 1.4em; cursor: pointer; line-height: 1.2;
+}
+.modal-overlay .btn-primary { background: #385DE9; color: #fff; border: 0; }
+.modal-overlay .btn-primary:hover { background: #2D4CC4; }
+.modal-overlay .btn-ghost { background: #fff; color: var(--ink); border: 1px solid #E4E6F0; }
+.modal-overlay .btn-ghost:hover { background: #F6F7FD; }
+.modal-overlay .btn-danger { background: var(--red); color: #fff; border: 0; }
+.modal-overlay form > .btn-primary:only-of-type:last-child { width: 100%; }
+.modal-overlay .confirm-actions { gap: 0.7em; margin-top: 0.4em; }
+.modal-overlay .confirm-text { font-size: 0.95em; line-height: 1.6; color: var(--ink-dim); margin: 0 0 1.4em; }
+.modal-overlay .confirm-text b { color: var(--ink); font-weight: 500; }
+
+/* Chips and toggles */
+.modal-overlay .subject-chips, .modal-overlay .duration-chips { gap: 0.5em; margin-top: 0; }
+.modal-overlay .subject-chip, .modal-overlay .duration-chip {
+  font-family: inherit; font-size: 0.85em; font-weight: 400; border: 0; background: #F0F1F5; color: var(--ink-dim); border-radius: 2em; padding: 0.55em 1.1em; cursor: pointer;
+}
+.modal-overlay .subject-chip-active, .modal-overlay .duration-chip-active, .modal-overlay .duration-chip-active:hover { background: #385DE9; color: #fff; }
+.modal-overlay .duration-chip:hover { color: #385DE9; }
+.modal-overlay .type-toggle { gap: 0.6em; }
+.modal-overlay .type-toggle-btn { flex: 1; font-family: inherit; font-size: 0.92em; font-weight: 500; border: 0; background: #F1F3FA; color: var(--ink-dim); border-radius: 0.8em; padding: 0.75em 1em; cursor: pointer; }
+.modal-overlay .type-toggle-btn-active { background: #385DE9; color: #fff; }
+.modal-overlay .mini-chip { font-size: 0.8em; background: #F0F1F5; border: 0; border-radius: 2em; padding: 0.3em 0.8em; color: var(--ink-dim); }
+
+/* Student details */
+.modal-overlay .student-detail-name { font-family: inherit; font-size: 1.25em; font-weight: 600; }
+.modal-overlay .student-detail-username { font-family: inherit; font-size: 0.88em; color: var(--ink-dim); margin-top: 0.3em; }
+.modal-overlay .student-detail-badges { gap: 0.5em; margin-top: 0.8em; }
+.modal-overlay .detail-assign-row { gap: 0.7em; margin-top: 1.2em; padding-top: 1.2em; border-top: 1px solid #ECEEF7; }
+
+/* Lists inside pop-ups */
+.modal-overlay .assign-question-list, .modal-overlay .assignment-row, .modal-overlay .import-preview {
+  border: 1px solid #E4E6F0; border-radius: 0.9em;
+}
+.modal-overlay .assign-question-row { padding: 0.8em 1em; font-size: 0.92em; gap: 0.8em; }
+.modal-overlay .assign-question-row:hover { background: #F6F7FD; }
+.modal-overlay .assign-question-row input[type="checkbox"] { width: 1.1em; height: 1.1em; accent-color: #385DE9; }
+.modal-overlay .assignment-row { padding: 0.8em 1em; }
+.modal-overlay .import-preview .data-table thead th { background: #F1F3FA; font-size: 0.8em; font-weight: 400; color: var(--ink-dim); text-transform: none; letter-spacing: 0; padding: 0.8em; }
+.modal-overlay .import-preview .data-table td { font-size: 0.88em; padding: 0.7em 0.8em; }
+.modal-overlay .import-actions { bottom: -1.6em; border-top: 1px solid #ECEEF7; padding-top: 1em; }
+.modal-overlay .password-confirm-summary { background: #F6F8FF; border-radius: 0.9em; padding: 1em 1.1em; font-size: 0.92em; line-height: 1.55; color: var(--ink-dim); }
+.modal-overlay .template-download-link { color: #385DE9; font-weight: 500; }
+
+/* Question editor */
+.modal-overlay .qe-wrap { gap: 1em; }
+.modal-overlay .qe-note { border-radius: 0.9em; padding: 0.8em 1em; font-size: 0.88em; }
+.modal-overlay .qe-list { gap: 0.9em; padding-right: 0.5em; scrollbar-width: thin; scrollbar-color: #C9D1F0 transparent; }
+.modal-overlay .qe-card { border: 1px solid #E4E6F0; border-radius: 1em; padding: 1em 1.1em; gap: 0.7em; }
+.modal-overlay .qe-card-head { font-size: 0.9em; font-weight: 500; }
+.modal-overlay .qe-text { font-family: inherit; font-size: 0.95em; background: #F1F3FA; border: 1px solid transparent; border-radius: 0.8em; padding: 0.8em 1em; }
+.modal-overlay .qe-text:focus { outline: none; border-color: #385DE9; background: #fff; }
+.modal-overlay .qe-option { border: 1px solid #E4E6F0; border-radius: 0.8em; padding: 0.3em 0.9em; gap: 0.7em; }
+.modal-overlay .qe-option input[type="text"] { font-size: 0.95em; padding: 0.6em 0; }
+.modal-overlay .qe-option-correct { border-color: var(--green); background: rgba(76,175,125,0.07); }
+.modal-overlay .qe-footer { border-top: 1px solid #ECEEF7; padding-top: 1em; }
+.modal-overlay .icon-btn { border-radius: 0.6em; }
+.modal-overlay .exam-result-icon { margin-bottom: 0.8em; }
+.modal-overlay { --pad-x: clamp(20.8px, 1.76vw, 28.8px); }
+.modal-overlay .modal-panel-header { padding-left: var(--pad-x); padding-right: var(--pad-x); }
+.modal-overlay .modal-panel-body { padding-left: var(--pad-x); padding-right: var(--pad-x); padding-bottom: var(--pad-x); }
+.modal-overlay .field, .modal-overlay .form-row-2 { margin-bottom: 1em; }
+.modal-overlay .quick-add-form .field, .modal-overlay .quick-add-form .form-row-2 { margin-bottom: 0; }
+.modal-overlay .field label.assign-question-row, .modal-overlay label.assign-question-row { display: flex; align-items: center; margin: 0; font-size: 0.92em; font-weight: 400; }
+.modal-overlay .field-hint + .field, .modal-overlay .error-text { margin-top: 0.6em; }
+.modal-overlay .field input[type="file"]::file-selector-button {
+  font-family: inherit; font-size: 0.9em; font-weight: 500; background: #fff; color: #385DE9; border: 1px solid #E4E6F0;
+  border-radius: 0.6em; padding: 0.45em 0.9em; margin-right: 0.8em; cursor: pointer;
+}
+.modal-overlay .student-detail .field-hint { font-size: 0.85em; }

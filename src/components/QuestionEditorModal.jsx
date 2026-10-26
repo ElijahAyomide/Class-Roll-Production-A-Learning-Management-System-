@@ -81,7 +81,7 @@ export default function QuestionEditorModal({ set, pendingCount, onClose, onSave
             </div>
           )}
           <div className="field">
-            <label>TITLE</label>
+            <label>Title</label>
             <input type="text" value={title} onChange={e => { setTitle(e.target.value); setDirty(true); setErrors([]); }} />
           </div>
 

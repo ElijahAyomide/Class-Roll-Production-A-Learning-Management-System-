@@ -256,7 +256,7 @@ export default function QuestionBank({ questions, setQuestions, students = [], l
         <Modal title="Upload Questions" onClose={() => setUploading(false)}>
           <form onSubmit={submit} className="quick-add-form">
             <div className="field">
-              <label>TYPE</label>
+              <label>Type</label>
               <div className="type-toggle">
                 <button
                   type="button"
@@ -276,24 +276,24 @@ export default function QuestionBank({ questions, setQuestions, students = [], l
               <div className="field-hint">Tests are typically shorter, informal continuous-assessment checks. Exams are formal, term-defining assessments — both use the same upload and license flow.</div>
             </div>
             <div className="field">
-              <label>TITLE</label>
+              <label>Title</label>
               <input type="text" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} />
             </div>
             <div className="field">
-              <label>CLASS</label>
+              <label>Class</label>
               <select value={form.class} onChange={e => setForm({ ...form, class: e.target.value, subject: '' })}>
                 {CLASSES.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
             <div className="field">
-              <label>SUBJECT</label>
+              <label>Subject</label>
               <select value={form.subject} onChange={e => setForm({ ...form, subject: e.target.value })}>
                 <option value="">{subjectPool.length === 0 ? 'No subjects set for this class (add them in Settings)' : 'Select a subject'}</option>
                 {subjectPool.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
             <div className="field">
-              <label>QUESTION FILE (EXCEL TEMPLATE)</label>
+              <label>Question file (Excel template)</label>
               <input
                 type="file" accept=".xlsx"
                 onChange={e => { setForm({ ...form, file: e.target.files[0] || null }); setError(''); setRowErrors([]); }}

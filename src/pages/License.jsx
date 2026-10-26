@@ -268,7 +268,7 @@ export default function License({ license, setLicense }) {
               <span>Confirm your password to purchase <b>{examCount}</b> exam credit{examCount === 1 ? '' : 's'} for <b>₦{total.toLocaleString('en-NG')}</b>.</span>
             </div>
             <div className="field">
-              <label>PASSWORD</label>
+              <label>Password</label>
               <PasswordInput
                 placeholder="••••••••" autoFocus
                 value={password} onChange={e => { setPassword(e.target.value); setPasswordError(''); }}

@@ -64,11 +64,11 @@ export default function ResetPassword() {
           ) : ready ? (
             <form onSubmit={submit} className="login-form">
               <div className="field">
-                <label>NEW PASSWORD</label>
+                <label>New password</label>
                 <PasswordInput placeholder="At least 6 characters" value={password} autoFocus onChange={e => setPassword(e.target.value)} />
               </div>
               <div className="field">
-                <label>CONFIRM NEW PASSWORD</label>
+                <label>Confirm new password</label>
                 <PasswordInput placeholder="••••••••" value={confirm} onChange={e => setConfirm(e.target.value)} />
               </div>
               {error && <div className="error-text">{error}</div>}

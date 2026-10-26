@@ -276,17 +276,17 @@ export default function Students({ students, setStudents, questions = [], licens
         <Modal title={editing === 'new' ? 'Add Student' : 'Edit Student'} onClose={() => setEditing(null)}>
           <form onSubmit={save} className="quick-add-form">
             <div className="field">
-              <label>FULL NAME</label>
+              <label>Full name</label>
               <input type="text" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
             </div>
             <div className="field">
-              <label>CLASS</label>
+              <label>Class</label>
               <select value={form.class} onChange={e => setForm({ ...form, class: e.target.value, subjects: [] })}>
                 {CLASSES.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
             <div className="field">
-              <label>SUBJECT COMBINATION</label>
+              <label>Subject combination</label>
               <div className="subject-chips">
                 {subjectPool.length === 0 && <span className="field-hint">{CLASSES.length === 0 ? 'No classes yet.' : 'No subjects set for this class yet.'} <a href="/settings">Set them up in Settings</a>.</span>}
                 {subjectPool.map(subj => (
@@ -301,7 +301,7 @@ export default function Students({ students, setStudents, questions = [], licens
               </div>
             </div>
             <div className="field">
-              <label>STATUS</label>
+              <label>Status</label>
               <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}>
                 {STUDENT_STATUSES.map(s => <option key={s} value={s}>{statusLabel(s)}</option>)}
               </select>
