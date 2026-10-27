@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { KeyRound } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { ArrowRight, CheckCircle2 } from 'lucide-react';
+import AuthAside from '../components/AuthAside';
 import PasswordInput from '../components/PasswordInput';
 import { getCurrentSession, onAuthStateChange, changePassword } from '../lib/auth';
+
+const MIN_PASSWORD = 8;
+const SUPPORT_EMAIL = import.meta.env.VITE_SUPPORT_EMAIL || '';
 
 // Where the link in the "reset your password" email lands. Supabase signs the
 // person in from the link automatically; this page just waits for that, then
@@ -33,7 +37,7 @@ export default function ResetPassword() {
   const submit = async (e) => {
     e.preventDefault();
     setError('');
-    if (password.length < 6) { setError('Password must be at least 6 characters.'); return; }
+    if (password.length < MIN_PASSWORD) { setError(`Password must be at least ${MIN_PASSWORD} characters.`); return; }
     if (password !== confirm) { setError('Passwords do not match.'); return; }
     setSaving(true);
     try {
@@ -47,45 +51,78 @@ export default function ResetPassword() {
     }
   };
 
-  return (
-    <div className="login-screen" style={{ gridTemplateColumns: '1fr' }}>
-      <div className="login-form-panel" style={{ width: '100%' }}>
-        <div className="login-card">
-          <div className="login-brand">
-            <div className="brand-mark brand-mark-lg">CR</div>
-            <div>
-              <div className="login-brand-name">Assessly</div>
-              <div className="login-brand-tag">Choose a new password</div>
-            </div>
-          </div>
+  const state = done ? 'done' : ready ? 'form' : linkInvalid ? 'invalid' : 'checking';
+  const heading = {
+    form: { eyebrow: 'Password help', title: 'Choose a new password', sub: 'Pick a password you have not used before. You will go straight to your dashboard afterwards.' },
+    done: { eyebrow: 'All done', title: 'Password updated', sub: 'Taking you to your dashboard…' },
+    invalid: { eyebrow: 'Password help', title: 'This link has expired', sub: 'Reset links only work once and stop working after a while. Request a new one from the sign-in page.' },
+    checking: { eyebrow: 'Password help', title: 'Checking your link', sub: 'This only takes a moment.' },
+  }[state];
 
-          {done ? (
-            <div className="success-note">Password updated. Taking you to your dashboard…</div>
-          ) : ready ? (
-            <form onSubmit={submit} className="login-form">
-              <div className="field">
-                <label>New password</label>
-                <PasswordInput placeholder="At least 6 characters" value={password} autoFocus onChange={e => setPassword(e.target.value)} />
-              </div>
-              <div className="field">
-                <label>Confirm new password</label>
-                <PasswordInput placeholder="••••••••" value={confirm} onChange={e => setConfirm(e.target.value)} />
-              </div>
-              {error && <div className="error-text">{error}</div>}
-              <button type="submit" className="btn-primary login-submit" disabled={saving}>
-                <KeyRound size={15} /> {saving ? 'Saving…' : 'Save New Password'}
-              </button>
-            </form>
-          ) : linkInvalid ? (
-            <div className="login-form">
-              <div className="error-text">This reset link is invalid or has expired. Reset links only work once.</div>
-              <button type="button" className="btn-primary login-submit" onClick={() => navigate('/login')}>Back to sign in</button>
-            </div>
-          ) : (
-            <div className="field-hint">Checking your reset link…</div>
-          )}
+  return (
+    <div className="auth-screen">
+      <AuthAside />
+
+      <main className="auth-main">
+        <div className="auth-topbar">
+          <div className="auth-mobile-brand">
+            <img src="/images/assessly-logo.png" alt="" />
+            <span>Assessly</span>
+          </div>
+          <div className="auth-topbar-right">
+            <span className="auth-topbar-text">Remembered it?</span>
+            <button type="button" className="auth-outline-btn" onClick={() => navigate('/login')}>Sign in</button>
+          </div>
         </div>
-      </div>
+
+        <div className="auth-center">
+          <div className="auth-form-col">
+            <div className="auth-eyebrow">{heading.eyebrow}</div>
+            <h2 className="auth-title">{heading.title}</h2>
+            <p className="auth-sub">{heading.sub}</p>
+
+            {state === 'form' && (
+              <form onSubmit={submit} className="auth-form">
+                <div className="field">
+                  <label>New password</label>
+                  <PasswordInput slashWhenHidden placeholder="Create a new password" autoComplete="new-password" value={password} autoFocus onChange={e => setPassword(e.target.value)} />
+                  <div className="auth-hint">Use at least {MIN_PASSWORD} characters.</div>
+                </div>
+                <div className="field">
+                  <label>Confirm new password</label>
+                  <PasswordInput slashWhenHidden placeholder="Type it again" autoComplete="new-password" value={confirm} onChange={e => setConfirm(e.target.value)} />
+                </div>
+                {error && <div className="error-text">{error}</div>}
+                <button type="submit" className="auth-submit" disabled={saving}>
+                  {saving ? 'Saving…' : <>Save new password <ArrowRight size={17} /></>}
+                </button>
+              </form>
+            )}
+
+            {state === 'done' && (
+              <div className="auth-form">
+                <div className="success-note"><CheckCircle2 size={16} style={{ verticalAlign: '-3px', marginRight: '0.5em' }} />Your password has been changed.</div>
+              </div>
+            )}
+
+            {state === 'invalid' && (
+              <div className="auth-form">
+                <button type="button" className="auth-submit" onClick={() => navigate('/login')}>
+                  Back to sign in <ArrowRight size={17} />
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <footer className="auth-footer">
+          <div>{SUPPORT_EMAIL && <>Need help? <a href={`mailto:${SUPPORT_EMAIL}`}>Contact support</a></>}</div>
+          <div className="auth-footer-links">
+            <Link to="/privacy">Privacy</Link>
+            <Link to="/terms">Terms</Link>
+          </div>
+        </footer>
+      </main>
     </div>
   );
 }
