@@ -1794,3 +1794,35 @@ body:has(.sp-exam-screen) { background: #EEF0F9; }
 .report-cell { display: flex; align-items: center; gap: 0.9em; white-space: nowrap; }
 .row-delete { border: 0; background: none; color: var(--ink-faint); width: 2em; height: 2em; display: inline-grid; place-items: center; border-radius: 0.5em; cursor: pointer; }
 .row-delete:hover { background: var(--red-bg); color: var(--red); }
+
+/* Results: subjects taken together, side by side */
+.sitting-block { margin-bottom: 1.4em; }
+.sitting-head { display: flex; align-items: center; gap: 0.7em; font-size: 0.95em; font-weight: 600; margin: 0.4em 0 0.7em; }
+.sitting-head .count-pill { font-weight: 500; }
+.sitting-scroll { overflow-x: auto; scrollbar-width: thin; scrollbar-color: #C9D1F0 transparent; }
+.sitting-table { min-width: 100%; width: max-content; }
+.sitting-table th, .sitting-table td { white-space: nowrap; }
+.sitting-table th:first-child, .sitting-table td:first-child { min-width: 13em; }
+.sitting-score { display: inline-flex; align-items: center; gap: 0.4em; }
+.sitting-none { color: var(--ink-faint); }
+.sitting-total b { font-weight: 600; }
+.row-delete-sm { width: 1.6em; height: 1.6em; opacity: 0.45; }
+.sitting-table tr:hover .row-delete-sm, .row-delete-sm:focus-visible { opacity: 1; }
+@media (hover: none) { .row-delete-sm { opacity: 1; } }
+@media (max-width: 720px) {
+  /* these tables stay real tables and scroll sideways instead of stacking */
+  .roster-table.sitting-table { display: table; width: max-content; min-width: 100%; }
+  .roster-table.sitting-table thead { display: table-header-group; }
+  .roster-table.sitting-table tbody { display: table-row-group; width: auto; }
+  .roster-table.sitting-table tr { display: table-row; padding: 0; }
+  .roster-table.sitting-table td { display: table-cell; padding: 0.8em !important; border-bottom: 1px solid #ECEEF7 !important; white-space: nowrap; font-size: 0.9em; color: var(--ink); }
+  .roster-table.sitting-table td:first-child { font-size: 0.9em; min-width: 12em; }
+  .roster-table.sitting-table td:last-child { margin-left: 0; }
+  .sitting-scroll { overflow-x: auto; }
+}
+.sitting-table th { white-space: normal; line-height: 1.25; }
+.sitting-table th, .sitting-table td { padding-left: 0.6em; padding-right: 0.6em; }
+.sitting-table th:first-child, .sitting-table td:first-child { min-width: 11.5em; padding-left: 0.8em; }
+.sitting-total { min-width: 6.5em; }
+.sitting-cell { min-width: 5.6em; }
+@media (max-width: 720px) { .roster-table.sitting-table td { padding-left: 0.6em !important; padding-right: 0.6em !important; } .roster-table.sitting-table td:first-child { padding-left: 0.8em !important; } }

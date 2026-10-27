@@ -13,17 +13,24 @@ function mapResult(row) {
     type: row.type,
     date: row.date,
     createdAt: row.created_at,
+    // Results taken together (several subjects in one sitting) share a group id.
+    groupId: row.assignments?.group_id || null,
   };
 }
 
 export async function fetchResults(schoolId) {
-  const { data, error } = await supabase
+  // Ask for each result's sitting (group) too. If that lookup is ever refused,
+  // fall back to plain results so the page still works (just without side-by-side subjects).
+  let res = await supabase
     .from('results')
-    .select('*')
+    .select('*, assignments(group_id)')
     .eq('school_id', schoolId)
     .order('created_at', { ascending: false });
-  if (error) throw error;
-  return data.map(mapResult);
+  if (res.error) {
+    res = await supabase.from('results').select('*').eq('school_id', schoolId).order('created_at', { ascending: false });
+  }
+  if (res.error) throw res.error;
+  return res.data.map(mapResult);
 }
 
 // Removes one result (for example when the wrong test or exam was assigned).
