@@ -16,7 +16,7 @@ import { buildActivity } from '../lib/activity';
 import { nextUsername, studentSequence, statusLabel, statusBadgeTone, DURATION_OPTIONS } from '../data/mockData';
 
 export default function Dashboard({ students, setStudents, questions, results, license, setLicense }) {
-  const { classes: CLASSES, subjectsFor: subjectPoolForClass } = useClassSetup();
+  const { classes: CLASSES, subjectsFor: subjectPoolForClass, studentSubjects } = useClassSetup();
   const { school, session } = useSchool();
   const navigate = useNavigate();
   const [classAssignOpen, setClassAssignOpen] = useState(false);
@@ -110,25 +110,25 @@ export default function Dashboard({ students, setStudents, questions, results, l
     // Compare subject names ignoring capital letters and extra spaces, so
     // "Livestock" and "livestock " are treated as the same subject.
     const norm = (t) => String(t || '').trim().replace(/\s+/g, ' ').toLowerCase();
-    const mine = new Set(assigning.student.subjects.map(norm));
+    const mine = new Set(studentSubjects(assigning.student).map(norm));
     return questions.filter(q =>
       q.type === assigning.type &&
       norm(q.class) === norm(assigning.student.class) &&
       mine.has(norm(q.subject)) &&
       q.status === 'ready'
     );
-  }, [assigning, questions]);
+  }, [assigning, questions, studentSubjects]);
 
   // Question sets that match the student's class and type but whose subject
   // the student doesn't take — the usual reason a subject "goes missing".
   const skippedSubjects = useMemo(() => {
     if (!assigning) return [];
     const norm = (t) => String(t || '').trim().replace(/\s+/g, ' ').toLowerCase();
-    const mine = new Set(assigning.student.subjects.map(norm));
+    const mine = new Set(studentSubjects(assigning.student).map(norm));
     return [...new Set(questions
       .filter(q => q.type === assigning.type && norm(q.class) === norm(assigning.student.class) && q.status === 'ready' && !mine.has(norm(q.subject)))
       .map(q => q.subject))];
-  }, [assigning, questions]);
+  }, [assigning, questions, studentSubjects]);
 
   const toggleAssignQuestion = (id) => {
     setAssignSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
@@ -469,7 +469,7 @@ export default function Dashboard({ students, setStudents, questions, results, l
               </p>
               {skippedSubjects.length > 0 && (
                 <p className="cell-dim-sm" style={{ marginBottom: 12 }}>
-                  There are question sets for {skippedSubjects.join(', ')}, but {assigning.student.name} is not registered for {skippedSubjects.length === 1 ? 'that subject' : 'those subjects'}. Edit the student and tick {skippedSubjects.length === 1 ? 'it' : 'them'}, or add {skippedSubjects.length === 1 ? 'it' : 'them'} in Settings → Classes &amp; Subjects first.
+                  There are question sets for {skippedSubjects.join(', ')}, but {assigning.student.name} does not take {skippedSubjects.length === 1 ? 'that subject' : 'those subjects'}. Add {skippedSubjects.length === 1 ? 'it' : 'them'} to {assigning.student.class} in Settings → Classes &amp; Subjects, then try again.
                 </p>
               )}
               <button className="btn-primary" onClick={() => navigate('/question-bank')}>
@@ -497,11 +497,11 @@ export default function Dashboard({ students, setStudents, questions, results, l
                 </div>
                 {skippedSubjects.length > 0 && (
                   <p className="cell-dim-sm" style={{ marginTop: 8 }}>
-                    Not listed: {skippedSubjects.join(', ')} — {assigning.student.name} is not registered for {skippedSubjects.length === 1 ? 'this subject' : 'these subjects'}. Edit the student to add {skippedSubjects.length === 1 ? 'it' : 'them'}.
+                    Not listed: {skippedSubjects.join(', ')} — {assigning.student.name} is not in {assigning.student.class}'s subject list. Add {skippedSubjects.length === 1 ? 'it' : 'them'} in Settings → Classes &amp; Subjects.
                   </p>
                 )}
                 <div className="field-hint">
-                  Only showing {assigning.type === 'test' ? 'tests' : 'exams'} marked "ready" for {assigning.student.class} in a subject {assigning.student.name.split(' ')[0]} takes. Select as many as you're setting today.
+                  Only showing {assigning.type === 'test' ? 'tests' : 'exams'} marked "ready" for {assigning.student.class} in a subject {assigning.student.class} takes. Select as many as you're setting today.
                 </div>
               </div>
 

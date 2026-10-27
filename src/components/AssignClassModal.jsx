@@ -12,7 +12,7 @@ const norm = (t) => String(t || '').trim().replace(/\s+/g, ' ').toLowerCase();
 
 // Set a test or exam for every student of one class in a single step.
 export default function AssignClassModal({ students, setStudents, questions, license, setLicense, onClose }) {
-  const { classes: CLASSES } = useClassSetup();
+  const { classes: CLASSES, studentSubjects } = useClassSetup();
   const { school } = useSchool();
 
   const firstWithStudents = CLASSES.find(c => students.some(s => norm(s.class) === norm(c))) || CLASSES[0] || '';
@@ -32,9 +32,9 @@ export default function AssignClassModal({ students, setStudents, questions, lic
       .filter(q => q.type === type && norm(q.class) === norm(cls) && q.status === 'ready')
       .map(q => ({
         ...q,
-        takers: classStudents.filter(s => s.subjects.some(sub => norm(sub) === norm(q.subject))).length,
+        takers: classStudents.filter(s => studentSubjects(s).some(sub => norm(sub) === norm(q.subject))).length,
       }));
-  }, [questions, type, cls, classStudents]);
+  }, [questions, type, cls, classStudents, studentSubjects]);
 
   const toggle = (id) => setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
   const changeType = (t) => { setType(t); setSelectedIds([]); };
@@ -47,11 +47,11 @@ export default function AssignClassModal({ students, setStudents, questions, lic
       .map(s => ({
         studentId: s.id,
         items: chosen
-          .filter(q => s.subjects.some(sub => norm(sub) === norm(q.subject)))
+          .filter(q => studentSubjects(s).some(sub => norm(sub) === norm(q.subject)))
           .map(q => ({ questionId: q.id, subject: q.subject })),
       }))
       .filter(p => p.items.length > 0);
-  }, [available, selectedIds, classStudents]);
+  }, [available, selectedIds, classStudents, studentSubjects]);
 
   const credits = plan.reduce((n, p) => n + p.items.length, 0);
   const notEnough = credits > license.balance;
@@ -152,7 +152,7 @@ export default function AssignClassModal({ students, setStudents, questions, lic
               ))}
             </div>
             <div className="field-hint">
-              Each student only gets the selected subjects that they take.
+              Each student gets the selected subjects that their class takes, plus any extra subjects they were registered for.
             </div>
           </div>
 

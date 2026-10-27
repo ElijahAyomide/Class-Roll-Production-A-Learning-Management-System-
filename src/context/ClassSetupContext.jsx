@@ -14,7 +14,22 @@ export function ClassSetupProvider({ classRows, setClassRows, children }) {
     };
     // Every subject used anywhere in the school, for filters.
     const allSubjects = [...new Set(classRows.flatMap(c => c.subjects))].sort();
-    return { classRows, setClassRows, classes: names, subjectsFor, allSubjects };
+    // Every subject a student can be given a test or exam in: the subjects set up
+    // for their class in Settings, plus any the student was registered with. So a
+    // subject missed when the student was added still shows up when assigning.
+    const clean = (t) => String(t || '').trim().replace(/\s+/g, ' ');
+    const key = (t) => clean(t).toLowerCase();
+    const studentSubjects = (student) => {
+      const row = classRows.find(c => key(c.name) === key(student.class));
+      const seen = new Set();
+      return [...(row ? row.subjects : []), ...(student.subjects || [])].filter(sub => {
+        const k = key(sub);
+        if (!k || seen.has(k)) return false;
+        seen.add(k);
+        return true;
+      });
+    };
+    return { classRows, setClassRows, classes: names, subjectsFor, allSubjects, studentSubjects };
   }, [classRows, setClassRows]);
 
   return <ClassSetupContext.Provider value={value}>{children}</ClassSetupContext.Provider>;
