@@ -36,7 +36,7 @@ function LoadingScreen() {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', gap: 14, alignItems: 'center', justifyContent: 'center', color: '#5D7291', fontFamily: 'Calibri, sans-serif' }}>
-      <div>Loading ClassRoll…</div>
+      <div>Loading Assessly…</div>
       {showRetry && (
         <div style={{ textAlign: 'center', fontSize: 13 }}>
           <div style={{ marginBottom: 8 }}>This is taking longer than expected.</div>

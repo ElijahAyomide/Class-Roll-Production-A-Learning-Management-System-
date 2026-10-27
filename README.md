@@ -1,4 +1,4 @@
-# ClassRoll — School Exam Management (Admin Dashboard)
+# Assessly — School Exam Management (Admin Dashboard)
 
 A dashboard for secondary school administrators to manage students, upload
 exam questions, sell exam licenses, and view results the moment students

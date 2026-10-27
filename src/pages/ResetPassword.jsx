@@ -54,7 +54,7 @@ export default function ResetPassword() {
           <div className="login-brand">
             <div className="brand-mark brand-mark-lg">CR</div>
             <div>
-              <div className="login-brand-name">ClassRoll</div>
+              <div className="login-brand-name">Assessly</div>
               <div className="login-brand-tag">Choose a new password</div>
             </div>
           </div>

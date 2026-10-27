@@ -732,6 +732,7 @@ button, input, select { font-family: inherit; }
   .print-subtitle { font-size: 10px; color: #333; }
   .print-filter-line { margin: 0 0 8px; font-size: 10.5px; color: #222; }
 
+  .print-section { font-size: 11px; font-weight: 700; margin: 10px 0 4px; }
   .print-student-box { display: flex; gap: 24px; margin: 4px 0 12px; padding: 8px 10px; border: 1px solid #000; }
   .print-student-box span { display: block; font-size: 9.5px; text-transform: uppercase; color: #444; }
   .print-student-box b { font-size: 13px; }

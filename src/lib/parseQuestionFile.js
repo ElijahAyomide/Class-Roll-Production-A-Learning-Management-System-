@@ -29,7 +29,7 @@ export function parseQuestionFile(file) {
             items: [],
             errors: [
               `The header row doesn't match the expected template. Expected columns: ${EXPECTED_HEADERS.join(', ')}. ` +
-              'Please use the ClassRoll question template without renaming or reordering columns.',
+              'Please use the Assessly question template without renaming or reordering columns.',
             ],
           });
           return;
@@ -76,7 +76,7 @@ export function parseQuestionFile(file) {
 
         resolve({ items, errors });
       } catch (err) {
-        reject(new Error('This file could not be read as an Excel spreadsheet. Make sure it\'s a .xlsx file saved from the ClassRoll template.'));
+        reject(new Error('This file could not be read as an Excel spreadsheet. Make sure it\'s a .xlsx file saved from the Assessly template.'));
       }
     };
     reader.readAsArrayBuffer(file);

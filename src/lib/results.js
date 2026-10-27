@@ -41,3 +41,11 @@ export async function deleteResult(id) {
   if (error) throw error;
   if (!data || data.length === 0) throw new Error('That result could not be deleted. Refresh the page and try again.');
 }
+
+// Removes several results at once (every subject of one sitting).
+export async function deleteResults(ids) {
+  if (!ids.length) return;
+  const { data, error } = await supabase.from('results').delete().in('id', ids).select('id');
+  if (error) throw error;
+  if (!data || data.length !== ids.length) throw new Error('Some results could not be deleted. Refresh the page and try again.');
+}

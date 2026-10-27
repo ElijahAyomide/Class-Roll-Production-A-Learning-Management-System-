@@ -151,7 +151,7 @@ export default function QuestionBank({ questions, setQuestions, students = [], l
             <p className="panel-sub">Upload, organise and reuse questions for every assessment.</p>
           </div>
           <div className="panel-actions">
-            <a className="btn-ghost" href="/templates/classroll-question-template.xlsx" download><Download size={15} /> Download template</a>
+            <a className="btn-ghost" href="/templates/assessly-question-template.xlsx" download><Download size={15} /> Download template</a>
             <button className="btn-primary" onClick={() => setUploading(true)}><Upload size={15} /> Upload questions</button>
           </div>
         </div>
@@ -299,8 +299,8 @@ export default function QuestionBank({ questions, setQuestions, students = [], l
                 onChange={e => { setForm({ ...form, file: e.target.files[0] || null }); setError(''); setRowErrors([]); }}
               />
               <div className="field-hint">
-                Use the ClassRoll question template — one row per question, with the correct answer marked A, B, C, or D.
-                {' '}<a href="/templates/classroll-question-template.xlsx" download className="template-download-link">
+                Use the Assessly question template — one row per question, with the correct answer marked A, B, C, or D.
+                {' '}<a href="/templates/assessly-question-template.xlsx" download className="template-download-link">
                   <Download size={11} /> Download the template
                 </a>
               </div>

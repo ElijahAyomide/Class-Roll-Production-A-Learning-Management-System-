@@ -23,7 +23,7 @@ export function buildStudentRows(rawRows, classRows) {
   if (nameCol === -1 || classCol === -1) {
     return {
       students: [],
-      errors: [`The header row must include the columns "Full Name" and "Class" (and optionally "Subjects"). Please use the ClassRoll student template.`],
+      errors: [`The header row must include the columns "Full Name" and "Class" (and optionally "Subjects"). Please use the Assessly student template.`],
     };
   }
 
@@ -96,7 +96,7 @@ export function parseStudentFile(file, classRows) {
         const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1, blankrows: false });
         resolve(buildStudentRows(rows, classRows));
       } catch {
-        reject(new Error("This file couldn't be read as an Excel spreadsheet. Make sure it's a .xlsx file saved from the ClassRoll student template."));
+        reject(new Error("This file couldn't be read as an Excel spreadsheet. Make sure it's a .xlsx file saved from the Assessly student template."));
       }
     };
     reader.readAsArrayBuffer(file);
@@ -132,5 +132,5 @@ export function downloadStudentTemplate(classRows) {
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, studentsSheet, 'Students');
   XLSX.utils.book_append_sheet(wb, guide, 'Your Classes');
-  XLSX.writeFile(wb, 'classroll-student-template.xlsx');
+  XLSX.writeFile(wb, 'assessly-student-template.xlsx');
 }

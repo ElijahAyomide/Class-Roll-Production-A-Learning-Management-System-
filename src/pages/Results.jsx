@@ -2,7 +2,8 @@ import React, { useMemo, useRef, useState, useEffect } from 'react';
 import * as XLSX from 'xlsx';
 import { Search, Printer, FileText, Download, ChevronDown, Check, ClipboardCheck, BarChart3, CheckCircle2, Trophy, Trash2 } from 'lucide-react';
 import Modal from '../components/Modal';
-import { deleteResult } from '../lib/results';
+import { deleteResults } from '../lib/results';
+import { groupSittings, pctText } from '../lib/resultSittings';
 import { useClassSetup } from '../context/ClassSetupContext';
 import { useSchool } from '../context/SchoolContext';
 import { useScrollHandoff } from '../lib/useScrollHandoff';
@@ -33,19 +34,21 @@ export default function Results({ results, setResults, license }) {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [printJob, setPrintJob] = useState(null);
-  const [confirmDelete, setConfirmDelete] = useState(null); // the result about to be deleted
+  const [confirmDelete, setConfirmDelete] = useState(null); // the results about to be deleted (one, or every subject of a sitting)
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
 
+  const askDelete = (items) => { setDeleteError(''); setConfirmDelete(items); };
   const doDelete = async () => {
     setDeleting(true);
     setDeleteError('');
     try {
-      await deleteResult(confirmDelete.id);
-      setResults(prev => prev.filter(r => r.id !== confirmDelete.id));
+      const ids = confirmDelete.map(r => r.id);
+      await deleteResults(ids);
+      setResults(prev => prev.filter(r => !ids.includes(r.id)));
       setConfirmDelete(null);
     } catch (err) {
-      setDeleteError(err.message || 'Could not delete this result. Please try again.');
+      setDeleteError(err.message || 'Could not delete. Please try again.');
     } finally {
       setDeleting(false);
     }
@@ -92,53 +95,51 @@ export default function Results({ results, setResults, license }) {
 
   const startPrint = (job) => setPrintJob({ ...job, key: Date.now() });
 
+  // Same layout as the page: a sheet per class for subjects taken together
+  // (one column per subject, then a total), and a sheet for single-subject results.
   const exportExcel = () => {
-    const rows = filtered.map((r, i) => ({
-      '#': i + 1, Student: r.studentName, Username: r.username, Class: r.class, Subject: r.subject,
-      Type: r.type, Title: r.exam, Date: r.date, Score: r.score, Total: r.total,
-    }));
-    const sheet = XLSX.utils.json_to_sheet(rows);
-    sheet['!cols'] = [{ wch: 4 }, { wch: 26 }, { wch: 16 }, { wch: 10 }, { wch: 20 }, { wch: 8 }, { wch: 26 }, { wch: 12 }, { wch: 7 }, { wch: 7 }];
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, sheet, 'Results');
-    XLSX.writeFile(wb, `classroll-results-${new Date().toISOString().slice(0, 10)}.xlsx`);
+    wb.Props = { Title: 'Assessly results', Author: 'Assessly', Company: school.name };
+    const { tables, singles: single } = groupSittings(filtered, sortBy);
+    const usedNames = new Set();
+    const sheetName = (base) => {
+      let name = base.replace(/[\\/?*[\]:]/g, ' ').slice(0, 31).trim() || 'Sheet';
+      let n = 2;
+      while (usedNames.has(name.toLowerCase())) name = `${name.slice(0, 28)} ${n++}`;
+      usedNames.add(name.toLowerCase());
+      return name;
+    };
+    for (const t of tables) {
+      const rows = t.rows.map((row, i) => {
+        const out = { '#': i + 1, Student: row.studentName, Username: row.username, Class: row.class, Type: row.type === 'exam' ? 'Exam' : 'Test', Date: row.date };
+        for (const sub of t.subjects) {
+          const r = row.cells.get(sub);
+          out[sub] = r ? `${r.score} / ${r.total}` : '';
+        }
+        out.Total = `${row.score} / ${row.max}`;
+        out['Percent'] = pctText(row.pct);
+        return out;
+      });
+      const sheet = XLSX.utils.json_to_sheet(rows);
+      sheet['!cols'] = [{ wch: 4 }, { wch: 26 }, { wch: 16 }, { wch: 10 }, { wch: 8 }, { wch: 12 }, ...t.subjects.map(() => ({ wch: 16 })), { wch: 12 }, { wch: 9 }];
+      XLSX.utils.book_append_sheet(wb, sheet, sheetName(`${t.cls} - subjects together`));
+    }
+    if (single.length > 0 || tables.length === 0) {
+      const rows = single.map((r, i) => ({
+        '#': i + 1, Student: r.studentName, Username: r.username, Class: r.class, Subject: r.subject,
+        Type: r.type, Title: r.exam, Date: r.date, Score: r.score, Total: r.total,
+      }));
+      const sheet = XLSX.utils.json_to_sheet(rows);
+      sheet['!cols'] = [{ wch: 4 }, { wch: 26 }, { wch: 16 }, { wch: 10 }, { wch: 20 }, { wch: 8 }, { wch: 26 }, { wch: 12 }, { wch: 7 }, { wch: 7 }];
+      XLSX.utils.book_append_sheet(wb, sheet, sheetName(tables.length ? 'Single subject' : 'Results'));
+    }
+    XLSX.writeFile(wb, `assessly-results-${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
   const hasRows = filtered.length > 0;
 
-  // Subjects taken together in one sitting are shown side by side: one row per
-  // student per sitting, one column per subject, then a total. Anything that
-  // is a single subject stays in the normal list.
-  const { sittingTables, singles } = useMemo(() => {
-    const bySitting = new Map();
-    const singles = [];
-    for (const r of filtered) {
-      if (!r.groupId) { singles.push(r); continue; }
-      if (!bySitting.has(r.groupId)) bySitting.set(r.groupId, []);
-      bySitting.get(r.groupId).push(r);
-    }
-    const byClass = new Map();
-    for (const [groupId, list] of bySitting) {
-      if (list.length < 2) { singles.push(...list); continue; }
-      const first = list[0];
-      const cells = new Map(list.map(r => [r.subject, r]));
-      const score = list.reduce((n, r) => n + r.score, 0);
-      const max = list.reduce((n, r) => n + r.total, 0);
-      const row = { key: groupId, studentName: first.studentName, username: first.username, class: first.class, type: first.type, date: first.date, cells, score, max, pct: max ? (score / max) * 100 : 0 };
-      if (!byClass.has(first.class)) byClass.set(first.class, []);
-      byClass.get(first.class).push(row);
-    }
-    const sorter = (a, b) => sortBy === 'name' ? a.studentName.localeCompare(b.studentName) : sortBy === 'score' ? b.pct - a.pct : 0;
-    const tables = [...byClass.entries()].map(([cls, rows]) => ({
-      cls,
-      subjects: [...new Set(rows.flatMap(r => [...r.cells.keys()]))].sort(),
-      rows: [...rows].sort(sorter),
-    }));
-    // Keep singles in the same order as the filtered list.
-    const order = new Map(filtered.map((r, i) => [r.id, i]));
-    singles.sort((a, b) => order.get(a.id) - order.get(b.id));
-    return { sittingTables: tables, singles };
-  }, [filtered, sortBy]);
+  // Subjects taken together in one sitting are shown side by side (see lib/resultSittings.js).
+  const { tables: sittingTables, singles } = useMemo(() => groupSittings(filtered, sortBy), [filtered, sortBy]);
 
   // Summary cards follow whatever filters are applied. 50% is used as the pass mark.
   const PASS_MARK = 50;
@@ -297,16 +298,18 @@ export default function Results({ results, setResults, license }) {
                               return (
                                 <td key={sub} data-label={sub} className="sitting-cell">
                                   {r ? (
-                                    <span className="sitting-score">
-                                      <b>{r.score} / {r.total}</b>
-                                      <button className="row-delete row-delete-sm" title={`Delete ${sub} result`} aria-label={`Delete ${row.studentName}'s ${sub} result`} onClick={() => { setDeleteError(''); setConfirmDelete(r); }}><Trash2 size={13} /></button>
-                                    </span>
+                                    <span className="sitting-score"><b>{r.score} / {r.total}</b></span>
                                   ) : <span className="sitting-none">—</span>}
                                 </td>
                               );
                             })}
-                            <td className="sitting-total"><b>{row.score} / {row.max}</b><span className="cell-sub">{fmt(row.pct)}</span></td>
-                            <td><button className="link-btn" onClick={() => startPrint({ kind: 'slip', username: row.username })}>View result</button></td>
+                            <td className="sitting-total"><b>{row.score} / {row.max}</b><span className="cell-sub">{pctText(row.pct)}</span></td>
+                            <td>
+                              <div className="report-cell">
+                                <button className="link-btn" onClick={() => startPrint({ kind: 'slip', username: row.username })}>View result</button>
+                                <button className="row-delete" title={`Delete all ${row.items.length} results`} aria-label={`Delete all of ${row.studentName}'s results from this sitting`} onClick={() => askDelete(row.items)}><Trash2 size={15} /></button>
+                              </div>
+                            </td>
                           </tr>
                         ))}
                       </tbody>
@@ -351,7 +354,7 @@ export default function Results({ results, setResults, license }) {
                           <td>
                             <div className="report-cell">
                               <button className="link-btn" onClick={() => startPrint({ kind: 'slip', username: r.username })}>View result</button>
-                              <button className="row-delete" title="Delete this result" aria-label={`Delete ${r.studentName}'s ${r.subject} result`} onClick={() => { setDeleteError(''); setConfirmDelete(r); }}><Trash2 size={15} /></button>
+                              <button className="row-delete" title="Delete this result" aria-label={`Delete ${r.studentName}'s ${r.subject} result`} onClick={() => askDelete([r])}><Trash2 size={15} /></button>
                             </div>
                           </td>
                         </tr>
@@ -377,26 +380,25 @@ export default function Results({ results, setResults, license }) {
       </DashboardLayout>
 
       {confirmDelete && (
-        <Modal title="Delete this result?" onClose={() => !deleting && setConfirmDelete(null)} width={420}>
+        <Modal title={confirmDelete.length > 1 ? 'Delete these results?' : 'Delete this result?'} onClose={() => !deleting && setConfirmDelete(null)} width={420}>
           <div className="password-confirm-summary" style={{ marginBottom: '1em' }}>
             <span>
-              <b>{confirmDelete.studentName}</b> · {confirmDelete.class}<br />
-              {confirmDelete.subject} · {confirmDelete.type === 'exam' ? 'Exam' : 'Test'} · {confirmDelete.exam}<br />
-              Score: {confirmDelete.score} / {confirmDelete.total}{confirmDelete.date ? ` · ${confirmDelete.date}` : ''}
+              <b>{confirmDelete[0].studentName}</b> · {confirmDelete[0].class} · {confirmDelete[0].type === 'exam' ? 'Exam' : 'Test'}{confirmDelete[0].date ? ` · ${confirmDelete[0].date}` : ''}
+              {confirmDelete.map(r => <React.Fragment key={r.id}><br />{r.subject}: {r.score} / {r.total}</React.Fragment>)}
             </span>
           </div>
           <p className="confirm-text">
-            This removes the result permanently, and it will no longer count in your reports or averages. It does not give the student a new attempt or refund any credit.
+            {confirmDelete.length > 1 ? `This removes all ${confirmDelete.length} subject results of this sitting permanently` : 'This removes the result permanently'}, and {confirmDelete.length > 1 ? 'they' : 'it'} will no longer count in your reports or averages. It does not give the student a new attempt or refund any credit.
           </p>
           {deleteError && <div className="error-text" style={{ marginBottom: '0.8em' }}>{deleteError}</div>}
           <div className="confirm-actions">
-            <button className="btn-ghost" disabled={deleting} onClick={() => setConfirmDelete(null)}>Keep result</button>
-            <button className="btn-danger" disabled={deleting} onClick={doDelete}>{deleting ? 'Deleting…' : 'Delete result'}</button>
+            <button className="btn-ghost" disabled={deleting} onClick={() => setConfirmDelete(null)}>Keep {confirmDelete.length > 1 ? 'results' : 'result'}</button>
+            <button className="btn-danger" disabled={deleting} onClick={doDelete}>{deleting ? 'Deleting…' : confirmDelete.length > 1 ? 'Delete all' : 'Delete result'}</button>
           </div>
         </Modal>
       )}
 
-      <ResultsPrintSheet school={school} job={printJob} rows={filtered} filterSummary={filterSummary} />
+      <ResultsPrintSheet school={school} job={printJob} rows={filtered} sortBy={sortBy} filterSummary={filterSummary} />
     </>
   );
 }
