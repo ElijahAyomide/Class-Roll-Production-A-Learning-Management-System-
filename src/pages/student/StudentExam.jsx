@@ -243,6 +243,7 @@ export default function StudentExam() {
 
   return (
     <div className="sp-exam-screen">
+      <div className="sp-exam-sticky">
       <header className="sp-exam-header">
         <div className="sp-exam-header-main">
           <div className="sp-exam-header-icon"><ClipboardCheck size={20} /></div>
@@ -266,6 +267,7 @@ export default function StudentExam() {
           <AlertTriangle size={16} /> Less than 3 minutes left!
         </div>
       )}
+      </div>
       {submitError && <div className="sp-exam-error">{submitError}</div>}
 
       <div className="sp-exam-grid">

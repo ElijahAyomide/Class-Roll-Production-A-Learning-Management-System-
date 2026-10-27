@@ -1581,10 +1581,10 @@ button, input, select { font-family: inherit; }
 .sp-side-name { font-size: 0.88em; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sp-side-class { font-size: 0.75em; color: var(--ink-dim); margin-top: 0.15em; }
 .sp-side-signout {
-  width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 0.5em; background: #fff; color: var(--ink);
-  border: 1px solid #E4E6F0; border-radius: 0.7em; padding: 0.65em 0.5em; font-size: 0.8em; font-weight: 500; cursor: pointer;
+  width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 0.5em; background: #fff; color: var(--red);
+  border: 1px solid #F0C9C2; border-radius: 0.7em; padding: 0.65em 0.5em; font-size: 0.8em; font-weight: 500; cursor: pointer;
 }
-.sp-side-signout:hover { background: #F6F7FD; }
+.sp-side-signout:hover { background: var(--red-bg); }
 
 /* Main */
 .sp-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
@@ -1649,7 +1649,7 @@ button, input, select { font-family: inherit; }
 .sp-rail-steps span:not(.sp-rail-num) { display: block; font-size: 0.78em; color: #D5DEFF; margin-top: 0.2em; line-height: 1.45; }
 
 /* Exam */
-.sp-exam-screen { padding: 1.4em 2em 2em; display: flex; flex-direction: column; gap: 1.1em; max-width: 78em; margin: 0 auto; background: transparent; min-height: 0; }
+.sp-exam-screen { padding: 0 2em 2em; display: flex; flex-direction: column; gap: 1.1em; max-width: 78em; margin: 0 auto; background: transparent; min-height: 0; }
 body:has(.sp-exam-screen) { background: #EEF0F9; }
 .sp-exam-center { min-height: 100vh; align-items: center; justify-content: center; }
 .sp-exam-header {
@@ -1726,7 +1726,7 @@ body:has(.sp-exam-screen) { background: #EEF0F9; }
   .sp-mobile-bar { display: flex; align-items: center; justify-content: space-between; padding: 0.9em 1.2em; background: #fff; box-shadow: 0 0.1em 0.8em rgba(56,93,233,0.06); }
   .sp-mobile-brand { display: flex; align-items: center; gap: 0.6em; font-weight: 500; font-size: 1.1em; }
   .sp-mobile-brand img { height: 1.9em; width: auto; }
-  .sp-mobile-signout { width: 2.4em; height: 2.4em; border-radius: 50%; border: 0; background: #F1F3FA; color: var(--ink); display: grid; place-items: center; cursor: pointer; }
+  .sp-mobile-signout { width: 2.4em; height: 2.4em; border-radius: 50%; border: 1px solid #F0C9C2; background: #fff; color: var(--red); display: grid; place-items: center; cursor: pointer; }
   .sp-topbar { padding: 1.4em 1.4em 0.2em; }
   .sp-topbar-school { display: none; }
   .sp-content { padding: 1em 1.4em 1.2em; }
@@ -1762,3 +1762,35 @@ body:has(.sp-exam-screen) { background: #EEF0F9; }
   .sp-progress-text { order: 3; width: 100%; text-align: center; }
   .sp-exam-footer .sp-btn-ghost, .sp-exam-footer .sp-btn-primary { flex: 1; justify-content: center; }
 }
+
+/* Results: date filter */
+.date-range { display: flex; align-items: center; gap: 0.6em; flex-wrap: wrap; }
+.select-pill.date-pill { gap: 0.6em; padding-left: 1em; font-size: 0.88em; }
+.select-pill.date-pill span { color: var(--ink-dim); }
+.select-pill.date-pill input { border: 0; background: transparent; font: inherit; color: var(--ink); padding: 0.8em 0.9em 0.8em 0; outline: none; cursor: pointer; }
+.date-range .link-btn { font-size: 0.85em; }
+@media (max-width: 720px) { .date-range { width: 100%; } .date-range .select-pill { flex: 1 1 8em; } }
+
+/* Student exam: the header (timer + Submit all) stays on screen while scrolling */
+.sp-exam-header { position: sticky; top: 0.6em; z-index: 20; }
+.sp-exam-alert { position: sticky; top: 5.4em; z-index: 19; }
+
+/* Student Sign out buttons match the admin Sign out button (white, red text, soft red border) */
+.sp-side-signout, .sp-mobile-signout { background: #fff; color: var(--red); border: 1px solid #F0C9C2; }
+.sp-side-signout:hover, .sp-mobile-signout:hover { background: var(--red-bg); }
+
+/* Exam header stays on screen while the student scrolls, so the clock is always visible */
+.sp-exam-sticky { position: sticky; top: 0; z-index: 20; background: #EEF0F9; padding: 1em 0 0.5em; display: flex; flex-direction: column; gap: 0.7em; }
+@media (max-width: 1100px) { .sp-exam-screen { padding: 0 1.2em 1.6em; } }
+@media (max-width: 720px) {
+  .sp-exam-screen { padding: 0 0.8em 1.4em; }
+  .sp-exam-sticky { padding: 0.6em 0 0.4em; }
+  .sp-exam-header { padding: 0.7em 0.9em; gap: 0.6em; }
+  .sp-exam-header-icon { display: none; }
+  .sp-exam-title { font-size: 1em; }
+}
+
+/* Results: delete */
+.report-cell { display: flex; align-items: center; gap: 0.9em; white-space: nowrap; }
+.row-delete { border: 0; background: none; color: var(--ink-faint); width: 2em; height: 2em; display: inline-grid; place-items: center; border-radius: 0.5em; cursor: pointer; }
+.row-delete:hover { background: var(--red-bg); color: var(--red); }

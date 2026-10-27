@@ -1,6 +1,8 @@
 import React, { useMemo, useRef, useState, useEffect } from 'react';
 import * as XLSX from 'xlsx';
-import { Search, Printer, FileDown, FileText, Download, ChevronDown, Check, ClipboardCheck, BarChart3, CheckCircle2, Trophy } from 'lucide-react';
+import { Search, Printer, FileText, Download, ChevronDown, Check, ClipboardCheck, BarChart3, CheckCircle2, Trophy, Trash2 } from 'lucide-react';
+import Modal from '../components/Modal';
+import { deleteResult } from '../lib/results';
 import { useClassSetup } from '../context/ClassSetupContext';
 import { useSchool } from '../context/SchoolContext';
 import { useScrollHandoff } from '../lib/useScrollHandoff';
@@ -9,7 +11,14 @@ import AdminRail from '../components/AdminRail';
 import { percentOf, resultStats } from '../lib/resultStats';
 import ResultsPrintSheet from '../components/ResultsPrintSheet';
 
-export default function Results({ results, license }) {
+// The calendar day (YYYY-MM-DD, Nigerian time) a result was submitted.
+function resultDay(r) {
+  const d = r.createdAt ? new Date(r.createdAt) : new Date(r.date);
+  if (isNaN(d)) return '';
+  return d.toLocaleDateString('en-CA', { timeZone: 'Africa/Lagos' });
+}
+
+export default function Results({ results, setResults, license }) {
   const { school } = useSchool();
   const cardRef = useRef(null);
   useScrollHandoff(cardRef);
@@ -21,7 +30,26 @@ export default function Results({ results, license }) {
   const [subjectFilter, setSubjectFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [printJob, setPrintJob] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(null); // the result about to be deleted
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+
+  const doDelete = async () => {
+    setDeleting(true);
+    setDeleteError('');
+    try {
+      await deleteResult(confirmDelete.id);
+      setResults(prev => prev.filter(r => r.id !== confirmDelete.id));
+      setConfirmDelete(null);
+    } catch (err) {
+      setDeleteError(err.message || 'Could not delete this result. Please try again.');
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const filtered = useMemo(() => {
     const list = results.filter(r => {
@@ -31,12 +59,17 @@ export default function Results({ results, license }) {
       const matchesClass = classFilter === 'all' || r.class === classFilter;
       const matchesSubject = subjectFilter === 'all' || r.subject === subjectFilter;
       const matchesType = typeFilter === 'all' || r.type === typeFilter;
-      return matchesSearch && matchesClass && matchesSubject && matchesType;
+      let matchesDate = true;
+      if (dateFrom || dateTo) {
+        const day = resultDay(r);
+        matchesDate = !!day && (!dateFrom || day >= dateFrom) && (!dateTo || day <= dateTo);
+      }
+      return matchesSearch && matchesClass && matchesSubject && matchesType && matchesDate;
     });
     if (sortBy === 'name') return [...list].sort((a, b) => a.studentName.localeCompare(b.studentName));
     if (sortBy === 'score') return [...list].sort((a, b) => percentOf(b) - percentOf(a));
     return list; // newest first, as loaded
-  }, [results, search, classFilter, subjectFilter, typeFilter, sortBy]);
+  }, [results, search, classFilter, subjectFilter, typeFilter, sortBy, dateFrom, dateTo]);
 
   // A plain-English line describing what's being printed, e.g.
   // "Class: JSS1 · Subject: Mathematics · Exams only".
@@ -44,6 +77,7 @@ export default function Results({ results, license }) {
     classFilter !== 'all' ? `Class: ${classFilter}` : 'All classes',
     subjectFilter !== 'all' ? `Subject: ${subjectFilter}` : 'All subjects',
     typeFilter === 'test' ? 'Tests only' : typeFilter === 'exam' ? 'Exams only' : 'Tests & exams',
+    dateFrom || dateTo ? `Date: ${dateFrom || 'start'} to ${dateTo || 'today'}` : null,
     search.trim() ? `Search: "${search.trim()}"` : null,
   ].filter(Boolean).join(' · ');
 
@@ -182,6 +216,15 @@ export default function Results({ results, license }) {
                 </select>
                 <ChevronDown size={15} />
               </label>
+              <div className="date-range" role="group" aria-label="Filter by date">
+                <label className="select-pill date-pill"><span>From</span>
+                  <input type="date" value={dateFrom} max={dateTo || undefined} onChange={e => setDateFrom(e.target.value)} />
+                </label>
+                <label className="select-pill date-pill"><span>To</span>
+                  <input type="date" value={dateTo} min={dateFrom || undefined} onChange={e => setDateTo(e.target.value)} />
+                </label>
+                {(dateFrom || dateTo) && <button type="button" className="link-btn" onClick={() => { setDateFrom(''); setDateTo(''); }}>Clear dates</button>}
+              </div>
             </div>
 
             <div className="table-wrap">
@@ -197,7 +240,7 @@ export default function Results({ results, license }) {
                 </thead>
                 <tbody>
                   {filtered.length === 0 ? (
-                    <tr><td colSpan={5} className="empty-note-cell">{results.length === 0 ? 'No results yet. They appear here the moment a student submits.' : 'No results match your search.'}</td></tr>
+                    <tr><td colSpan={5} className="empty-note-cell">{results.length === 0 ? 'No results yet. They appear here the moment a student submits.' : 'No results match your search or filters.'}</td></tr>
                   ) : filtered.map(r => (
                     <tr key={r.id}>
                       <td>
@@ -215,7 +258,12 @@ export default function Results({ results, license }) {
                         <span className="cell-sub">{r.type === 'exam' ? 'Exam' : 'Test'} · {r.exam}{r.date ? ` · ${r.date}` : ''}</span>
                       </td>
                       <td className="cell-strong">{r.score} / {r.total}</td>
-                      <td><button className="link-btn" onClick={() => startPrint({ kind: 'slip', username: r.username })}>View result</button></td>
+                      <td>
+                        <div className="report-cell">
+                          <button className="link-btn" onClick={() => startPrint({ kind: 'slip', username: r.username })}>View result</button>
+                          <button className="row-delete" title="Delete this result" aria-label={`Delete ${r.studentName}'s ${r.subject} result`} onClick={() => { setDeleteError(''); setConfirmDelete(r); }}><Trash2 size={15} /></button>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -235,6 +283,26 @@ export default function Results({ results, license }) {
           <span>© {new Date().getFullYear()} Assessly</span>
         </div>
       </DashboardLayout>
+
+      {confirmDelete && (
+        <Modal title="Delete this result?" onClose={() => !deleting && setConfirmDelete(null)} width={420}>
+          <div className="password-confirm-summary" style={{ marginBottom: '1em' }}>
+            <span>
+              <b>{confirmDelete.studentName}</b> · {confirmDelete.class}<br />
+              {confirmDelete.subject} · {confirmDelete.type === 'exam' ? 'Exam' : 'Test'} · {confirmDelete.exam}<br />
+              Score: {confirmDelete.score} / {confirmDelete.total}{confirmDelete.date ? ` · ${confirmDelete.date}` : ''}
+            </span>
+          </div>
+          <p className="confirm-text">
+            This removes the result permanently, and it will no longer count in your reports or averages. It does not give the student a new attempt or refund any credit.
+          </p>
+          {deleteError && <div className="error-text" style={{ marginBottom: '0.8em' }}>{deleteError}</div>}
+          <div className="confirm-actions">
+            <button className="btn-ghost" disabled={deleting} onClick={() => setConfirmDelete(null)}>Keep result</button>
+            <button className="btn-danger" disabled={deleting} onClick={doDelete}>{deleting ? 'Deleting…' : 'Delete result'}</button>
+          </div>
+        </Modal>
+      )}
 
       <ResultsPrintSheet school={school} job={printJob} rows={filtered} filterSummary={filterSummary} />
     </>
