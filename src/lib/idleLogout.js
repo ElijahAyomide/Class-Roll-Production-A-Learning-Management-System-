@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from './supabaseClient';
+import { migrateKey } from './legacyStorage';
 
 // Signs an admin out for security when:
 //   - they have not touched the page for IDLE_LIMIT (walked away), or
@@ -14,8 +15,10 @@ export const IDLE_LIMIT_MS = 30 * 60 * 1000; // 30 minutes without activity
 const WARN_MS = 2 * 60 * 1000;               // warn during the last 2 minutes
 const SLEEP_GAP_MS = 3 * 60 * 1000;          // a gap this long between checks means the computer slept
 const CHECK_EVERY_MS = 5000;
-const ACTIVITY_KEY = 'classroll-last-activity';
-export const SIGNOUT_REASON_KEY = 'classroll-signout-reason';
+const ACTIVITY_KEY = 'assessly-last-activity';
+export const SIGNOUT_REASON_KEY = 'assessly-signout-reason';
+migrateKey('classroll-last-activity', ACTIVITY_KEY);
+migrateKey('classroll-signout-reason', SIGNOUT_REASON_KEY, sessionStorage);
 
 function readActivity() {
   try { return JSON.parse(localStorage.getItem(ACTIVITY_KEY) || 'null'); } catch { return null; }

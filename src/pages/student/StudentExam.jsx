@@ -4,6 +4,7 @@ import { Clock, CheckCircle2, ArrowLeft, ArrowRight, AlertTriangle, ClipboardChe
 import { useStudentSession } from '../../context/StudentSessionContext';
 import Modal from '../../components/Modal';
 import { studentApi } from '../../lib/studentApi';
+import { migrateKey } from '../../lib/legacyStorage';
 
 export function formatTime(totalSeconds) {
   const h = Math.floor(totalSeconds / 3600);
@@ -17,8 +18,9 @@ export function formatTime(totalSeconds) {
 // sign-out), with a copy in the browser as a backup for a bad connection.
 // The TIMER lives on the server too: one clock for the whole sitting.
 // Shape of `answers` everywhere on this page: { [subjectId]: { [questionId]: 0-3 } }
-const backupKey = (id) => `classroll-answers-${id}`;
+const backupKey = (id) => `assessly-answers-${id}`;
 function loadBackup(id) {
+  migrateKey(`classroll-answers-${id}`, backupKey(id));
   try { return JSON.parse(localStorage.getItem(backupKey(id)) || '{}'); } catch { return {}; }
 }
 function saveBackup(id, answers) {

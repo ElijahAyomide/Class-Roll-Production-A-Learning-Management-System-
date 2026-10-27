@@ -1,7 +1,11 @@
 import React, { createContext, useContext, useState } from 'react';
+import { migrateKey } from '../lib/legacyStorage';
 
 const StudentSessionContext = createContext(null);
-const STORAGE_KEY = 'classroll-student-token';
+const STORAGE_KEY = 'assessly-student-token';
+// Names used before the app was renamed. The old token is carried over so students stay signed in;
+// the very old id-based session is only ever deleted.
+migrateKey('classroll-student-token', STORAGE_KEY);
 const OLD_STORAGE_KEY = 'classroll-student-session';
 
 export function StudentSessionProvider({ children }) {

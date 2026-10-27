@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient';
+import { migrateKey } from './legacyStorage';
 
 // "Remember me" on the sign-in page.
 //   Ticked   -> the admin stays signed in on this computer (normal behaviour).
@@ -6,8 +7,10 @@ import { supabase } from './supabaseClient';
 // While the app is open it writes a heartbeat; when it opens again, a stale
 // heartbeat means the browser was closed in between.
 
-const MODE_KEY = 'classroll-remember-mode'; // 'session' when "Remember me" was left unticked
-const BEAT_KEY = 'classroll-heartbeat';
+const MODE_KEY = 'assessly-remember-mode'; // 'session' when "Remember me" was left unticked
+const BEAT_KEY = 'assessly-heartbeat';
+migrateKey('classroll-remember-mode', MODE_KEY);
+migrateKey('classroll-heartbeat', BEAT_KEY);
 const STALE_MS = 90 * 1000;
 const BEAT_EVERY_MS = 15 * 1000;
 
