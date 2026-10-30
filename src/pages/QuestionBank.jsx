@@ -13,7 +13,7 @@ import { createQuestion, deleteQuestion } from '../lib/questions';
 import { createQuestionItems } from '../lib/questionItems';
 import { parseQuestionFile } from '../lib/parseQuestionFile';
 
-const DEFAULT_TITLES = { test: 'Mid-Term Test', exam: 'First Term Examination' };
+const DEFAULT_TITLE = 'Question Set';
 
 export default function QuestionBank({ questions, setQuestions, students = [], license }) {
   const { classes: CLASSES, subjectsFor: subjectPoolForClass } = useClassSetup();
@@ -22,7 +22,6 @@ export default function QuestionBank({ questions, setQuestions, students = [], l
   useScrollHandoff(cardRef);
   const [classFilter, setClassFilter] = useState('all');
   const [subjectFilter, setSubjectFilter] = useState('all');
-  const [typeFilter, setTypeFilter] = useState('all');
   const [uploading, setUploading] = useState(false);
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
@@ -33,7 +32,7 @@ export default function QuestionBank({ questions, setQuestions, students = [], l
   // Students who have this set assigned but haven't submitted it yet.
   const pendingFor = (q) => students.reduce(
     (n, s) => n + ((s.assignments || []).some(a => a.questionId === q.id && !a.completed) ? 1 : 0), 0);
-  const [form, setForm] = useState({ type: 'test', title: DEFAULT_TITLES.test, class: CLASSES[0] || '', subject: '', file: null });
+  const [form, setForm] = useState({ title: DEFAULT_TITLE, class: CLASSES[0] || '', subject: '', file: null });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [rowErrors, setRowErrors] = useState([]);
@@ -44,12 +43,11 @@ export default function QuestionBank({ questions, setQuestions, students = [], l
     return questions.filter(q => {
       const matchesClass = classFilter === 'all' || q.class === classFilter;
       const matchesSubject = subjectFilter === 'all' || q.subject === subjectFilter;
-      const matchesType = typeFilter === 'all' || q.type === typeFilter;
       const term = search.trim().toLowerCase();
       const matchesSearch = !term || [q.title, q.subject, q.class, q.fileName].some(v => (v || '').toLowerCase().includes(term));
-      return matchesClass && matchesSubject && matchesType && matchesSearch;
+      return matchesClass && matchesSubject && matchesSearch;
     });
-  }, [questions, classFilter, subjectFilter, typeFilter, search]);
+  }, [questions, classFilter, subjectFilter, search]);
 
 
   const allSubjects = [...new Set(questions.map(q => q.subject))];
@@ -80,13 +78,13 @@ export default function QuestionBank({ questions, setQuestions, students = [], l
       // Only reaches here once every row parsed cleanly — so the set is
       // created as "ready" immediately, with a real, accurate question count.
       const saved = await createQuestion(school.id, {
-        title: form.title, subject: form.subject, class: form.class, type: form.type,
+        title: form.title, subject: form.subject, class: form.class, type: 'test',
         fileName: form.file.name, questionCount: items.length, status: 'ready',
       });
       await createQuestionItems(saved.id, items);
 
       setQuestions(prev => [saved, ...prev]);
-      setForm({ type: 'test', title: DEFAULT_TITLES.test, class: CLASSES[0] || '', subject: '', file: null });
+      setForm({ title: DEFAULT_TITLE, class: CLASSES[0] || '', subject: '', file: null });
       setUploading(false);
     } catch (err) {
       setError(err.message || 'Could not upload this question set. Please try again.');
@@ -107,8 +105,6 @@ export default function QuestionBank({ questions, setQuestions, students = [], l
   };
 
   const totalQuestions = questions.reduce((n, q) => n + (q.questionCount || 0), 0);
-  const testCount = questions.filter(q => q.type === 'test').length;
-  const examCount = questions.filter(q => q.type === 'exam').length;
   const scopeText = [classFilter !== 'all' ? classFilter : null, subjectFilter !== 'all' ? subjectFilter : null].filter(Boolean).join(' · ');
 
   const rail = (
@@ -163,9 +159,9 @@ export default function QuestionBank({ questions, setQuestions, students = [], l
           <div className="stat-card"><div className="stat-card-icon"><FileText size={18} /></div><div className="stat-card-body">
             <div className="stat-card-value">{totalQuestions}</div><div className="stat-card-label">Total questions</div><div className="stat-card-sub">In {questions.length} {questions.length === 1 ? 'set' : 'sets'} across {allSubjects.length} {allSubjects.length === 1 ? 'subject' : 'subjects'}</div></div></div>
           <div className="stat-card"><div className="stat-card-icon"><ListChecks size={18} /></div><div className="stat-card-body">
-            <div className="stat-card-value">{testCount}</div><div className="stat-card-label">Tests</div><div className="stat-card-sub">Continuous assessment sets</div></div></div>
+            <div className="stat-card-value">{questions.length}</div><div className="stat-card-label">Question sets</div><div className="stat-card-sub">Use any set as a test or an exam</div></div></div>
           <div className="stat-card"><div className="stat-card-icon"><GraduationCap size={18} /></div><div className="stat-card-body">
-            <div className="stat-card-value">{examCount}</div><div className="stat-card-label">Exams</div><div className="stat-card-sub">Term examination sets</div></div></div>
+            <div className="stat-card-value">{allSubjects.length}</div><div className="stat-card-label">Subjects</div><div className="stat-card-sub">Covered by your sets</div></div></div>
         </div>
 
         <div className="card roster-card" ref={cardRef}>
@@ -193,14 +189,6 @@ export default function QuestionBank({ questions, setQuestions, students = [], l
               </select>
               <ChevronDown size={15} />
             </label>
-            <label className="select-pill">
-              <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)}>
-                <option value="all">Tests &amp; exams</option>
-                <option value="test">Tests only</option>
-                <option value="exam">Exams only</option>
-              </select>
-              <ChevronDown size={15} />
-            </label>
           </div>
 
           <div className="qlist">
@@ -212,7 +200,6 @@ export default function QuestionBank({ questions, setQuestions, students = [], l
                 <div key={q.id} className="qrow">
                   <div className="qrow-main">
                     <div className="qrow-meta">
-                      <span className="qrow-type">{q.type === 'exam' ? 'Exam' : 'Test'}</span>
                       <span className="qrow-subject">{q.subject}</span>
                       <span>· {q.class}</span>
                       <span>· {q.questionCount || 0} {q.questionCount === 1 ? 'question' : 'questions'}</span>
@@ -265,26 +252,6 @@ export default function QuestionBank({ questions, setQuestions, students = [], l
       {uploading && (
         <Modal title="Upload Questions" onClose={() => setUploading(false)}>
           <form onSubmit={submit} className="quick-add-form">
-            <div className="field">
-              <label>Type</label>
-              <div className="type-toggle">
-                <button
-                  type="button"
-                  className={`type-toggle-btn ${form.type === 'test' ? 'type-toggle-btn-active' : ''}`}
-                  onClick={() => setForm({ ...form, type: 'test', title: form.title === DEFAULT_TITLES.exam ? DEFAULT_TITLES.test : form.title })}
-                >
-                  Test
-                </button>
-                <button
-                  type="button"
-                  className={`type-toggle-btn ${form.type === 'exam' ? 'type-toggle-btn-active' : ''}`}
-                  onClick={() => setForm({ ...form, type: 'exam', title: form.title === DEFAULT_TITLES.test ? DEFAULT_TITLES.exam : form.title })}
-                >
-                  Exam
-                </button>
-              </div>
-              <div className="field-hint">Tests are typically shorter, informal continuous-assessment checks. Exams are formal, term-defining assessments — both use the same upload and license flow.</div>
-            </div>
             <div className="field">
               <label>Title</label>
               <input type="text" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} />
@@ -348,7 +315,7 @@ export default function QuestionBank({ questions, setQuestions, students = [], l
       {confirmDelete && (
         <Modal title="Delete this?" onClose={() => setConfirmDelete(null)} width={380}>
           <p className="confirm-text">
-            This removes <b>{confirmDelete.title}</b> ({confirmDelete.subject}, {confirmDelete.class}). Students won't be able to take this {confirmDelete.type} anymore.
+            This removes <b>{confirmDelete.title}</b> ({confirmDelete.subject}, {confirmDelete.class}). Students won't be able to take it anymore.
           </p>
           <div className="confirm-actions">
             <button className="btn-ghost" onClick={() => setConfirmDelete(null)}>Cancel</button>

@@ -31,15 +31,15 @@ export default function AssignClassModal({ students, setStudents, questions, set
 
   const available = useMemo(() => {
     return questions
-      .filter(q => q.type === type && norm(q.class) === norm(cls) && q.status === 'ready')
+      .filter(q => norm(q.class) === norm(cls) && q.status === 'ready')
       .map(q => ({
         ...q,
         takers: classStudents.length,
       }));
-  }, [questions, type, cls, classStudents]);
+  }, [questions, cls, classStudents]);
 
   const toggle = (id) => setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
-  const changeType = (t) => { setType(t); setSelectedIds([]); };
+  const changeType = (t) => { setType(t); };
   const changeClass = (c) => { setCls(c); setSelectedIds([]); };
 
   // Who gets what: every student in the class receives every selected subject.
@@ -211,7 +211,6 @@ export default function AssignClassModal({ students, setStudents, questions, set
     {libraryOpen && (
       <LibraryModal
         presetClass={cls}
-        presetType={type}
         onClose={() => setLibraryOpen(false)}
         onCreated={(set) => { setQuestions(prev => [set, ...prev]); setSelectedIds(prev => [...prev, set.id]); }}
       />

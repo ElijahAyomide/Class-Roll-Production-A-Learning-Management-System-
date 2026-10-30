@@ -115,7 +115,6 @@ export default function Dashboard({ students, setStudents, questions, setQuestio
     // subjects the student was registered with.
     const norm = (t) => String(t || '').trim().replace(/\s+/g, ' ').toLowerCase();
     return questions.filter(q =>
-      q.type === assigning.type &&
       norm(q.class) === norm(assigning.student.class) &&
       q.status === 'ready'
     );
@@ -271,7 +270,7 @@ export default function Dashboard({ students, setStudents, questions, setQuestio
       <div className="stat-grid">
         <StatCard icon={GraduationCap} label="Total Students" value={students.length} sub={`${CLASSES.length} Classes`} />
         <StatCard icon={CreditCard} label="License Balance" value={license.balance} sub="Exam credits left" tone={license.balance < 20 ? 'amber' : 'default'} />
-        <StatCard icon={FileText} label="Question Bank" value={questions.length} sub={`${questions.filter(q => q.type === 'test').length} ${questions.filter(q => q.type === 'test').length === 1 ? 'test' : 'tests'} · ${questions.filter(q => q.type === 'exam').length} ${questions.filter(q => q.type === 'exam').length === 1 ? 'exam' : 'exams'}`} />
+        <StatCard icon={FileText} label="Question Bank" value={questions.length} sub="Ready to use as tests or exams" />
         <StatCard icon={ClipboardList} label="Results Recorded" value={results.length} sub={`${results.length} submitted`} />
       </div>
 
@@ -460,7 +459,7 @@ export default function Dashboard({ students, setStudents, questions, setQuestio
           {assignableQuestions.length === 0 ? (
             <div className="assign-empty">
               <p className="confirm-text">
-                No ready {assigning.type === 'test' ? 'tests' : 'exams'} in the Question Bank match {assigning.student.name}'s class ({assigning.student.class}) and subjects yet.
+                No ready question sets in the Question Bank match {assigning.student.name}'s class ({assigning.student.class}) and subjects yet.
               </p>
               {skippedSubjects.length > 0 && (
                 <p className="cell-dim-sm" style={{ marginBottom: 12 }}>
@@ -498,7 +497,7 @@ export default function Dashboard({ students, setStudents, questions, setQuestio
                 )}
                 <button type="button" className="link-btn" style={{ marginTop: 8 }} onClick={() => setLibraryFor(assigning)}>+ Add questions from the Library (choose topics and how many)</button>
                 <div className="field-hint">
-                  Only showing {assigning.type === 'test' ? 'tests' : 'exams'} marked "ready" for {assigning.student.class} in a subject {assigning.student.class} takes. Select as many as you're setting today.
+                  Showing every ready question set for {assigning.student.class}. Select as many as you're setting today.
                 </div>
               </div>
 
@@ -573,7 +572,6 @@ export default function Dashboard({ students, setStudents, questions, setQuestio
       {libraryFor && (
         <LibraryModal
           presetClass={libraryFor.student.class}
-          presetType={libraryFor.type}
           onClose={() => setLibraryFor(null)}
           onCreated={(set) => { setQuestions(prev => [set, ...prev]); setAssignSelectedIds(prev => [...prev, set.id]); }}
         />

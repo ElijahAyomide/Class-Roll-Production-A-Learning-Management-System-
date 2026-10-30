@@ -29,8 +29,7 @@ export default function LibraryModal({ onClose, onCreated, presetClass, presetTy
   const [picked, setPicked] = useState(null);          // the library subject chosen in step 1
   const [topics, setTopics] = useState([]);            // topic names ticked
   const [count, setCount] = useState(40);
-  const [type, setType] = useState(presetType || 'test');
-  const [cls, setCls] = useState(presetClass || CLASSES[0] || '');
+    const [cls, setCls] = useState(presetClass || CLASSES[0] || '');
   const [saveAs, setSaveAs] = useState('');
   const [title, setTitle] = useState('');
   const [saving, setSaving] = useState(false);
@@ -77,7 +76,7 @@ export default function LibraryModal({ onClose, onCreated, presetClass, presetTy
     try {
       const set = await createSetFromLibrary({
         schoolId: school.id, librarySubject: picked.subject, subject: saveAs, topics, count: wanted,
-        type, cls, title: title.trim(),
+        type: 'test', cls, title: title.trim(),
       });
       onCreated && onCreated(set);
       setDone(set);
@@ -130,17 +129,6 @@ export default function LibraryModal({ onClose, onCreated, presetClass, presetTy
           <button type="button" className="lib-back" onClick={() => setPicked(null)}><ArrowLeft size={14} /> All subjects</button>
 
           <div className="form-row-2">
-            <div className="field">
-              <label>Type</label>
-              {presetType ? (
-                <input type="text" value={type === 'exam' ? 'Exam' : 'Test'} disabled readOnly />
-              ) : (
-                <select value={type} onChange={e => setType(e.target.value)}>
-                  <option value="test">Test</option>
-                  <option value="exam">Exam</option>
-                </select>
-              )}
-            </div>
             <div className="field">
               <label>Class</label>
               {presetClass ? (
