@@ -65,7 +65,7 @@ export default function Results({ results, setResults, license }) {
         const day = resultDay(r);
         matchesDate = !!day && (!dateFrom || day >= dateFrom) && (!dateTo || day <= dateTo);
       }
-      return matchesSearch && matchesClass && matchesSubject && matchesType && matchesDate;
+      return matchesSearch && matchesClass && matchesSubject && matchesDate;
     });
     if (sortBy === 'name') return [...list].sort((a, b) => a.studentName.localeCompare(b.studentName));
     if (sortBy === 'score') return [...list].sort((a, b) => percentOf(b) - percentOf(a));
