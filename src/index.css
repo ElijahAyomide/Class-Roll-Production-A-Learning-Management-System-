@@ -1839,3 +1839,11 @@ body:has(.sp-exam-screen) { background: #EEF0F9; }
 .lib-back:hover { text-decoration: underline; }
 .lib-topic-tools { display: flex; gap: 1em; margin: -0.2em 0 0.5em; font-size: 0.85em; }
 .modal-overlay .field input:disabled { background: #F1F3FA; color: var(--ink-dim); }
+
+/* One clear "Assign questions" button (no separate test / exam). */
+.assign-q-btn { display: inline-flex; align-items: center; gap: 0.4em; border: 1px solid var(--primary); background: #fff; color: var(--primary); border-radius: 0.6em; padding: 0.45em 0.8em; font: inherit; font-size: 0.85em; cursor: pointer; white-space: nowrap; }
+.assign-q-btn b { font-weight: 700; }
+.assign-q-btn:hover { background: var(--primary); color: #fff; }
+.assign-q-wide { width: 100%; justify-content: center; }
+.assign-q-wide b { font-weight: 700; }
+@media (max-width: 720px) { .search-result-row .row-actions { flex-wrap: wrap; justify-content: flex-end; } }

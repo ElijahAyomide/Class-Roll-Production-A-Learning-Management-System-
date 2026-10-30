@@ -318,13 +318,13 @@ export default function Dashboard({ students, setStudents, questions, setQuestio
 
         <div className="col-stack">
           <div className="card">
-            <div className="card-label">Find a student</div>
+            <div className="card-label">Assign question to student</div>
             <div className="field">
               <label>Full name</label>
               <div className="search-input-wrap">
                 <Search size={16} className="search-input-icon" />
                 <input
-                  type="text" placeholder="Search a student by name or username"
+                  type="text" placeholder="Search student to assign question set"
                   value={search} onChange={e => setSearch(e.target.value)}
                   className="search-input"
                 />
@@ -341,8 +341,7 @@ export default function Dashboard({ students, setStudents, questions, setQuestio
                       <div className="search-result-meta">{s.username} · {s.class}</div>
                     </div>
                     <div className="row-actions" onClick={e => e.stopPropagation()}>
-                      <button className="icon-btn icon-btn-test" onClick={() => openAssign(s, 'test')} aria-label="Set Test" title="Set Test"><ListChecks size={13} /></button>
-                      <button className="icon-btn icon-btn-exam" onClick={() => openAssign(s, 'exam')} aria-label="Set Exam" title="Set Exam"><GraduationCap size={13} /></button>
+                      <button className="assign-q-btn" onClick={() => openAssign(s, 'test')} title="Assign a question set (test or exam) to this student"><ClipboardList size={14} /> <b>Assign questions</b></button>
                       <button className="icon-btn" onClick={() => openEditFor(s)} aria-label="Edit" title="Edit"><Pencil size={13} /></button>
                       <button className="icon-btn icon-btn-danger" onClick={() => setConfirmDelete(s)} aria-label="Delete" title="Delete"><Trash2 size={13} /></button>
                     </div>
@@ -351,7 +350,7 @@ export default function Dashboard({ students, setStudents, questions, setQuestio
               </div>
             )}
             <button type="button" className="btn-primary btn-block find-class-btn" onClick={() => setClassAssignOpen(true)}>
-              Set test / exam for a whole class
+              Assign question set to a whole class
             </button>
           </div>
 
@@ -400,8 +399,7 @@ export default function Dashboard({ students, setStudents, questions, setQuestio
               </>
             )}
             <div className="detail-assign-row">
-              <button className="btn-ghost" onClick={() => openAssign(viewingStudent, 'test')}><ListChecks size={13} /> Set Test</button>
-              <button className="btn-ghost" onClick={() => openAssign(viewingStudent, 'exam')}><GraduationCap size={13} /> Set Exam</button>
+              <button className="btn-ghost assign-q-wide" onClick={() => openAssign(viewingStudent, 'test')}><ClipboardList size={14} /> <b>Assign question set to this student</b></button>
             </div>
             <div className="confirm-actions confirm-actions-split" style={{ marginTop: 14 }}>
               <button className="btn-danger" onClick={() => setConfirmDelete(viewingStudent)}><Trash2 size={13} /> Delete</button>
@@ -455,7 +453,7 @@ export default function Dashboard({ students, setStudents, questions, setQuestio
       )}
 
       {assigning && (
-        <Modal title={`Set ${assigning.type === 'test' ? 'Test' : 'Exam'} for ${assigning.student.name}`} onClose={() => setAssigning(null)} width={480}>
+        <Modal title={`Assign questions to ${assigning.student.name}`} onClose={() => setAssigning(null)} width={480}>
           {assignableQuestions.length === 0 ? (
             <div className="assign-empty">
               <p className="confirm-text">
@@ -548,7 +546,7 @@ export default function Dashboard({ students, setStudents, questions, setQuestio
                   <>
                     <button className="btn-ghost" onClick={() => setAssigning(null)}>Cancel</button>
                     <button className="btn-primary" disabled={selectedCount === 0 || !assignDate || assignSaving} onClick={confirmAssign}>
-                      {assignSaving ? 'Saving…' : `Set ${assigning.type === 'test' ? 'Test' : 'Exam'}${selectedCount > 1 ? `s (${selectedCount})` : ''}`}
+                      {assignSaving ? 'Saving…' : `Assign ${selectedCount > 1 ? `${selectedCount} question sets` : 'question set'}`}
                     </button>
                   </>
                 )}

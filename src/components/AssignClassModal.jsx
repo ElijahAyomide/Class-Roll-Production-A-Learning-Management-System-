@@ -103,7 +103,7 @@ export default function AssignClassModal({ students, setStudents, questions, set
     return (
       <Modal title="Done" onClose={onClose} width={440}>
         <p className="confirm-text">
-          {type === 'test' ? 'Test' : 'Exam'} set for <b>{doneInfo.students}</b> student{doneInfo.students === 1 ? '' : 's'} in {cls}.
+          Question set assigned to <b>{doneInfo.students}</b> student{doneInfo.students === 1 ? '' : 's'} in {cls}.
           {' '}{doneInfo.credits} license credit{doneInfo.credits === 1 ? '' : 's'} used.
         </p>
         <div className="confirm-actions"><button className="btn-primary" onClick={onClose}>Close</button></div>
@@ -113,15 +113,8 @@ export default function AssignClassModal({ students, setStudents, questions, set
 
   return (
     <>
-    <Modal title="Set test or exam for a whole class" onClose={onClose} width={520}>
+    <Modal title="Assign question set to a whole class" onClose={onClose} width={520}>
       <div className="form-row-2">
-        <div className="field">
-          <label>Type</label>
-          <select value={type} onChange={e => changeType(e.target.value)}>
-            <option value="test">Test</option>
-            <option value="exam">Exam</option>
-          </select>
-        </div>
         <div className="field">
           <label>Class</label>
           <select value={cls} onChange={e => changeClass(e.target.value)}>
@@ -135,7 +128,7 @@ export default function AssignClassModal({ students, setStudents, questions, set
       ) : available.length === 0 ? (
         <>
           <p className="confirm-text">
-            No ready {type === 'test' ? 'tests' : 'exams'} in the Question Bank for {cls} yet.
+            No ready question sets in the Question Bank for {cls} yet.
           </p>
           <div className="confirm-actions" style={{ justifyContent: 'flex-start' }}>
             <button className="btn-primary" onClick={() => setLibraryOpen(true)}><BookOpen size={14} /> Add from Library</button>
@@ -202,7 +195,7 @@ export default function AssignClassModal({ students, setStudents, questions, set
           <div className="confirm-actions">
             <button className="btn-ghost" onClick={onClose} disabled={saving}>Cancel</button>
             <button className="btn-primary" onClick={confirm} disabled={saving || plan.length === 0 || notEnough || !date}>
-              <Users size={14} /> {saving ? 'Setting…' : `Set for ${plan.length} student${plan.length === 1 ? '' : 's'}`}
+              <Users size={14} /> {saving ? 'Assigning…' : `Assign to ${plan.length} student${plan.length === 1 ? '' : 's'}`}
             </button>
           </div>
         </>
