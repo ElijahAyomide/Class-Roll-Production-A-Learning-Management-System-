@@ -209,7 +209,7 @@ export default function StudentExam() {
           <div className="sp-result-icon sp-result-icon-bad"><AlertTriangle size={26} /></div>
           <div className="sp-result-title">Couldn't load this exam</div>
           <div className="sp-result-detail">{setupError}</div>
-          <button className="sp-btn-primary" onClick={() => navigate('/student')}>Back to my assessments</button>
+          <button className="sp-btn-primary" onClick={() => navigate('/student')}>Back to my tests</button>
         </div>
       </div>
     );
@@ -250,7 +250,7 @@ export default function StudentExam() {
         <div className="sp-exam-header-main">
           <div className="sp-exam-header-icon"><ClipboardCheck size={20} /></div>
           <div className="sp-exam-header-text">
-            <div className="sp-eyebrow">Assessment · {subjects.length} subject{subjects.length === 1 ? '' : 's'}</div>
+            <div className="sp-eyebrow">Test · {subjects.length} subject{subjects.length === 1 ? '' : 's'}</div>
             <h1 className="sp-exam-title">{active.subject} — {active.title}</h1>
           </div>
         </div>

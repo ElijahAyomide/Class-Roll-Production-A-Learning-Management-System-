@@ -199,7 +199,7 @@ export default function Login() {
 
   const heading = {
     signin: { eyebrow: 'School workspace', title: 'Welcome back', sub: 'Sign in to manage your students and pick up where you left off.' },
-    register: { eyebrow: 'Get started with Assessly', title: 'Create your account', sub: 'Set up your school workspace and make your next assessment a little simpler.' },
+    register: { eyebrow: 'Get started with Assessly', title: 'Create your account', sub: 'Set up your school workspace and make your next test a little simpler.' },
     forgot: { eyebrow: 'Password help', title: 'Reset your password', sub: "Enter the email you registered with and we'll send you a link to choose a new password." },
     student: { eyebrow: 'Student portal', title: 'Student sign in', sub: 'Use the username and surname your school gave you.' },
   }[view];

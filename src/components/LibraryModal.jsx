@@ -92,7 +92,7 @@ export default function LibraryModal({ onClose, onCreated, presetClass, presetTy
       <Modal title="Added to your Question Bank" onClose={onClose} width={440}>
         <p className="confirm-text">
           <b>{done.title}</b> now has <b>{done.questionCount}</b> {done.questionCount === 1 ? 'question' : 'questions'} for {done.class} ({done.subject}).
-          {presetClass ? ' It is selected for you below.' : ' You can assign it to students from the Dashboard.'}
+          {presetClass ? ' It is selected for you below.' : ' You can set it as a test for students from the Dashboard.'}
         </p>
         <div className="confirm-actions"><button className="btn-primary" onClick={onClose}>Done</button></div>
       </Modal>
@@ -179,7 +179,7 @@ export default function LibraryModal({ onClose, onCreated, presetClass, presetTy
               <select value={saveAs} onChange={e => setSaveAs(e.target.value)}>
                 {saveAsOptions.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
-              <div className="field-hint">Must be a subject of {cls || 'the class'} so students can be assigned it.</div>
+              <div className="field-hint">Must be a subject of {cls || 'the class'} so students can be given a test in it.</div>
             </div>
           </div>
 
@@ -191,7 +191,7 @@ export default function LibraryModal({ onClose, onCreated, presetClass, presetTy
           <div className="license-usage-note">
             {topics.length === 0
               ? <span>Tick at least one topic.</span>
-              : <span>This adds <b>{wanted}</b> {wanted === 1 ? 'question' : 'questions'} from <b>{topics.length}</b> {topics.length === 1 ? 'topic' : 'topics'}, picked at random and spread across the topics. It uses no license credits until you assign it to students.</span>}
+              : <span>This adds <b>{wanted}</b> {wanted === 1 ? 'question' : 'questions'} from <b>{topics.length}</b> {topics.length === 1 ? 'topic' : 'topics'}, picked at random and spread across the topics. It uses no license credits until you set it as a test for students.</span>}
           </div>
 
           {error && <div className="error-text" style={{ marginBottom: '0.8em' }}>{error}</div>}

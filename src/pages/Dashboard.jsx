@@ -170,7 +170,7 @@ export default function Dashboard({ students, setStudents, questions, setQuestio
       setAssigning(null);
       setViewingStudent(null);
     } catch (err) {
-      setAssignError(err.message || 'Could not save this assignment. Please try again.');
+      setAssignError(err.message || 'Could not save this test. Please try again.');
     } finally {
       setAssignSaving(false);
     }
@@ -229,7 +229,7 @@ export default function Dashboard({ students, setStudents, questions, setQuestio
   const steps = [
     { id: 1, title: 'Add your questions', desc: 'Create a question or import your existing question list.', done: questions.length > 0, to: '/question-bank' },
     { id: 2, title: 'Add your students', desc: 'Set up classes and enrol your students.', done: students.length > 0, to: '/students' },
-    { id: 3, title: 'Create a test or exam', desc: 'Choose your questions and schedule an assessment.', done: students.some(s => s.assignments.length > 0), to: null },
+    { id: 3, title: 'Set a test', desc: 'Choose your questions and schedule a test.', done: students.some(s => s.assignments.length > 0), to: null },
   ];
   const stepsDone = steps.filter(x => x.done).length;
   const firstOpen = steps.find(x => !x.done);
@@ -238,7 +238,7 @@ export default function Dashboard({ students, setStudents, questions, setQuestio
     <AdminRail license={license}>
       <>
         <div className="rail-eyebrow">Getting started</div>
-        <div className="rail-title">{stepsDone === steps.length ? "You're all set" : 'Build your first assessment'}</div>
+        <div className="rail-title">{stepsDone === steps.length ? "You're all set" : 'Build your first test'}</div>
         <div className="rail-progress-text">{stepsDone} of {steps.length} steps complete</div>
         <div className="rail-progress">
           {steps.map(st => <span key={st.id} className={st.done ? 'rail-seg rail-seg-done' : 'rail-seg'} />)}
@@ -269,8 +269,8 @@ export default function Dashboard({ students, setStudents, questions, setQuestio
     <DashboardLayout title={`Hello ${firstName}`} subtitle="Let's try something new today" rail={rail}>
       <div className="stat-grid">
         <StatCard icon={GraduationCap} label="Total Students" value={students.length} sub={`${CLASSES.length} Classes`} />
-        <StatCard icon={CreditCard} label="License Balance" value={license.balance} sub="Exam credits left" tone={license.balance < 20 ? 'amber' : 'default'} />
-        <StatCard icon={FileText} label="Question Bank" value={questions.length} sub="Ready to use as tests or exams" />
+        <StatCard icon={CreditCard} label="License Balance" value={license.balance} sub="Test credits left" tone={license.balance < 20 ? 'amber' : 'default'} />
+        <StatCard icon={FileText} label="Question Bank" value={questions.length} sub="Ready to use as tests" />
         <StatCard icon={ClipboardList} label="Results Recorded" value={results.length} sub={`${results.length} submitted`} />
       </div>
 
@@ -318,13 +318,13 @@ export default function Dashboard({ students, setStudents, questions, setQuestio
 
         <div className="col-stack">
           <div className="card">
-            <div className="card-label">Assign question to student</div>
+            <div className="card-label">Set test for student</div>
             <div className="field">
               <label>Full name</label>
               <div className="search-input-wrap">
                 <Search size={16} className="search-input-icon" />
                 <input
-                  type="text" placeholder="Search student to assign question set"
+                  type="text" placeholder="Search student to set test"
                   value={search} onChange={e => setSearch(e.target.value)}
                   className="search-input"
                 />
@@ -341,7 +341,7 @@ export default function Dashboard({ students, setStudents, questions, setQuestio
                       <div className="search-result-meta">{s.username} · {s.class}</div>
                     </div>
                     <div className="row-actions" onClick={e => e.stopPropagation()}>
-                      <button className="assign-q-btn" onClick={() => openAssign(s, 'test')} title="Assign a question set to this student"><ClipboardList size={14} /> <b>Assign</b></button>
+                      <button className="assign-q-btn" onClick={() => openAssign(s, 'test')} title="Set a test for this student"><ClipboardList size={14} /> <b>Set Test</b></button>
                       <button className="icon-btn" onClick={() => openEditFor(s)} aria-label="Edit" title="Edit"><Pencil size={13} /></button>
                       <button className="icon-btn icon-btn-danger" onClick={() => setConfirmDelete(s)} aria-label="Delete" title="Delete"><Trash2 size={13} /></button>
                     </div>
@@ -350,7 +350,7 @@ export default function Dashboard({ students, setStudents, questions, setQuestio
               </div>
             )}
             <button type="button" className="btn-primary btn-block find-class-btn" onClick={() => setClassAssignOpen(true)}>
-              Assign question set to a whole class
+              Set test for a whole class
             </button>
           </div>
 
@@ -398,7 +398,7 @@ export default function Dashboard({ students, setStudents, questions, setQuestio
               </>
             )}
             <div className="detail-assign-row">
-              <button className="btn-ghost assign-q-wide" onClick={() => openAssign(viewingStudent, 'test')}><ClipboardList size={14} /> <b>Assign</b></button>
+              <button className="btn-ghost assign-q-wide" onClick={() => openAssign(viewingStudent, 'test')}><ClipboardList size={14} /> <b>Set Test</b></button>
             </div>
             <div className="confirm-actions confirm-actions-split" style={{ marginTop: 14 }}>
               <button className="btn-danger" onClick={() => setConfirmDelete(viewingStudent)}><Trash2 size={13} /> Delete</button>
@@ -440,7 +440,7 @@ export default function Dashboard({ students, setStudents, questions, setQuestio
               <label>Status</label>
               <select value={editForm.status === 'exam-active' ? 'test-active' : editForm.status} onChange={e => setEditForm({ ...editForm, status: e.target.value })}>
                 <option value="pending">Pending</option>
-                <option value="test-active">Assigned</option>
+                <option value="test-active">Test Active</option>
                 <option value="suspended">Suspended</option>
               </select>
             </div>
@@ -451,7 +451,7 @@ export default function Dashboard({ students, setStudents, questions, setQuestio
       )}
 
       {assigning && (
-        <Modal title={`Assign questions to ${assigning.student.name}`} onClose={() => setAssigning(null)} width={480}>
+        <Modal title={`Set Test for ${assigning.student.name}`} onClose={() => setAssigning(null)} width={480}>
           {assignableQuestions.length === 0 ? (
             <div className="assign-empty">
               <p className="confirm-text">
@@ -470,7 +470,7 @@ export default function Dashboard({ students, setStudents, questions, setQuestio
           ) : (
             <>
               <div className="field">
-                <label>Subjects to assign</label>
+                <label>Subjects to set as test</label>
                 <div className="assign-question-list">
                   {assignableQuestions.map(q => (
                     <label key={q.id} className="assign-question-row">
@@ -544,7 +544,7 @@ export default function Dashboard({ students, setStudents, questions, setQuestio
                   <>
                     <button className="btn-ghost" onClick={() => setAssigning(null)}>Cancel</button>
                     <button className="btn-primary" disabled={selectedCount === 0 || !assignDate || assignSaving} onClick={confirmAssign}>
-                      {assignSaving ? 'Saving…' : `Assign ${selectedCount > 1 ? `${selectedCount} question sets` : 'question set'}`}
+                      {assignSaving ? 'Saving…' : `Set ${selectedCount > 1 ? `${selectedCount} Tests` : 'Test'}`}
                     </button>
                   </>
                 )}

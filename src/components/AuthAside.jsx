@@ -12,15 +12,15 @@ export default function AuthAside() {
 
       <div className="auth-aside-mid">
         <div className="auth-eyebrow auth-eyebrow-light">Your school. One workspace.</div>
-        <h1 className="auth-aside-title">Great assessments.<br />Brighter futures.</h1>
-        <p className="auth-aside-sub">Bring your students, questions and results together. Spend less time managing assessments and more time helping students grow.</p>
+        <h1 className="auth-aside-title">Great tests.<br />Brighter futures.</h1>
+        <p className="auth-aside-sub">Bring your students, questions and results together. Spend less time managing tests and more time helping students grow.</p>
 
         <div className="auth-mock" aria-hidden="true">
           <div className="auth-mock-head">
             <div className="auth-mock-icon"><ClipboardCheck size={18} /></div>
             <div className="auth-mock-titles">
               <div className="auth-mock-title">Mathematics</div>
-              <div className="auth-mock-sub">PRY 5 · End of term exam</div>
+              <div className="auth-mock-sub">PRY 5 · End of term test</div>
             </div>
             <MoreHorizontal size={18} className="auth-mock-more" />
           </div>
@@ -29,7 +29,7 @@ export default function AuthAside() {
             <div><div className="auth-mock-num">25</div><div className="auth-mock-label">Questions</div></div>
             <div><div className="auth-mock-num">45 min</div><div className="auth-mock-label">Duration</div></div>
           </div>
-          <div className="auth-mock-ready"><CheckCircle2 size={16} /> All set for your next assessment</div>
+          <div className="auth-mock-ready"><CheckCircle2 size={16} /> All set for your next test</div>
         </div>
 
         <ul className="auth-points">

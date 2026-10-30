@@ -32,8 +32,8 @@ export default function AdminRail({ license, children }) {
         <div className="rail-license-row"><span>License Balance</span><b>{balance}</b></div>
         <p>
           {balance > 0
-            ? `You have ${balance} exam credit${balance === 1 ? '' : 's'} ready to use.`
-            : "You can add questions now. Get exam credits when you're ready to run an assessment."}
+            ? `You have ${balance} test credit${balance === 1 ? '' : 's'} ready to use.`
+            : "You can add questions now. Get test credits when you're ready to run a test."}
         </p>
         <button type="button" onClick={() => navigate('/license')}>Continue to License payment <ArrowRight size={14} /></button>
       </div>

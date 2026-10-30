@@ -131,7 +131,7 @@ export default function QuestionBank({ questions, setQuestions, students = [], l
           <li>
             <span className="rail-check"><Check size={13} /></span>
             <span>
-              <span className="rail-step-title">Ready for an assessment</span>
+              <span className="rail-step-title">Ready for a test</span>
               <span className="rail-step-desc">Set a test or exam from the Dashboard once your questions are in.</span>
             </span>
           </li>
@@ -146,7 +146,7 @@ export default function QuestionBank({ questions, setQuestions, students = [], l
         <div className="panel-head">
           <div>
             <h2 className="panel-title">Question Bank</h2>
-            <p className="panel-sub">Upload, organise and reuse questions for every assessment.</p>
+            <p className="panel-sub">Upload, organise and reuse questions for every test.</p>
           </div>
           <div className="panel-actions">
             <a className="btn-ghost" href="/templates/assessly-question-template.xlsx" download><Download size={15} /> Download template</a>
@@ -159,7 +159,7 @@ export default function QuestionBank({ questions, setQuestions, students = [], l
           <div className="stat-card"><div className="stat-card-icon"><FileText size={18} /></div><div className="stat-card-body">
             <div className="stat-card-value">{totalQuestions}</div><div className="stat-card-label">Total questions</div><div className="stat-card-sub">In {questions.length} {questions.length === 1 ? 'set' : 'sets'} across {allSubjects.length} {allSubjects.length === 1 ? 'subject' : 'subjects'}</div></div></div>
           <div className="stat-card"><div className="stat-card-icon"><ListChecks size={18} /></div><div className="stat-card-body">
-            <div className="stat-card-value">{questions.length}</div><div className="stat-card-label">Question sets</div><div className="stat-card-sub">Use any set as a test or an exam</div></div></div>
+            <div className="stat-card-value">{questions.length}</div><div className="stat-card-label">Question sets</div><div className="stat-card-sub">Use any set as a test</div></div></div>
           <div className="stat-card"><div className="stat-card-icon"><GraduationCap size={18} /></div><div className="stat-card-body">
             <div className="stat-card-value">{allSubjects.length}</div><div className="stat-card-label">Subjects</div><div className="stat-card-sub">Covered by your sets</div></div></div>
         </div>

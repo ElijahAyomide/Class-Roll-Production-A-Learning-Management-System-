@@ -127,7 +127,7 @@ export default function Students({ students, setStudents, questions = [], licens
       <>
         <div className="rail-eyebrow">{school.name}</div>
         <div className="rail-title">A class ready to learn</div>
-        <p className="rail-lead">Keep student details organised before your next assessment.</p>
+        <p className="rail-lead">Keep student details organised before your next test.</p>
         <ul className="rail-checks">
           <li>
             <span className="rail-check"><Check size={13} /></span>
@@ -161,7 +161,7 @@ export default function Students({ students, setStudents, questions = [], licens
         <div className="panel-head">
           <div>
             <h2 className="panel-title">Students</h2>
-            <p className="panel-sub">Manage your students and keep every class assessment-ready.</p>
+            <p className="panel-sub">Manage your students and keep every class test-ready.</p>
           </div>
           <div className="panel-actions">
             <button className="btn-ghost" onClick={() => setImporting(true)}><Upload size={15} /> Import Excel</button>
@@ -177,7 +177,7 @@ export default function Students({ students, setStudents, questions = [], licens
             <div className="stat-card-label">{focusClass ? `Students in ${focusClass}` : 'Classes'}</div>
             <div className="stat-card-sub">{focusClass ? 'Selected class' : 'With students enrolled'}</div></div></div>
           <div className="stat-card"><div className="stat-card-icon"><UserCheck size={18} /></div><div className="stat-card-body">
-            <div className="stat-card-value">{activeCount}</div><div className="stat-card-label">Active students</div><div className="stat-card-sub">Ready to take assessments</div></div></div>
+            <div className="stat-card-value">{activeCount}</div><div className="stat-card-label">Active students</div><div className="stat-card-sub">Ready to take tests</div></div></div>
         </div>
 
         <div className="card roster-card" ref={cardRef}>
@@ -305,7 +305,7 @@ export default function Students({ students, setStudents, questions = [], licens
               <select value={normaliseStatus(form.status)} onChange={e => setForm({ ...form, status: e.target.value })}>
                 {STUDENT_STATUSES.map(s => <option key={s} value={s}>{statusLabel(s)}</option>)}
               </select>
-              <div className="field-hint">Assigned is normally set automatically when you assign a question set from the Dashboard — changing it here overrides that manually.</div>
+              <div className="field-hint">Test Active is normally set automatically when you set a test from the Dashboard — changing it here overrides that manually.</div>
             </div>
             {error && <div className="error-text">{error}</div>}
             <button type="submit" className="btn-primary" disabled={saving}>

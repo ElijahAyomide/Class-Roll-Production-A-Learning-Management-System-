@@ -106,7 +106,7 @@ export default function License({ license, setLicense }) {
   const price = license.pricePerExam;
   const PACKS = [
     { name: 'Starter', credits: 100, blurb: 'For a single class or a short test.' },
-    { name: 'School', credits: 500, blurb: 'A great fit for your next exam week.', recommended: true },
+    { name: 'School', credits: 500, blurb: 'A great fit for your next test week.', recommended: true },
     { name: 'Campus', credits: 1000, blurb: 'For bigger schools and busy terms.' },
   ];
   const naira = (n) => `₦${n.toLocaleString('en-NG')}`;
@@ -118,7 +118,7 @@ export default function License({ license, setLicense }) {
 
   const exportHistory = () => {
     const rows = license.history.map(p => ({
-      Date: p.date, 'Exam credits': p.exams, Amount: p.amount, Reference: p.reference, Status: p.status,
+      Date: p.date, 'Test credits': p.exams, Amount: p.amount, Reference: p.reference, Status: p.status,
     }));
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), 'Billing history');
@@ -129,14 +129,14 @@ export default function License({ license, setLicense }) {
     <AdminRail license={license}>
       <>
         <div className="rail-eyebrow">{school.name}</div>
-        <div className="rail-title">Ready for the next exam</div>
-        <p className="rail-lead">One exam credit covers one subject for one student.</p>
+        <div className="rail-title">Ready for the next test</div>
+        <p className="rail-lead">One test credit covers one subject for one student.</p>
         <ul className="rail-checks">
           <li>
             <span className="rail-check"><Check size={13} /></span>
             <span>
               <span className="rail-step-title">Credits are used automatically</span>
-              <span className="rail-step-desc">They're deducted when you set a test or exam.</span>
+              <span className="rail-step-desc">They're deducted when you set a test.</span>
             </span>
           </li>
           <li>
@@ -164,15 +164,15 @@ export default function License({ license, setLicense }) {
         <div className="panel-head">
           <div>
             <h2 className="panel-title">License</h2>
-            <p className="panel-sub">Manage exam credits and keep your assessments running.</p>
+            <p className="panel-sub">Manage test credits and keep your tests running.</p>
           </div>
         </div>
 
         <div className="license-top">
           <div className="license-balance-blue">
-            <div className="lb-label"><span>Available exam credits</span><CreditCard size={18} /></div>
+            <div className="lb-label"><span>Available test credits</span><CreditCard size={18} /></div>
             <div className="lb-value">{license.balance} <small>credits remaining</small></div>
-            <div className="lb-note">1 credit = 1 subject for 1 student, on a test or exam.</div>
+            <div className="lb-note">1 credit = 1 subject for 1 student, on a test.</div>
           </div>
           <div className="card license-usage">
             <div className="usage-head"><span className="usage-title">Credit usage</span><span className="usage-sub">{purchased.toLocaleString('en-NG')} credits purchased</span></div>
@@ -185,7 +185,7 @@ export default function License({ license, setLicense }) {
         <div className="card buy-card">
           <div className="buy-head">
             <div>
-              <div className="buy-title">Buy exam credits</div>
+              <div className="buy-title">Buy test credits</div>
               <div className="buy-sub">Choose a pack for your school. Credits are added instantly after payment.</div>
             </div>
             <span className="buy-secure"><Lock size={13} /> Secure checkout · NGN</span>
@@ -194,7 +194,7 @@ export default function License({ license, setLicense }) {
             {PACKS.map(pk => (
               <div key={pk.name} className={`pack ${pk.recommended ? 'pack-recommended' : ''}`}>
                 <div className="pack-top"><span className="pack-name">{pk.name}</span>{pk.recommended && <span className="pack-flag">Recommended</span>}</div>
-                <div className="pack-credits">{pk.credits.toLocaleString('en-NG')} <small>exam credits</small></div>
+                <div className="pack-credits">{pk.credits.toLocaleString('en-NG')} <small>test credits</small></div>
                 <div className="pack-price">{naira(pk.credits * price)}</div>
                 <div className="pack-per">{naira(price)} per credit</div>
                 <div className="pack-blurb">{pk.blurb}</div>
@@ -210,10 +210,10 @@ export default function License({ license, setLicense }) {
         <div className="card custom-card">
           <div className="custom-card-text">
             <div className="custom-card-title">Need a different amount?</div>
-            <div className="custom-card-sub">Enter exactly how many exam credits you want. {naira(price)} per credit.</div>
+            <div className="custom-card-sub">Enter exactly how many test credits you want. {naira(price)} per credit.</div>
           </div>
           <form onSubmit={requestPurchase} className="custom-form">
-            <input type="number" min="1" value={examCount || ''} onChange={e => setExamCount(parseInt(e.target.value) || 0)} aria-label="Number of exam credits" />
+            <input type="number" min="1" value={examCount || ''} onChange={e => setExamCount(parseInt(e.target.value) || 0)} aria-label="Number of test credits" />
             <span className="custom-total">= {naira(total)}</span>
             <button type="submit" className="pack-btn pack-btn-solid" disabled={processing || !examCount}>
               <CreditCard size={15} /> {processing ? 'Processing…' : 'Proceed to payment'}
@@ -244,7 +244,7 @@ export default function License({ license, setLicense }) {
                   <tr key={p.id}>
                     <td className="cell-strong cell-ref">{p.reference}</td>
                     <td className="cell-dim">{p.date}</td>
-                    <td>{p.exams} exam credits</td>
+                    <td>{p.exams} test credits</td>
                     <td className="cell-strong">₦{p.amount.toLocaleString('en-NG')}</td>
                     <td><Badge tone="green">{p.status}</Badge></td>
                   </tr>
@@ -265,7 +265,7 @@ export default function License({ license, setLicense }) {
           <form onSubmit={confirmAndPay} className="quick-add-form">
             <div className="password-confirm-summary">
               <Lock size={14} />
-              <span>Confirm your password to purchase <b>{examCount}</b> exam credit{examCount === 1 ? '' : 's'} for <b>₦{total.toLocaleString('en-NG')}</b>.</span>
+              <span>Confirm your password to purchase <b>{examCount}</b> test credit{examCount === 1 ? '' : 's'} for <b>₦{total.toLocaleString('en-NG')}</b>.</span>
             </div>
             <div className="field">
               <label>Password</label>

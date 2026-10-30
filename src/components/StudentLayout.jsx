@@ -29,7 +29,7 @@ export default function StudentLayout({ title, subtitle, student, schoolName, on
         </div>
 
         <nav className="sp-nav">
-          <span className="sp-nav-link sp-nav-link-active"><ClipboardList size={18} /><span>My assessments</span></span>
+          <span className="sp-nav-link sp-nav-link-active"><ClipboardList size={18} /><span>My tests</span></span>
         </nav>
 
         <div className="sp-side-card">

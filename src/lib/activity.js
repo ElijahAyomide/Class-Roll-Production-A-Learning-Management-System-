@@ -66,7 +66,7 @@ export function buildActivity({ students = [], questions = [], results = [], lic
     const subj = subjects.length > 3 ? `${subjects.slice(0, 3).join(', ')} +${subjects.length - 3} more` : subjects.join(', ');
     events.push({
       id: `as-${i}-${g.end}`, ts: g.end,
-      text: `Assigned questions to ${ids.size === 1 ? '1 student' : plural(ids.size, 'student')} in ${cls}: ${subj}`,
+      text: `Set test for ${ids.size === 1 ? '1 student' : plural(ids.size, 'student')} in ${cls}: ${subj}`,
     });
   });
 
@@ -77,14 +77,14 @@ export function buildActivity({ students = [], questions = [], results = [], lic
     const [cls, subject] = g.key.split('|');
     events.push({
       id: `rs-${i}-${g.end}`, ts: g.end,
-      text: `${n === 1 ? g.items[0].studentName : plural(n, 'student')} completed the ${subject} questions (${cls})`,
+      text: `${n === 1 ? g.items[0].studentName : plural(n, 'student')} completed the ${subject} test (${cls})`,
     });
   });
 
   // Credit purchases.
   (license?.history || []).forEach(h => {
     const ts = t(h.createdAt);
-    if (!Number.isNaN(ts) && h.status === 'successful') events.push({ id: `lc-${h.id}`, ts, text: `Purchased ${plural(h.exams, 'exam credit')}` });
+    if (!Number.isNaN(ts) && h.status === 'successful') events.push({ id: `lc-${h.id}`, ts, text: `Purchased ${plural(h.exams, 'test credit')}` });
   });
 
   return events
