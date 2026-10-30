@@ -54,30 +54,30 @@ export function buildActivity({ students = [], questions = [], results = [], lic
     if (!Number.isNaN(ts)) events.push({ id: `q-${q.id}`, ts, text: `Uploaded ${q.subject} ${q.type} for ${q.class}` });
   });
 
-  // Tests / exams set (one line per class and type per action).
+  // Question sets assigned (one line per class and type per action).
   const studentClass = new Map(students.map(s => [s.id, s.class]));
   const assigns = students.flatMap(s => s.assignments.map(a => ({
     ...a, ts: t(a.createdAt), cls: studentClass.get(a.studentId) || s.class,
   })));
-  cluster(assigns, a => `${a.cls}|${a.type}`, 2 * MINUTE).forEach((g, i) => {
+  cluster(assigns, a => `${a.cls}`, 2 * MINUTE).forEach((g, i) => {
     const ids = new Set(g.items.map(a => a.studentId));
     const subjects = [...new Set(g.items.map(a => a.subject))];
-    const [cls, type] = g.key.split('|');
+    const [cls] = g.key.split('|');
     const subj = subjects.length > 3 ? `${subjects.slice(0, 3).join(', ')} +${subjects.length - 3} more` : subjects.join(', ');
     events.push({
       id: `as-${i}-${g.end}`, ts: g.end,
-      text: `Set ${type} for ${ids.size === 1 ? '1 student' : plural(ids.size, 'student')} in ${cls}: ${subj}`,
+      text: `Assigned questions to ${ids.size === 1 ? '1 student' : plural(ids.size, 'student')} in ${cls}: ${subj}`,
     });
   });
 
-  // Students who finished a test / exam (one line per exam and class, per day).
+  // Students who finished a question set (one line per exam and class, per day).
   cluster(results.map(r => ({ ...r, ts: t(r.createdAt) })),
-    r => `${r.class}|${r.subject}|${r.type}`, 6 * 60 * MINUTE).forEach((g, i) => {
+    r => `${r.class}|${r.subject}`, 6 * 60 * MINUTE).forEach((g, i) => {
     const n = g.items.length;
-    const [cls, subject, type] = g.key.split('|');
+    const [cls, subject] = g.key.split('|');
     events.push({
       id: `rs-${i}-${g.end}`, ts: g.end,
-      text: `${n === 1 ? g.items[0].studentName : plural(n, 'student')} completed the ${subject} ${type}${n === 1 ? '' : ''} (${cls})`,
+      text: `${n === 1 ? g.items[0].studentName : plural(n, 'student')} completed the ${subject} questions (${cls})`,
     });
   });
 

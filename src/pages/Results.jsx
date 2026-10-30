@@ -29,7 +29,6 @@ export default function Results({ results, setResults, license }) {
   const [search, setSearch] = useState('');
   const [classFilter, setClassFilter] = useState('all');
   const [subjectFilter, setSubjectFilter] = useState('all');
-  const [typeFilter, setTypeFilter] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
@@ -61,7 +60,6 @@ export default function Results({ results, setResults, license }) {
         r.username.toLowerCase().includes(search.trim().toLowerCase());
       const matchesClass = classFilter === 'all' || r.class === classFilter;
       const matchesSubject = subjectFilter === 'all' || r.subject === subjectFilter;
-      const matchesType = typeFilter === 'all' || r.type === typeFilter;
       let matchesDate = true;
       if (dateFrom || dateTo) {
         const day = resultDay(r);
@@ -72,14 +70,13 @@ export default function Results({ results, setResults, license }) {
     if (sortBy === 'name') return [...list].sort((a, b) => a.studentName.localeCompare(b.studentName));
     if (sortBy === 'score') return [...list].sort((a, b) => percentOf(b) - percentOf(a));
     return list; // newest first, as loaded
-  }, [results, search, classFilter, subjectFilter, typeFilter, sortBy, dateFrom, dateTo]);
+  }, [results, search, classFilter, subjectFilter, sortBy, dateFrom, dateTo]);
 
   // A plain-English line describing what's being printed, e.g.
-  // "Class: JSS1 · Subject: Mathematics · Exams only".
+  // "Class: JSS1 · Subject: Mathematics".
   const filterSummary = [
     classFilter !== 'all' ? `Class: ${classFilter}` : 'All classes',
     subjectFilter !== 'all' ? `Subject: ${subjectFilter}` : 'All subjects',
-    typeFilter === 'test' ? 'Tests only' : typeFilter === 'exam' ? 'Exams only' : 'Tests & exams',
     dateFrom || dateTo ? `Date: ${dateFrom || 'start'} to ${dateTo || 'today'}` : null,
     search.trim() ? `Search: "${search.trim()}"` : null,
   ].filter(Boolean).join(' · ');
@@ -111,7 +108,7 @@ export default function Results({ results, setResults, license }) {
     };
     for (const t of tables) {
       const rows = t.rows.map((row, i) => {
-        const out = { '#': i + 1, Student: row.studentName, Username: row.username, Class: row.class, Type: row.type === 'exam' ? 'Exam' : 'Test', Date: row.date };
+        const out = { '#': i + 1, Student: row.studentName, Username: row.username, Class: row.class, Date: row.date };
         for (const sub of t.subjects) {
           const r = row.cells.get(sub);
           out[sub] = r ? `${r.score} / ${r.total}` : '';
@@ -127,7 +124,7 @@ export default function Results({ results, setResults, license }) {
     if (single.length > 0 || tables.length === 0) {
       const rows = single.map((r, i) => ({
         '#': i + 1, Student: r.studentName, Username: r.username, Class: r.class, Subject: r.subject,
-        Type: r.type, Title: r.exam, Date: r.date, Score: r.score, Total: r.total,
+        Title: r.exam, Date: r.date, Score: r.score, Total: r.total,
       }));
       const sheet = XLSX.utils.json_to_sheet(rows);
       sheet['!cols'] = [{ wch: 4 }, { wch: 26 }, { wch: 16 }, { wch: 10 }, { wch: 20 }, { wch: 8 }, { wch: 26 }, { wch: 12 }, { wch: 7 }, { wch: 7 }];
@@ -162,7 +159,7 @@ export default function Results({ results, setResults, license }) {
             <span className="rail-check"><Check size={13} /></span>
             <span>
               <span className="rail-step-title">{scopeText || 'All classes and subjects'}</span>
-              <span className="rail-step-desc">{typeFilter === 'test' ? 'Tests only' : typeFilter === 'exam' ? 'Exams only' : 'Tests and exams'} shown below.</span>
+                <span className="rail-step-desc">Filters apply to the list below.</span>
             </span>
           </li>
           <li>
@@ -236,14 +233,6 @@ export default function Results({ results, setResults, license }) {
                 <ChevronDown size={15} />
               </label>
               <label className="select-pill">
-                <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)}>
-                  <option value="all">Tests &amp; exams</option>
-                  <option value="test">Tests only</option>
-                  <option value="exam">Exams only</option>
-                </select>
-                <ChevronDown size={15} />
-              </label>
-              <label className="select-pill">
                 <select value={sortBy} onChange={e => setSortBy(e.target.value)} aria-label="Sort results">
                   <option value="newest">Newest first</option>
                   <option value="name">Name A–Z</option>
@@ -288,7 +277,7 @@ export default function Results({ results, setResults, license }) {
                                 <span className="student-avatar">{initials(row.studentName)}</span>
                                 <span>
                                   <span className="cell-strong">{row.studentName}</span>
-                                  <span className="cell-sub">{row.username} · {row.type === 'exam' ? 'Exam' : 'Test'}{row.date ? ` · ${row.date}` : ''}</span>
+                                  <span className="cell-sub">{row.username}{row.date ? ` · ${row.date}` : ''}</span>
                                 </span>
                               </div>
                             </td>
@@ -348,7 +337,7 @@ export default function Results({ results, setResults, license }) {
                           <td>{r.class}</td>
                           <td>
                             {r.subject}
-                            <span className="cell-sub">{r.type === 'exam' ? 'Exam' : 'Test'} · {r.exam}{r.date ? ` · ${r.date}` : ''}</span>
+                            <span className="cell-sub">{r.exam}{r.date ? ` · ${r.date}` : ''}</span>
                           </td>
                           <td className="cell-strong">{r.score} / {r.total}</td>
                           <td>
@@ -383,7 +372,7 @@ export default function Results({ results, setResults, license }) {
         <Modal title={confirmDelete.length > 1 ? 'Delete these results?' : 'Delete this result?'} onClose={() => !deleting && setConfirmDelete(null)} width={420}>
           <div className="password-confirm-summary" style={{ marginBottom: '1em' }}>
             <span>
-              <b>{confirmDelete[0].studentName}</b> · {confirmDelete[0].class} · {confirmDelete[0].type === 'exam' ? 'Exam' : 'Test'}{confirmDelete[0].date ? ` · ${confirmDelete[0].date}` : ''}
+              <b>{confirmDelete[0].studentName}</b> · {confirmDelete[0].class} {confirmDelete[0].date ? '' : ''}{confirmDelete[0].date ? ` · ${confirmDelete[0].date}` : ''}
               {confirmDelete.map(r => <React.Fragment key={r.id}><br />{r.subject}: {r.score} / {r.total}</React.Fragment>)}
             </span>
           </div>

@@ -44,12 +44,11 @@ export default function ResultsPrintSheet({ school, job, rows, sortBy = 'newest'
             <div className="print-section">Subjects taken together</div>
             <table className="print-table">
               <thead>
-                <tr><th>Type</th><th>Date</th>{t.subjects.map(sub => <th key={sub}>{sub}</th>)}<th>Total</th></tr>
+                <tr><th>Date</th>{t.subjects.map(sub => <th key={sub}>{sub}</th>)}<th>Total</th></tr>
               </thead>
               <tbody>
                 {t.rows.map(row => (
                   <tr key={row.key}>
-                    <td style={{ textTransform: 'capitalize' }}>{row.type}</td>
                     <td style={{ whiteSpace: 'nowrap' }}>{row.date}</td>
                     {t.subjects.map(sub => {
                       const r = row.cells.get(sub);
@@ -67,13 +66,12 @@ export default function ResultsPrintSheet({ school, job, rows, sortBy = 'newest'
             {sittings.tables.length > 0 && <div className="print-section">Single-subject results</div>}
             <table className="print-table">
               <thead>
-                <tr><th>Subject</th><th>Type</th><th>Title</th><th>Date</th><th>Score</th></tr>
+                <tr><th>Subject</th><th>Title</th><th>Date</th><th>Score</th></tr>
               </thead>
               <tbody>
                 {sittings.singles.map(r => (
                   <tr key={r.id}>
                     <td>{r.subject}</td>
-                    <td style={{ textTransform: 'capitalize' }}>{r.type}</td>
                     <td>{r.exam}</td>
                     <td>{r.date}</td>
                     <td>{r.score}/{r.total}</td>
@@ -119,7 +117,7 @@ export default function ResultsPrintSheet({ school, job, rows, sortBy = 'newest'
             <table className="print-table">
               <thead>
                 <tr>
-                  <th>#</th><th>Student</th><th>Username</th><th>Class</th><th>Type</th><th>Date</th>
+                  <th>#</th><th>Student</th><th>Username</th><th>Class</th><th>Date</th>
                   {t.subjects.map(sub => <th key={sub}>{sub}</th>)}
                   <th>Total</th>
                 </tr>
@@ -131,7 +129,6 @@ export default function ResultsPrintSheet({ school, job, rows, sortBy = 'newest'
                     <td>{row.studentName}</td>
                     <td>{row.username}</td>
                     <td>{row.class}</td>
-                    <td style={{ textTransform: 'capitalize' }}>{row.type}</td>
                     <td style={{ whiteSpace: 'nowrap' }}>{row.date}</td>
                     {t.subjects.map(sub => {
                       const r = row.cells.get(sub);
@@ -151,7 +148,7 @@ export default function ResultsPrintSheet({ school, job, rows, sortBy = 'newest'
               <thead>
                 <tr>
                   <th>#</th><th>Student</th><th>Username</th><th>Class</th><th>Subject</th>
-                  <th>Type</th><th>Title</th><th>Date</th><th>Score</th>
+                  <th>Title</th><th>Date</th><th>Score</th>
                 </tr>
               </thead>
               <tbody>
@@ -162,7 +159,6 @@ export default function ResultsPrintSheet({ school, job, rows, sortBy = 'newest'
                     <td>{r.username}</td>
                     <td>{r.class}</td>
                     <td>{r.subject}</td>
-                    <td style={{ textTransform: 'capitalize' }}>{r.type}</td>
                     <td>{r.exam}</td>
                     <td>{r.date}</td>
                     <td>{r.score}/{r.total}</td>

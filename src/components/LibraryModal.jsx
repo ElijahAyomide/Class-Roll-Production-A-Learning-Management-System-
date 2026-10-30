@@ -92,7 +92,7 @@ export default function LibraryModal({ onClose, onCreated, presetClass, presetTy
       <Modal title="Added to your Question Bank" onClose={onClose} width={440}>
         <p className="confirm-text">
           <b>{done.title}</b> now has <b>{done.questionCount}</b> {done.questionCount === 1 ? 'question' : 'questions'} for {done.class} ({done.subject}).
-          {presetClass ? ' It is selected for you below.' : ' You can set it as a test or exam from the Dashboard.'}
+          {presetClass ? ' It is selected for you below.' : ' You can assign it to students from the Dashboard.'}
         </p>
         <div className="confirm-actions"><button className="btn-primary" onClick={onClose}>Done</button></div>
       </Modal>

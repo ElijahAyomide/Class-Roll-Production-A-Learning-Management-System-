@@ -86,7 +86,7 @@ export default function StudentHome() {
 
   const groupIds = [...new Set(todo.map(a => a.groupId))];
   const totalMinutes = groupIds.reduce((n, gid) => n + (groups[gid]?.totalMinutes || 0), 0);
-  const kind = todo[0]?.type === 'exam' ? 'Exam' : 'Test';
+  const kind = 'Assessment';
 
   const rail = (
     <>
@@ -142,7 +142,7 @@ export default function StudentHome() {
             <div className="sp-card-head">
               <div className="sp-card-title">
                 Ready to take
-                <span className="sp-pill">{subjects[0].type === 'exam' ? 'Exam' : 'Test'} · {subjects.length} subject{subjects.length === 1 ? '' : 's'}</span>
+                <span className="sp-pill">Assessment · {subjects.length} subject{subjects.length === 1 ? '' : 's'}</span>
               </div>
             </div>
 

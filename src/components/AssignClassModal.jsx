@@ -11,7 +11,7 @@ import { DURATION_OPTIONS } from '../data/mockData';
 // Ignore capital letters and extra spaces when comparing names.
 const norm = (t) => String(t || '').trim().replace(/\s+/g, ' ').toLowerCase();
 
-// Set a test or exam for every student of one class in a single step.
+// Assign a question set to every student of one class in a single step.
 export default function AssignClassModal({ students, setStudents, questions, setQuestions, license, setLicense, onClose }) {
   const { classes: CLASSES, studentSubjects } = useClassSetup();
   const { school } = useSchool();
@@ -77,7 +77,7 @@ export default function AssignClassModal({ students, setStudents, questions, set
     try {
       const created = await assignToClass(plan, type, date, duration);
       const newBalance = await deductLicense(school.id, credits);
-      const status = type === 'test' ? 'test-active' : 'exam-active';
+      const status = 'test-active';
       const bySt = new Map(plan.map(p => [p.studentId, new Set(p.items.map(it => it.subject))]));
       setStudents(prev => prev.map(s => {
         const subs = bySt.get(s.id);

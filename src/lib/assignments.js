@@ -66,7 +66,7 @@ export async function replaceAssignments(studentId, type, subjects) {
   if (error) throw error;
 }
 
-// Sets the same test/exam for many students at once (a whole class).
+// Assigns the same question set for many students at once (a whole class).
 // `plan` is [{ studentId, items: [{ questionId, subject }] }] — each student
 // gets only the subjects they take. Returns the created assignment rows.
 export async function assignToClass(plan, type, date, durationMinutes) {
@@ -82,7 +82,7 @@ export async function assignToClass(plan, type, date, durationMinutes) {
   const created = await createAssignments(rows);
   const { error } = await supabase
     .from('students')
-    .update({ status: type === 'test' ? 'test-active' : 'exam-active' })
+    .update({ status: 'test-active' })
     .in('id', plan.map(p => p.studentId));
   if (error) throw error;
   return created;

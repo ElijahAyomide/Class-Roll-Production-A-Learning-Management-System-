@@ -250,7 +250,7 @@ export default function StudentExam() {
         <div className="sp-exam-header-main">
           <div className="sp-exam-header-icon"><ClipboardCheck size={20} /></div>
           <div className="sp-exam-header-text">
-            <div className="sp-eyebrow">{subjects[0].type === 'exam' ? 'Exam' : 'Test'} · {subjects.length} subject{subjects.length === 1 ? '' : 's'}</div>
+            <div className="sp-eyebrow">Assessment · {subjects.length} subject{subjects.length === 1 ? '' : 's'}</div>
             <h1 className="sp-exam-title">{active.subject} — {active.title}</h1>
           </div>
         </div>

@@ -11,7 +11,7 @@ import { useClassSetup } from '../context/ClassSetupContext';
 import { useSchool } from '../context/SchoolContext';
 import { useScrollHandoff } from '../lib/useScrollHandoff';
 import { createStudent, updateStudent, deleteStudent } from '../lib/students';
-import { nextUsername, studentSequence, STUDENT_STATUSES, statusLabel, statusBadgeTone } from '../data/mockData';
+import { nextUsername, studentSequence, STUDENT_STATUSES, normaliseStatus, statusLabel, statusBadgeTone } from '../data/mockData';
 
 export default function Students({ students, setStudents, questions = [], license, setLicense }) {
   const { classes: CLASSES, subjectsFor: subjectPoolForClass } = useClassSetup();
@@ -36,7 +36,7 @@ export default function Students({ students, setStudents, questions = [], licens
         s.name.toLowerCase().includes(search.trim().toLowerCase()) ||
         s.username.toLowerCase().includes(search.trim().toLowerCase());
       const matchesClass = classFilter === 'all' || s.class === classFilter;
-      const matchesStatus = statusFilter === 'all' || s.status === statusFilter;
+      const matchesStatus = statusFilter === 'all' || normaliseStatus(s.status) === statusFilter;
       return matchesSearch && matchesClass && matchesStatus;
     });
   }, [students, search, classFilter, statusFilter]);
@@ -302,10 +302,10 @@ export default function Students({ students, setStudents, questions = [], licens
             </div>
             <div className="field">
               <label>Status</label>
-              <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}>
+              <select value={normaliseStatus(form.status)} onChange={e => setForm({ ...form, status: e.target.value })}>
                 {STUDENT_STATUSES.map(s => <option key={s} value={s}>{statusLabel(s)}</option>)}
               </select>
-              <div className="field-hint">Test Active / Exam Active are normally set automatically from the Dashboard's "Set Test" / "Set Exam" buttons — changing it here overrides that manually.</div>
+              <div className="field-hint">Assigned is normally set automatically when you assign a question set from the Dashboard — changing it here overrides that manually.</div>
             </div>
             {error && <div className="error-text">{error}</div>}
             <button type="submit" className="btn-primary" disabled={saving}>

@@ -152,7 +152,7 @@ export default function Dashboard({ students, setStudents, questions, setQuestio
       // never end up with duplicate rows for the same student/subject/type combination.
       await replaceAssignments(student.id, type, newSubjects);
       const createdRows = await createAssignments(newAssignmentInputs);
-      const updatedStudent = await updateStudent(student.id, { status: type === 'test' ? 'test-active' : 'exam-active' });
+      const updatedStudent = await updateStudent(student.id, { status: 'test-active' });
       const newBalance = await deductLicense(school.id, selectedCount);
 
       setStudents(prev => prev.map(s => s.id === student.id
@@ -341,7 +341,7 @@ export default function Dashboard({ students, setStudents, questions, setQuestio
                       <div className="search-result-meta">{s.username} · {s.class}</div>
                     </div>
                     <div className="row-actions" onClick={e => e.stopPropagation()}>
-                      <button className="assign-q-btn" onClick={() => openAssign(s, 'test')} title="Assign a question set (test or exam) to this student"><ClipboardList size={14} /> <b>Assign questions</b></button>
+                      <button className="assign-q-btn" onClick={() => openAssign(s, 'test')} title="Assign a question set to this student"><ClipboardList size={14} /> <b>Assign</b></button>
                       <button className="icon-btn" onClick={() => openEditFor(s)} aria-label="Edit" title="Edit"><Pencil size={13} /></button>
                       <button className="icon-btn icon-btn-danger" onClick={() => setConfirmDelete(s)} aria-label="Delete" title="Delete"><Trash2 size={13} /></button>
                     </div>
@@ -390,7 +390,6 @@ export default function Dashboard({ students, setStudents, questions, setQuestio
                 <div className="assignment-list">
                   {viewingStudent.assignments.map(a => (
                     <div key={a.id} className="assignment-row">
-                      <Badge tone={a.type === 'exam' ? 'class' : 'purple'}>{a.type}</Badge>
                       <span className="cell-strong">{a.subject}</span>
                       <span className="cell-dim-sm">{a.date} · {a.durationMinutes} min total</span>
                     </div>
@@ -399,7 +398,7 @@ export default function Dashboard({ students, setStudents, questions, setQuestio
               </>
             )}
             <div className="detail-assign-row">
-              <button className="btn-ghost assign-q-wide" onClick={() => openAssign(viewingStudent, 'test')}><ClipboardList size={14} /> <b>Assign question set to this student</b></button>
+              <button className="btn-ghost assign-q-wide" onClick={() => openAssign(viewingStudent, 'test')}><ClipboardList size={14} /> <b>Assign</b></button>
             </div>
             <div className="confirm-actions confirm-actions-split" style={{ marginTop: 14 }}>
               <button className="btn-danger" onClick={() => setConfirmDelete(viewingStudent)}><Trash2 size={13} /> Delete</button>
@@ -439,10 +438,9 @@ export default function Dashboard({ students, setStudents, questions, setQuestio
             </div>
             <div className="field">
               <label>Status</label>
-              <select value={editForm.status} onChange={e => setEditForm({ ...editForm, status: e.target.value })}>
+              <select value={editForm.status === 'exam-active' ? 'test-active' : editForm.status} onChange={e => setEditForm({ ...editForm, status: e.target.value })}>
                 <option value="pending">Pending</option>
-                <option value="test-active">Test Active</option>
-                <option value="exam-active">Exam Active</option>
+                <option value="test-active">Assigned</option>
                 <option value="suspended">Suspended</option>
               </select>
             </div>
