@@ -1,12 +1,13 @@
 import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, CreditCard, FileText, ClipboardList, Search, UserPlus, Pencil, Trash2, X, ListChecks, GraduationCap, Check } from 'lucide-react';
+import { Users, CreditCard, FileText, ClipboardList, Search, UserPlus, Pencil, Trash2, X, ListChecks, GraduationCap, Check, BookOpen } from 'lucide-react';
 import DashboardLayout from '../components/DashboardLayout';
 import StatCard from '../components/StatCard';
 import AdminRail, { adminNameFrom } from '../components/AdminRail';
 import Badge from '../components/Badge';
 import Modal from '../components/Modal';
 import AssignClassModal from '../components/AssignClassModal';
+import LibraryModal from '../components/LibraryModal';
 import { useClassSetup } from '../context/ClassSetupContext';
 import { useSchool } from '../context/SchoolContext';
 import { createStudent, updateStudent, deleteStudent } from '../lib/students';
@@ -15,7 +16,7 @@ import { deductLicense } from '../lib/license';
 import { buildActivity } from '../lib/activity';
 import { nextUsername, studentSequence, statusLabel, statusBadgeTone, DURATION_OPTIONS } from '../data/mockData';
 
-export default function Dashboard({ students, setStudents, questions, results, license, setLicense }) {
+export default function Dashboard({ students, setStudents, questions, setQuestions, results, license, setLicense }) {
   const { classes: CLASSES, subjectsFor: subjectPoolForClass, studentSubjects } = useClassSetup();
   const { school, session } = useSchool();
   const navigate = useNavigate();
@@ -36,6 +37,7 @@ export default function Dashboard({ students, setStudents, questions, results, l
 
   // Setting a test or exam for a student found via search
   const [assigning, setAssigning] = useState(null); // { student, type: 'test' | 'exam' }
+  const [libraryFor, setLibraryFor] = useState(null); // opens the Question Library from the assign pop-up
   const [assignSelectedIds, setAssignSelectedIds] = useState([]);
   const [assignDate, setAssignDate] = useState('');
   const [assignDuration, setAssignDuration] = useState(60);
@@ -472,6 +474,7 @@ export default function Dashboard({ students, setStudents, questions, results, l
                   There are question sets for {skippedSubjects.join(', ')}, but {assigning.student.name} does not take {skippedSubjects.length === 1 ? 'that subject' : 'those subjects'}. Add {skippedSubjects.length === 1 ? 'it' : 'them'} to {assigning.student.class} in Settings → Classes &amp; Subjects, then try again.
                 </p>
               )}
+              <button className="btn-ghost" style={{ marginRight: 8 }} onClick={() => setLibraryFor(assigning)}><BookOpen size={14} /> Add from Library</button>
               <button className="btn-primary" onClick={() => navigate('/question-bank')}>
                 <FileText size={14} /> Go to Question Bank
               </button>
@@ -500,6 +503,7 @@ export default function Dashboard({ students, setStudents, questions, results, l
                     Not listed: {skippedSubjects.join(', ')} — {assigning.student.name} is not in {assigning.student.class}'s subject list. Add {skippedSubjects.length === 1 ? 'it' : 'them'} in Settings → Classes &amp; Subjects.
                   </p>
                 )}
+                <button type="button" className="link-btn" style={{ marginTop: 8 }} onClick={() => setLibraryFor(assigning)}>+ Add questions from the Library (choose topics and how many)</button>
                 <div className="field-hint">
                   Only showing {assigning.type === 'test' ? 'tests' : 'exams'} marked "ready" for {assigning.student.class} in a subject {assigning.student.class} takes. Select as many as you're setting today.
                 </div>
@@ -573,9 +577,17 @@ export default function Dashboard({ students, setStudents, questions, results, l
           </div>
         </Modal>
       )}
+      {libraryFor && (
+        <LibraryModal
+          presetClass={libraryFor.student.class}
+          presetType={libraryFor.type}
+          onClose={() => setLibraryFor(null)}
+          onCreated={(set) => { setQuestions(prev => [set, ...prev]); setAssignSelectedIds(prev => [...prev, set.id]); }}
+        />
+      )}
       {classAssignOpen && (
         <AssignClassModal
-          students={students} setStudents={setStudents} questions={questions}
+          students={students} setStudents={setStudents} questions={questions} setQuestions={setQuestions}
           license={license} setLicense={setLicense} onClose={() => setClassAssignOpen(false)}
         />
       )}

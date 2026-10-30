@@ -142,7 +142,7 @@ function AdminArea() {
     <ClassSetupProvider classRows={classRows} setClassRows={setClassRows}>
     <Routes>
       <Route path="dashboard" element={
-        <Dashboard students={students} setStudents={setStudents} questions={questions} results={results} license={license} setLicense={setLicense} />
+        <Dashboard students={students} setStudents={setStudents} questions={questions} setQuestions={setQuestions} results={results} license={license} setLicense={setLicense} />
       } />
       <Route path="students" element={<Students students={students} setStudents={setStudents} questions={questions} license={license} setLicense={setLicense} />} />
       <Route path="question-bank" element={<QuestionBank questions={questions} setQuestions={setQuestions} students={students} license={license} />} />

@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { Users } from 'lucide-react';
+import { Users, BookOpen } from 'lucide-react';
+import LibraryModal from './LibraryModal';
 import Modal from './Modal';
 import { useClassSetup } from '../context/ClassSetupContext';
 import { useSchool } from '../context/SchoolContext';
@@ -11,7 +12,7 @@ import { DURATION_OPTIONS } from '../data/mockData';
 const norm = (t) => String(t || '').trim().replace(/\s+/g, ' ').toLowerCase();
 
 // Set a test or exam for every student of one class in a single step.
-export default function AssignClassModal({ students, setStudents, questions, license, setLicense, onClose }) {
+export default function AssignClassModal({ students, setStudents, questions, setQuestions, license, setLicense, onClose }) {
   const { classes: CLASSES, studentSubjects } = useClassSetup();
   const { school } = useSchool();
 
@@ -24,6 +25,7 @@ export default function AssignClassModal({ students, setStudents, questions, lic
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [doneInfo, setDoneInfo] = useState(null);
+  const [libraryOpen, setLibraryOpen] = useState(false);
 
   const classStudents = useMemo(() => students.filter(s => norm(s.class) === norm(cls)), [students, cls]);
 
@@ -111,6 +113,7 @@ export default function AssignClassModal({ students, setStudents, questions, lic
   }
 
   return (
+    <>
     <Modal title="Set test or exam for a whole class" onClose={onClose} width={520}>
       <div className="form-row-2">
         <div className="field">
@@ -131,9 +134,14 @@ export default function AssignClassModal({ students, setStudents, questions, lic
       {classStudents.length === 0 ? (
         <p className="confirm-text">There are no students in {cls} yet.</p>
       ) : available.length === 0 ? (
-        <p className="confirm-text">
-          No ready {type === 'test' ? 'tests' : 'exams'} in the Question Bank for {cls} yet.
-        </p>
+        <>
+          <p className="confirm-text">
+            No ready {type === 'test' ? 'tests' : 'exams'} in the Question Bank for {cls} yet.
+          </p>
+          <div className="confirm-actions" style={{ justifyContent: 'flex-start' }}>
+            <button className="btn-primary" onClick={() => setLibraryOpen(true)}><BookOpen size={14} /> Add from Library</button>
+          </div>
+        </>
       ) : (
         <>
           <div className="field">
@@ -151,6 +159,7 @@ export default function AssignClassModal({ students, setStudents, questions, lic
                 </label>
               ))}
             </div>
+            <button type="button" className="link-btn" style={{ marginTop: 8 }} onClick={() => setLibraryOpen(true)}>+ Add questions from the Library (choose topics and how many)</button>
             <div className="field-hint">
               Each student gets the selected subjects that their class takes, plus any extra subjects they were registered for.
             </div>
@@ -200,5 +209,14 @@ export default function AssignClassModal({ students, setStudents, questions, lic
         </>
       )}
     </Modal>
+    {libraryOpen && (
+      <LibraryModal
+        presetClass={cls}
+        presetType={type}
+        onClose={() => setLibraryOpen(false)}
+        onCreated={(set) => { setQuestions(prev => [set, ...prev]); setSelectedIds(prev => [...prev, set.id]); }}
+      />
+    )}
+    </>
   );
 }

@@ -1827,3 +1827,15 @@ body:has(.sp-exam-screen) { background: #EEF0F9; }
 .sitting-total { min-width: 6.5em; }
 .sitting-cell { min-width: 5.6em; }
 @media (max-width: 720px) { .roster-table.sitting-table td { padding-left: 0.6em !important; padding-right: 0.6em !important; } .roster-table.sitting-table td:first-child { padding-left: 0.8em !important; } }
+
+/* Question Library pop-up */
+.lib-subject-list { max-height: 22em; }
+.lib-subject-row { display: flex; align-items: center; gap: 0.9em; width: 100%; background: none; border: 0; border-radius: 0.7em; padding: 0.8em 0.9em; font: inherit; color: var(--ink); cursor: pointer; text-align: left; }
+.lib-subject-row:hover { background: #F6F7FD; }
+.lib-subject-icon { width: 2.4em; height: 2.4em; border-radius: 0.7em; background: #EAEFFF; color: #385DE9; display: grid; place-items: center; flex-shrink: 0; }
+.lib-subject-text { flex: 1; min-width: 0; }
+.lib-subject-text .cell-dim-sm { display: block; }
+.lib-back { display: inline-flex; align-items: center; gap: 0.4em; background: none; border: 0; color: #385DE9; font: inherit; font-size: 0.88em; cursor: pointer; padding: 0; margin-bottom: 1em; }
+.lib-back:hover { text-decoration: underline; }
+.lib-topic-tools { display: flex; gap: 1em; margin: -0.2em 0 0.5em; font-size: 0.85em; }
+.modal-overlay .field input:disabled { background: #F1F3FA; color: var(--ink-dim); }

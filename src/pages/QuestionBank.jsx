@@ -1,10 +1,11 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { Upload, Trash2, Pencil, FileText, File as FileIcon, Download, Search, ChevronDown, MoreHorizontal, Check, ListChecks, GraduationCap } from 'lucide-react';
+import { BookOpen, Upload, Trash2, Pencil, FileText, File as FileIcon, Download, Search, ChevronDown, MoreHorizontal, Check, ListChecks, GraduationCap } from 'lucide-react';
 import QuestionEditorModal from '../components/QuestionEditorModal';
 import DashboardLayout from '../components/DashboardLayout';
 import Badge from '../components/Badge';
 import AdminRail from '../components/AdminRail';
 import Modal from '../components/Modal';
+import LibraryModal from '../components/LibraryModal';
 import { useClassSetup } from '../context/ClassSetupContext';
 import { useSchool } from '../context/SchoolContext';
 import { useScrollHandoff } from '../lib/useScrollHandoff';
@@ -23,6 +24,7 @@ export default function QuestionBank({ questions, setQuestions, students = [], l
   const [subjectFilter, setSubjectFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
   const [uploading, setUploading] = useState(false);
+  const [libraryOpen, setLibraryOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [editing, setEditing] = useState(null);
   const [search, setSearch] = useState('');
@@ -152,6 +154,7 @@ export default function QuestionBank({ questions, setQuestions, students = [], l
           </div>
           <div className="panel-actions">
             <a className="btn-ghost" href="/templates/assessly-question-template.xlsx" download><Download size={15} /> Download template</a>
+            <button className="btn-ghost" onClick={() => setLibraryOpen(true)}><BookOpen size={15} /> Question Library</button>
             <button className="btn-primary" onClick={() => setUploading(true)}><Upload size={15} /> Upload questions</button>
           </div>
         </div>
@@ -251,6 +254,13 @@ export default function QuestionBank({ questions, setQuestions, students = [], l
         <span>{school.name}</span>
         <span>© {new Date().getFullYear()} Assessly</span>
       </div>
+
+      {libraryOpen && (
+        <LibraryModal
+          onClose={() => setLibraryOpen(false)}
+          onCreated={(set) => setQuestions(prev => [set, ...prev])}
+        />
+      )}
 
       {uploading && (
         <Modal title="Upload Questions" onClose={() => setUploading(false)}>
