@@ -34,26 +34,25 @@ export default function AssignClassModal({ students, setStudents, questions, set
       .filter(q => q.type === type && norm(q.class) === norm(cls) && q.status === 'ready')
       .map(q => ({
         ...q,
-        takers: classStudents.filter(s => studentSubjects(s).some(sub => norm(sub) === norm(q.subject))).length,
+        takers: classStudents.length,
       }));
-  }, [questions, type, cls, classStudents, studentSubjects]);
+  }, [questions, type, cls, classStudents]);
 
   const toggle = (id) => setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
   const changeType = (t) => { setType(t); setSelectedIds([]); };
   const changeClass = (c) => { setCls(c); setSelectedIds([]); };
 
-  // Who gets what: each student only receives the selected subjects they take.
+  // Who gets what: every student in the class receives every selected subject.
   const plan = useMemo(() => {
     const chosen = available.filter(q => selectedIds.includes(q.id));
     return classStudents
       .map(s => ({
         studentId: s.id,
         items: chosen
-          .filter(q => studentSubjects(s).some(sub => norm(sub) === norm(q.subject)))
           .map(q => ({ questionId: q.id, subject: q.subject })),
       }))
       .filter(p => p.items.length > 0);
-  }, [available, selectedIds, classStudents, studentSubjects]);
+  }, [available, selectedIds, classStudents]);
 
   const credits = plan.reduce((n, p) => n + p.items.length, 0);
   const notEnough = credits > license.balance;

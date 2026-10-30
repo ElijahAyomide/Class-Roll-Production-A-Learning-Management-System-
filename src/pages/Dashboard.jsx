@@ -111,26 +111,19 @@ export default function Dashboard({ students, setStudents, questions, setQuestio
     if (!assigning) return [];
     // Compare subject names ignoring capital letters and extra spaces, so
     // "Livestock" and "livestock " are treated as the same subject.
+    // Every ready question set for the student's class is offered, whichever
+    // subjects the student was registered with.
     const norm = (t) => String(t || '').trim().replace(/\s+/g, ' ').toLowerCase();
-    const mine = new Set(studentSubjects(assigning.student).map(norm));
     return questions.filter(q =>
       q.type === assigning.type &&
       norm(q.class) === norm(assigning.student.class) &&
-      mine.has(norm(q.subject)) &&
       q.status === 'ready'
     );
-  }, [assigning, questions, studentSubjects]);
+  }, [assigning, questions]);
 
   // Question sets that match the student's class and type but whose subject
   // the student doesn't take — the usual reason a subject "goes missing".
-  const skippedSubjects = useMemo(() => {
-    if (!assigning) return [];
-    const norm = (t) => String(t || '').trim().replace(/\s+/g, ' ').toLowerCase();
-    const mine = new Set(studentSubjects(assigning.student).map(norm));
-    return [...new Set(questions
-      .filter(q => q.type === assigning.type && norm(q.class) === norm(assigning.student.class) && q.status === 'ready' && !mine.has(norm(q.subject)))
-      .map(q => q.subject))];
-  }, [assigning, questions, studentSubjects]);
+  const skippedSubjects = []; // nothing is skipped any more: every subject of the class is offered
 
   const toggleAssignQuestion = (id) => {
     setAssignSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
